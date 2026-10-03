@@ -31,10 +31,10 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
 <div class="wrap">
   <div>
     <h1>False Awakening, Scene 5</h1>
-    <p class="sub">Ethan gets a glass of water. The clock says 3 AM. The lights go out. About 50 seconds. Turn the sound on and press play.</p>
+    <p class="sub">Ethan gets a glass of water. It is 3 AM. He goes back to sleep. About 50 seconds. Turn the sound on and press play.</p>
   </div>
   <div class="frame">
-    <canvas id="c" width="1280" height="720" aria-label="Animated horror scene: a glass of water at 3 AM, the lights go out, and eyes under the bed"></canvas>
+    <canvas id="c" width="1280" height="720" aria-label="Animated horror scene: a glass of water at 3 AM, back to sleep, and eyes under the bed"></canvas>
     <button class="big" id="big" aria-label="Play with sound"><span>Play with sound</span></button>
   </div>
   <div class="bar">
@@ -348,18 +348,14 @@ function roomBlur(D,div,camY){withBlur(div,()=>bedroomWorld(D,camY,0,'07:12'))}
 const NIGHT='10,16,40';
 const easeOut=x=>1-Math.pow(1-clamp(x,0,1),3);
 const dart=D=>[(rnd(Math.floor(D*2.6))*2-1)*.9,(rnd(Math.floor(D*2.6)+7)*2-1)*.3];
-const LAMP_ON=3.75,FLIP=21,FLICK=26.6,DARK=28.2;
-// lamp: off, pulled on, then it stutters and dies with the power
-function lampL(D){
-  if(D<LAMP_ON)return 0;
-  if(D<FLICK)return 1;
-  if(D<DARK){const k=(D-FLICK)/(DARK-FLICK);return rnd(Math.floor(D*14)+3)>.25+k*.5?1-k*.35:.06}
-  return 0;
-}
-const clockOn=D=>D<FLICK?1:D<DARK?(lampL(D)>.3?1:.12):0;
+const LAMP_ON=3.75,FLIP=20.5,LAMP_OFF=28.1,LIE=29.35,EYES=33.8;
+// lamp: off, pulled on, then he pulls it off again to go back to sleep
+const lampL=D=>D>=LAMP_ON&&D<LAMP_OFF?1:0;
+const clockOn=D=>1;
 const clockTxt=D=>D<FLIP?'0259':'0300';
 const ETIRED={bY:0,bT:0,eye:.78,smile:-.12,open:0,skew:0,pup:1};
 const ESCARED={bY:0,bT:0,eye:1.3,smile:-.3,open:0,skew:0,pup:.55};
+const ERELIEF={bY:0,bT:0,eye:.85,smile:.25,open:0,skew:0,pup:1};
 const withSay=(e,D)=>{const r=Object.assign({},e);r.open=Math.max(r.open,sayOpen(D));return r};
 const SEG={0:'abcdef',1:'bc',2:'abged',3:'abgcd',4:'fgbc',5:'afgcd',6:'afgedc',7:'abc',8:'abcdefg',9:'abcdfg'};
 function seg7(x,y,w,h,ch,on){
@@ -469,13 +465,22 @@ function roomWide(D,o){
   if(o.glass!==false)glassAt(904,480,.9,o.glvl==null?.85:o.glvl);
   // Ethan
   const e=o.ethan;
+  if(e.lying){
+    // lying on his back, head on the pillow, blanket pulled up
+    ctx.save();ctx.translate(262,386);ctx.rotate(-.22);faceAt(0,0,50,e.expr||ETIRED,[0,0],e.blink==null?1:e.blink,ETHAN);ctx.restore();
+    ctx.fillStyle='#34405e';ctx.strokeStyle=INK;ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(206,446);ctx.quadraticCurveTo(214,424,262,424);ctx.quadraticCurveTo(330,418,350,404);
+    ctx.quadraticCurveTo(470,392+Math.sin(D*1.6)*3,560,410);ctx.quadraticCurveTo(650,404,700,428);ctx.lineTo(736,446);ctx.closePath();ctx.fill();ctx.stroke();
+    ctx.strokeStyle='rgba(0,0,0,.3)';ctx.lineWidth=3;[420,540,640].forEach(x=>{ctx.beginPath();ctx.moveTo(x,404);ctx.quadraticCurveTo(x+14,425,x-2,444);ctx.stroke()});
+  }else{
   let handR=null;if(e.reach){const kr=[EX+27*EK,SEAT+4*EK];handR=[lerp(kr[0],chain[0],e.reach),lerp(kr[1],chain[1]+4,e.reach)]}
   sitter(EX,SEAT,FLOOR,EK,Object.assign({t:D,handR,bendR:e.reach>.3?1:-1},e));
+  }
   // light
   ctx.fillStyle='rgba('+NIGHT+','+(.5-.3*L)+')';ctx.fillRect(0,0,W,H);
   lampGlow(790,400,720,L);
-  if(D>=DARK){ctx.fillStyle='rgba(0,0,0,.42)';ctx.fillRect(0,0,W,H)}
-  if(clockOn(D)>.05)alarmClock(850,462,.26,clockTxt(D),clockOn(D),D,1);
+  if(D>=LAMP_OFF){ctx.fillStyle='rgba(0,0,0,.38)';ctx.fillRect(0,0,W,H)}
+  alarmClock(850,462,.26,clockTxt(D),clockOn(D),D,1);
+  if(o.eyes>0)glowEyes(560,562,30,8,3.4,o.eyes,0,1);
 }
 // 0-7.5: sitting on the edge of the bed, catching his breath. He pulls the lamp on.
 function wakeWide(D){
@@ -522,7 +527,7 @@ function faceSit(D,R,e,look,blink,o){
 function drinking(D){
   const R=210,up=ease(clamp((D-11.6)/.8,0,1))*(1-ease(clamp((D-15)/.7,0,1))),drink=clamp((D-12.4)/2.4,0,1);
   const gulp=D>12.4&&D<14.8?Math.max(0,Math.sin((D-12.4)*Math.PI/.8))*6:0;
-  const e=mixE(ETIRED,{bY:0,bT:0,eye:.95,smile:.05,open:.05,skew:0,pup:1},sm(15.4,16,D));
+  const e=mixE(ETIRED,ERELIEF,sm(15.4,16,D));
   if(up>.6)e.open=.3;
   faceSit(D,R,withSay(e,D),[0,.1],D>12.3&&D<15.1?0:1,{L:1,dy:-gulp,after:(fx,fy)=>{
     if(up<=0)return;
@@ -535,30 +540,31 @@ function drinking(D){
     ctx.strokeStyle='rgba(28,30,38,.35)';ctx.lineWidth=3;[-6,4].forEach(y=>{ctx.beginPath();ctx.moveTo(-14*s,y*s);ctx.lineTo(4*s,y*s);ctx.stroke()});ctx.restore();
   }});
 }
-// 19-23.5: the clock. 02:59 turns to 03:00.
+// 19-22.5: the clock. 02:59 turns to 03:00.
 function clockClose(D){
   const z=lerp(1.4,1.8,ease(clamp((D-19)/4.5,0,1)));
   ctx.fillStyle='#07080c';ctx.fillRect(0,0,W,H);
   ctx.fillStyle='#1e1712';ctx.fillRect(0,H/2+70*z,W,H);
   alarmClock(W/2,H/2,z,clockTxt(D),1,D);
   const fl=D>FLIP?Math.exp(-(D-FLIP)*3):0;
-  ctx.globalCompositeOperation='screen';const g=ctx.createRadialGradient(W/2,H/2,20,W/2,H/2,600);g.addColorStop(0,'rgba(255,40,24,'+(.16+.3*fl)+')');g.addColorStop(1,'rgba(255,40,24,0)');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);ctx.globalCompositeOperation='source-over';
+  ctx.globalCompositeOperation='screen';const g=ctx.createRadialGradient(W/2,H/2,20,W/2,H/2,600);g.addColorStop(0,'rgba(255,40,24,'+(.16+.1*fl)+')');g.addColorStop(1,'rgba(255,40,24,0)');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);ctx.globalCompositeOperation='source-over';
 }
-// 23.5-26.6: his face in the red light. "...3 AM."
+// 22.5-25.5: tired and relieved, he looks at the clock. "...3 AM."
 function threeAM(D){
-  const R=lerp(230,250,ease(clamp((D-23.5)/3,0,1)));
-  faceSit(D,R,withSay(ESCARED,D),[.7,.6],D>25.95&&D<26.1?.1:1,{L:1,red:1,sweat:1});
+  const R=lerp(230,245,ease(clamp((D-22.5)/3,0,1)));
+  faceSit(D,R,withSay(mixE(ERELIEF,ETIRED,sm(24.6,25.4,D)),D),D<24.8?[.7,.6]:[0,.2],(D>23.2&&D<23.35)?.1:1,{L:1,red:.45});
 }
-// 26.6-29.5: wide. The lamp flickers and the power dies.
-function lightsDie(D){
-  const look=D<28.6?[.9,-.4]:dart(D);
-  roomWide(D,{ethan:{hunch:0,lean:0,look,expr:ESCARED}});
-}
-// 29.5-35: his face in the dark. A creak. His eyes slide down.
-function inTheDark(D){
-  const R=lerp(230,275,ease(clamp((D-29.5)/5.5,0,1)));
-  const look=D<32.6?dart(D):[lerp(0,0,1),sm(32.8,34,D)];
-  faceSit(D,R,withSay({bY:0,bT:0,eye:1.4,smile:-.35,open:0,skew:0,pup:.45},D),look,1,{dark:1,sweat:1,shake:D>32.6?Math.sin(D*37)*1.5:0});
+// 25.5-35: "Back to sleep." He pulls the lamp off and lies down. As he drifts off, two eyes open under the bed.
+function sleepWide(D){
+  const z=1+.6*ease(clamp((D-32.4)/2.6,0,1));
+  ctx.save();ctx.translate(560,566);ctx.scale(z,z);ctx.translate(-560,-566);
+  const eyes=sm(EYES,EYES+1,D);
+  if(D<LIE){
+    const reach=sm(27.3,27.95,D)*(1-sm(28.3,29,D)),pull=sm(27.95,28.1,D)*(1-sm(28.1,28.35,D));
+    roomWide(D,{pull,ethan:{hunch:.2,lean:reach*36,reach,look:D<27.2?[0,.3]:[.9,-.3],expr:withSay(mixE(ERELIEF,ETIRED,.6),D),blink:(D>26.5&&D<26.65)?.1:1}});
+  }else roomWide(D,{eyes,ethan:{lying:1,expr:ETIRED,blink:1-sm(31.3,31.9,D)}});
+  ctx.restore();
+  ctx.fillStyle='rgba(0,0,0,'+(sm(28.9,29.3,D)*(1-sm(29.4,29.9,D)))+')';ctx.fillRect(0,0,W,H);
 }
 // glowing eyes. smile curves them into a grin; open 0..1 for blinking
 function glowEyes(cx,cy,sp,w,h,open,smile,a){
@@ -569,7 +575,7 @@ function glowEyes(cx,cy,sp,w,h,open,smile,a){
   ctx.shadowBlur=0;ctx.fillStyle='rgba(255,255,255,.9)';[-1,1].forEach(s=>{const x=cx+s*sp/2;ctx.beginPath();ctx.ellipse(x,cy-h*.2*open,w*.35,h*.35*open*(1-smile*.7),0,0,7);ctx.fill()});
   ctx.restore();
 }
-// 35-41: floor level. His bare feet. Under the bed, two eyes open.
+// 35-40.5: floor level. Under the bed, the eyes are open. They blink.
 function underBed(D){
   const k=D-35,z=1+.12*ease(clamp(k/6,0,1));
   ctx.save();ctx.translate(640,400);ctx.scale(z,z);ctx.translate(-640,-400);
@@ -581,7 +587,7 @@ function underBed(D){
   // shadow under the bed reaches out over the floor
   const sg=ctx.createLinearGradient(0,HY,0,560);sg.addColorStop(0,'rgba(0,0,0,1)');sg.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=sg;ctx.fillRect(-100,HY,W+200,112);
   // the eyes
-  const open=sm(36.6,37.7,D)*(D>38.6&&D<38.9?.05:1);
+  const open=D>37.6&&D<37.9?.05:1;
   glowEyes(640,392,112,30,12,open,0,1);
   // bed frame, blanket and legs
   ctx.fillStyle='#34405e';ctx.strokeStyle=INK;ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(-100,-100);ctx.lineTo(W+100,-100);ctx.lineTo(W+100,170);
@@ -589,31 +595,23 @@ function underBed(D){
   ctx.closePath();ctx.fill();ctx.stroke();
   ctx.fillStyle='#3a2a1e';ctx.fillRect(-100,176,W+200,36);ctx.strokeRect(-100,176,W+200,36);
   [[60,150],[1130,1220]].forEach(l=>{ctx.fillStyle='#3a2a1e';ctx.fillRect(l[0],200,l[1]-l[0],370);ctx.strokeRect(l[0],200,l[1]-l[0],370)});
-  // his shins and feet, right in front of the gap
-  const lift=sm(40.2,40.9,D)*10;
-  [[512,0],[768,1]].forEach(f=>{const x=f[0],y=596-lift*f[1];cap([x,-40],[x+(f[1]?6:-6),y-34],68,PANTS);
-    const fx2=x+(f[1]?10:-10);ctx.fillStyle=SK_A;ctx.strokeStyle=INK;ctx.lineWidth=4;
-    for(let t=0;t<5;t++){const tx=fx2-36+t*18;ctx.beginPath();ctx.arc(tx,y+16,t===(f[1]?0:4)?13:10,0,7);ctx.fill();ctx.stroke()}
-    ctx.beginPath();ctx.ellipse(fx2,y,58,26,0,0,7);ctx.fill();ctx.stroke();
-    ctx.fillStyle=PANTS;ctx.beginPath();ctx.roundRect(x-40,y-70,80,26,8);ctx.fill();ctx.stroke();
-    ctx.fillStyle='rgba(0,0,0,.35)';ctx.beginPath();ctx.ellipse(x,y+26,70,10,0,0,7);ctx.fill()});
   ctx.restore();
   ctx.fillStyle='rgba('+NIGHT+',.4)';ctx.fillRect(0,0,W,H);
   ctx.fillStyle='rgba(0,0,0,'+(.35-.1*Math.sin(D*3))+')';ctx.fillRect(0,0,W,H);
   // redraw the eyes over the darkness so they shine
   ctx.save();ctx.translate(640,400);ctx.scale(z,z);ctx.translate(-640,-400);glowEyes(640,392,112,30,12,open,0,.9);ctx.restore();
 }
-// 41-43.5: close on the eyes. They narrow and rush in.
+// 40.5-43: close on the eyes. They narrow and rush in.
 function eyesClose(D){
-  const k=D-41,rush=Math.pow(clamp((D-43.05)/.45,0,1),2),z=lerp(1,1.3,ease(clamp(k/2,0,1)))*lerp(1,3.2,rush);
+  const k=D-40.5,rush=Math.pow(clamp((D-42.55)/.45,0,1),2),z=lerp(1,1.3,ease(clamp(k/2,0,1)))*lerp(1,3.2,rush);
   ctx.fillStyle='#010103';ctx.fillRect(0,0,W,H);
   const g=ctx.createRadialGradient(W/2,H/2,10,W/2,H/2,700);g.addColorStop(0,'rgba(20,18,30,1)');g.addColorStop(1,'rgba(0,0,0,1)');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
-  glowEyes(W/2,H/2-10,290*z,62*z,24*z,lerp(1,.38,sm(42.2,42.8,D)),0,1);
+  glowEyes(W/2,H/2-10,290*z,62*z,24*z,lerp(1,.38,sm(41.7,42.3,D)),0,1);
 }
-// 43.5-50: THE END
+// 43-50: THE END
 function theEnd(D){
   ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);
-  const a=sm(45.2,46.6,D)*(1-sm(49.3,49.95,D))*(.92+.08*rnd(Math.floor(D*18)));
+  const a=sm(44.7,46.1,D)*(1-sm(49.3,49.95,D))*(.92+.08*rnd(Math.floor(D*18)));
   if(a<=0)return;
   ctx.fillStyle='rgba(225,216,202,'+a+')';ctx.font='400 56px "Dela Gothic One",Impact,sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
   try{ctx.letterSpacing='10px'}catch(e){}
@@ -622,13 +620,13 @@ function theEnd(D){
   ctx.textBaseline='alphabetic';
 }
 // short (9:16) version: where to centre the vertical slice for each shot
-function shortCx(D){return D<7.5||(D>=26.6&&D<29.5)?690:(D>=7.5&&D<11.5)||(D>=17&&D<19)?700:W/2}
+function shortCx(D){return D<7.5?690:D>=25.5&&D<35?lerp(690,560,sm(32.4,35,D)):(D>=7.5&&D<11.5)||(D>=17&&D<19)?700:W/2}
 /* ---------- subtitles ---------- */
 const SUBS=[
   [5.2,7.2,'ETHAN','...Okay.',ORANGE],
   [15.7,17.2,'ETHAN',"It's over. I'm awake.",ORANGE],
-  [24.1,25.9,'ETHAN','...3 AM.',ORANGE],
-  [30.3,31.9,'ETHAN','...Mom?',ORANGE]
+  [23.6,25.2,'ETHAN','...3 AM.',ORANGE],
+  [25.9,27.3,'ETHAN','Back to sleep.',ORANGE]
 ];
 function subText(s,tt){
   if(s[5]!=='vanish')return s[3];
@@ -651,16 +649,15 @@ function render(D){
   else if(tt<11.5)standClose(tt,1);
   else if(tt<17)drinking(tt);
   else if(tt<19)standClose(tt,-1);
-  else if(tt<23.5)clockClose(tt);
-  else if(tt<26.6)threeAM(tt);
-  else if(tt<29.5)lightsDie(tt);
-  else if(tt<35)inTheDark(tt);
-  else if(tt<41)underBed(tt);
-  else if(tt<43.5)eyesClose(tt);
+  else if(tt<22.5)clockClose(tt);
+  else if(tt<25.5)threeAM(tt);
+  else if(tt<35)sleepWide(tt);
+  else if(tt<40.5)underBed(tt);
+  else if(tt<43)eyesClose(tt);
   else theEnd(tt);
   ctx.restore();
   if(SHORT){composeShort(tt);return}
-  if(tt<43.5){
+  if(tt<43){
     const v=ctx.createRadialGradient(W/2,H/2,H*.35,W/2,H/2,H*.95);v.addColorStop(0,'rgba(0,0,0,0)');v.addColorStop(1,'rgba(0,0,0,.6)');ctx.fillStyle=v;ctx.fillRect(0,0,W,H);
     ctx.globalAlpha=.07;ctx.drawImage(gn,Math.floor(rnd(D*40)*100)-100,Math.floor(rnd(D*40+3)*100)-100,W+200,H+200);ctx.globalAlpha=1;
   }
@@ -670,7 +667,7 @@ function render(D){
 function composeShort(tt){
   ctx=main;ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#000';ctx.fillRect(0,0,SW,SHH);
   ctx.imageSmoothingEnabled=true;ctx.drawImage(src,0,SBAR,SW,SPH);
-  if(tt<43.5){const cy=SBAR+SPH/2,v=ctx.createRadialGradient(SW/2,cy,SW*.35,SW/2,cy,SPH*.62);v.addColorStop(0,'rgba(0,0,0,0)');v.addColorStop(1,'rgba(0,0,0,'+.5+')');ctx.fillStyle=v;ctx.fillRect(0,SBAR,SW,SPH);
+  if(tt<43){const cy=SBAR+SPH/2,v=ctx.createRadialGradient(SW/2,cy,SW*.35,SW/2,cy,SPH*.62);v.addColorStop(0,'rgba(0,0,0,0)');v.addColorStop(1,'rgba(0,0,0,'+.5+')');ctx.fillStyle=v;ctx.fillRect(0,SBAR,SW,SPH);
     ctx.globalAlpha=.07;ctx.drawImage(gn,Math.floor(rnd(tt*40)*100)-100,SBAR+Math.floor(rnd(tt*40+3)*100)-100,SW+200,SPH+200);ctx.globalAlpha=1}
   ctx.fillStyle='#000';ctx.fillRect(0,0,SW,SBAR);ctx.fillRect(0,SHH-SBAR,SW,SBAR);
   for(const s of SUBS){if(tt>=s[0]&&tt<s[1]){
@@ -716,27 +713,27 @@ const EVT=[
   [12.7,swallow],[13.5,swallow],[14.3,swallow],
   [15.3,()=>nz(700,.8,1.2,.12,'lowpass')],
   [17.8,()=>clink(.06)],
-  [FLIP,()=>{nz(2600,6,.05,.2);thump(55,.8,.5);swell(60,240,2.5,.12)}],
-  ...[26.6,26.9,27.25,27.5,27.8].map(t=>[t,()=>nz(110,3,.15,.25)]),
-  [DARK,()=>{thump(50,.9,.9);nz(90,2,.5,.3)}],
-  [32.6,()=>{for(let i=0;i<14;i++)nz(650+rnd(i)*500,9,.035,.12,'bandpass',i*.045)}],
-  [36.6,()=>swell(60,500,1.5,.18)],
-  [42.2,()=>swell(300,2400,1.2,.2)],
-  [43.5,()=>{sting(.18);thump(38,1,1)}],
-  [45.2,()=>{thump(42,2,.7);bell(98,.12)}],
+  [FLIP,()=>nz(2600,6,.05,.15)],
+  [LAMP_OFF,click],
+  [29.4,()=>nz(500,.6,1.2,.12,'lowpass')],
+  [31.4,()=>nz(600,.7,1.6,.08,'lowpass')],
+  [EYES,()=>swell(60,400,1.6,.14)],
+  [41.7,()=>swell(300,2400,1.2,.2)],
+  [43,()=>{sting(.18);thump(38,1,1)}],
+  [44.7,()=>{thump(42,2,.7);bell(98,.12)}],
   [49.95,()=>{master.gain.cancelScheduledValues(AC.currentTime);master.gain.setValueAtTime(0,AC.currentTime)}]
 ];
 function audioUpdate(tt){
   if(!AC)return;const n=AC.currentTime,set=(g,v)=>g.gain.setTargetAtTime(v,n,.1);
   set(padG,0);
-  set(fanG,tt<DARK?.03:0);
+  set(fanG,tt<43?.03:0);
   set(roomG,.015*lampL(tt));
-  set(subG,tt>FLIP&&tt<DARK?lerp(.05,.15,clamp((tt-FLIP)/6,0,1)):tt>32.6&&tt<35?.08:tt>=35&&tt<43.5?lerp(.12,.34,clamp((tt-35)/8,0,1)):0);
-  set(tinG,tt>36.6&&tt<43.5?.02:0);
+  set(subG,tt>EYES&&tt<43?lerp(.1,.34,clamp((tt-EYES)/9,0,1)):0);
+  set(tinG,tt>EYES&&tt<43?.02:0);
   if(playing){
     while(evi<EVT.length&&EVT[evi][0]<=tt){if(EVT[evi][0]>lastT-.001)EVT[evi][1]();evi++}
     let hb=0;
-    if(tt>.4&&tt<7.5)hb=lerp(.6,.95,clamp(tt/7,0,1));else if(tt>=FLIP&&tt<DARK)hb=.7;else if(tt>=DARK&&tt<35)hb=.55;else if(tt>=35&&tt<43.5)hb=lerp(.5,.3,clamp((tt-35)/8,0,1));
+    if(tt>.4&&tt<7.5)hb=lerp(.6,.95,clamp(tt/7,0,1));
     if(hb&&tt>=nextBeat){thump(60,.18,.55);setTimeout(()=>{if(AC&&playing)thump(52,.2,.4)},hb*170);nextBeat=tt+hb}
   }
   lastT=tt;
