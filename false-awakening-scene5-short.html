@@ -31,7 +31,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
 <div class="wrap">
   <div>
     <h1>False Awakening, Scene 5</h1>
-    <p class="sub">Ethan gets a glass of water. It is 3 AM. He goes back to sleep. About 50 seconds. Turn the sound on and press play.</p>
+    <p class="sub">Ethan gets a glass of water. It is 3 AM. He goes back to sleep. About 46 seconds. Turn the sound on and press play.</p>
   </div>
   <div class="frame">
     <canvas id="c" width="1280" height="720" aria-label="Animated horror scene: a glass of water at 3 AM, back to sleep, and eyes under the bed"></canvas>
@@ -40,8 +40,8 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
   <div class="bar">
     <button id="pp">Play</button>
     <button id="rs">Restart</button>
-    <input type="range" id="sc" min="0" max="50" step="0.01" value="0" aria-label="Timeline">
-    <span class="time" id="tm">0.0 / 50.0s</span>
+    <input type="range" id="sc" min="0" max="46" step="0.01" value="0" aria-label="Timeline">
+    <span class="time" id="tm">0.0 / 46.0s</span>
     <button id="fs">Full screen</button>
   </div>
   <p class="note">Work in progress test scene. The names and lines are placeholders you can change.</p>
@@ -50,7 +50,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
 <script>
 (function(){
 const oMap=D=>D;
-const cv=document.getElementById('c'),main=cv.getContext('2d'),W=1280,H=720,LEN=50,BAR=64;
+const cv=document.getElementById('c'),main=cv.getContext('2d'),W=1280,H=720,LEN=46,BAR=64;
 // Short video (9:16): each frame is drawn at 16:9 without bars into a tall slice around the action,
 // then placed between taller bars. CROP is the width of that slice in 16:9 units.
 const SHORT=(new URLSearchParams(location.search).get('format')||document.documentElement.dataset.format)==='short';
@@ -575,9 +575,9 @@ function glowEyes(cx,cy,sp,w,h,open,smile,a){
   ctx.shadowBlur=0;ctx.fillStyle='rgba(255,255,255,.9)';[-1,1].forEach(s=>{const x=cx+s*sp/2;ctx.beginPath();ctx.ellipse(x,cy-h*.2*open,w*.35,h*.35*open*(1-smile*.7),0,0,7);ctx.fill()});
   ctx.restore();
 }
-// 35-40.5: floor level. Under the bed, the eyes are open. They blink.
+// 35-37.5: floor level. Under the bed, the eyes are open. They blink.
 function underBed(D){
-  const k=D-35,z=1+.12*ease(clamp(k/6,0,1));
+  const k=D-35,z=1+.1*ease(clamp(k/2.5,0,1));
   ctx.save();ctx.translate(640,400);ctx.scale(z,z);ctx.translate(-640,-400);
   ctx.fillStyle='#010103';ctx.fillRect(-100,-100,W+200,H+200);
   // floor, planks running away from the camera
@@ -587,7 +587,7 @@ function underBed(D){
   // shadow under the bed reaches out over the floor
   const sg=ctx.createLinearGradient(0,HY,0,560);sg.addColorStop(0,'rgba(0,0,0,1)');sg.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=sg;ctx.fillRect(-100,HY,W+200,112);
   // the eyes
-  const open=D>37.6&&D<37.9?.05:1;
+  const open=D>36.2&&D<36.45?.05:1;
   glowEyes(640,392,112,30,12,open,0,1);
   // bed frame, blanket and legs
   ctx.fillStyle='#34405e';ctx.strokeStyle=INK;ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(-100,-100);ctx.lineTo(W+100,-100);ctx.lineTo(W+100,170);
@@ -601,17 +601,17 @@ function underBed(D){
   // redraw the eyes over the darkness so they shine
   ctx.save();ctx.translate(640,400);ctx.scale(z,z);ctx.translate(-640,-400);glowEyes(640,392,112,30,12,open,0,.9);ctx.restore();
 }
-// 40.5-43: close on the eyes. They narrow and rush in.
+// 37.5-39.6: close on the eyes. They narrow and rush in.
 function eyesClose(D){
-  const k=D-40.5,rush=Math.pow(clamp((D-42.55)/.45,0,1),2),z=lerp(1,1.3,ease(clamp(k/2,0,1)))*lerp(1,3.2,rush);
+  const k=D-37.5,rush=Math.pow(clamp((D-39.15)/.45,0,1),2),z=lerp(1,1.3,ease(clamp(k/1.6,0,1)))*lerp(1,3.2,rush);
   ctx.fillStyle='#010103';ctx.fillRect(0,0,W,H);
   const g=ctx.createRadialGradient(W/2,H/2,10,W/2,H/2,700);g.addColorStop(0,'rgba(20,18,30,1)');g.addColorStop(1,'rgba(0,0,0,1)');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
-  glowEyes(W/2,H/2-10,290*z,62*z,24*z,lerp(1,.38,sm(41.7,42.3,D)),0,1);
+  glowEyes(W/2,H/2-10,290*z,62*z,24*z,lerp(1,.38,sm(38.2,38.8,D)),0,1);
 }
-// 43-50: THE END
+// 39.6-46: THE END
 function theEnd(D){
   ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);
-  const a=sm(44.7,46.1,D)*(1-sm(49.3,49.95,D))*(.92+.08*rnd(Math.floor(D*18)));
+  const a=sm(41,42.4,D)*(1-sm(45.3,45.95,D))*(.92+.08*rnd(Math.floor(D*18)));
   if(a<=0)return;
   ctx.fillStyle='rgba(225,216,202,'+a+')';ctx.font='400 56px "Dela Gothic One",Impact,sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
   try{ctx.letterSpacing='10px'}catch(e){}
@@ -652,12 +652,12 @@ function render(D){
   else if(tt<22.5)clockClose(tt);
   else if(tt<25.5)threeAM(tt);
   else if(tt<35)sleepWide(tt);
-  else if(tt<40.5)underBed(tt);
-  else if(tt<43)eyesClose(tt);
+  else if(tt<37.5)underBed(tt);
+  else if(tt<39.6)eyesClose(tt);
   else theEnd(tt);
   ctx.restore();
   if(SHORT){composeShort(tt);return}
-  if(tt<43){
+  if(tt<39.6){
     const v=ctx.createRadialGradient(W/2,H/2,H*.35,W/2,H/2,H*.95);v.addColorStop(0,'rgba(0,0,0,0)');v.addColorStop(1,'rgba(0,0,0,.6)');ctx.fillStyle=v;ctx.fillRect(0,0,W,H);
     ctx.globalAlpha=.07;ctx.drawImage(gn,Math.floor(rnd(D*40)*100)-100,Math.floor(rnd(D*40+3)*100)-100,W+200,H+200);ctx.globalAlpha=1;
   }
@@ -667,7 +667,7 @@ function render(D){
 function composeShort(tt){
   ctx=main;ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#000';ctx.fillRect(0,0,SW,SHH);
   ctx.imageSmoothingEnabled=true;ctx.drawImage(src,0,SBAR,SW,SPH);
-  if(tt<43){const cy=SBAR+SPH/2,v=ctx.createRadialGradient(SW/2,cy,SW*.35,SW/2,cy,SPH*.62);v.addColorStop(0,'rgba(0,0,0,0)');v.addColorStop(1,'rgba(0,0,0,'+.5+')');ctx.fillStyle=v;ctx.fillRect(0,SBAR,SW,SPH);
+  if(tt<39.6){const cy=SBAR+SPH/2,v=ctx.createRadialGradient(SW/2,cy,SW*.35,SW/2,cy,SPH*.62);v.addColorStop(0,'rgba(0,0,0,0)');v.addColorStop(1,'rgba(0,0,0,'+.5+')');ctx.fillStyle=v;ctx.fillRect(0,SBAR,SW,SPH);
     ctx.globalAlpha=.07;ctx.drawImage(gn,Math.floor(rnd(tt*40)*100)-100,SBAR+Math.floor(rnd(tt*40+3)*100)-100,SW+200,SPH+200);ctx.globalAlpha=1}
   ctx.fillStyle='#000';ctx.fillRect(0,0,SW,SBAR);ctx.fillRect(0,SHH-SBAR,SW,SBAR);
   for(const s of SUBS){if(tt>=s[0]&&tt<s[1]){
@@ -718,18 +718,18 @@ const EVT=[
   [29.4,()=>nz(500,.6,1.2,.12,'lowpass')],
   [31.4,()=>nz(600,.7,1.6,.08,'lowpass')],
   [EYES,()=>swell(60,400,1.6,.14)],
-  [41.7,()=>swell(300,2400,1.2,.2)],
-  [43,()=>{sting(.18);thump(38,1,1)}],
-  [44.7,()=>{thump(42,2,.7);bell(98,.12)}],
-  [49.95,()=>{master.gain.cancelScheduledValues(AC.currentTime);master.gain.setValueAtTime(0,AC.currentTime)}]
+  [38.2,()=>swell(300,2400,1.2,.2)],
+  [39.6,()=>{sting(.18);thump(38,1,1)}],
+  [41,()=>{thump(42,2,.7);bell(98,.12)}],
+  [45.95,()=>{master.gain.cancelScheduledValues(AC.currentTime);master.gain.setValueAtTime(0,AC.currentTime)}]
 ];
 function audioUpdate(tt){
   if(!AC)return;const n=AC.currentTime,set=(g,v)=>g.gain.setTargetAtTime(v,n,.1);
   set(padG,0);
-  set(fanG,tt<43?.03:0);
+  set(fanG,tt<39.6?.03:0);
   set(roomG,.015*lampL(tt));
-  set(subG,tt>EYES&&tt<43?lerp(.1,.34,clamp((tt-EYES)/9,0,1)):0);
-  set(tinG,tt>EYES&&tt<43?.02:0);
+  set(subG,tt>EYES&&tt<39.6?lerp(.1,.34,clamp((tt-EYES)/5.8,0,1)):0);
+  set(tinG,tt>EYES&&tt<39.6?.02:0);
   if(playing){
     while(evi<EVT.length&&EVT[evi][0]<=tt){if(EVT[evi][0]>lastT-.001)EVT[evi][1]();evi++}
     let hb=0;
@@ -738,7 +738,7 @@ function audioUpdate(tt){
   }
   lastT=tt;
 }
-function resetAudioTrackers(){const o=oMap(t);evi=0;while(evi<EVT.length&&EVT[evi][0]<o)evi++;lastT=o;nextStep=nextBeat=nextNote=nextTick=nextBub=o;if(AC&&master)master.gain.setValueAtTime(o>=49.95?0:.85,AC.currentTime)}
+function resetAudioTrackers(){const o=oMap(t);evi=0;while(evi<EVT.length&&EVT[evi][0]<o)evi++;lastT=o;nextStep=nextBeat=nextNote=nextTick=nextBub=o;if(AC&&master)master.gain.setValueAtTime(o>=45.95?0:.85,AC.currentTime)}
 
 /* ---------- UI ---------- */
 const pp=document.getElementById('pp'),rs=document.getElementById('rs'),sc=document.getElementById('sc'),tm=document.getElementById('tm'),big=document.getElementById('big'),fs=document.getElementById('fs');

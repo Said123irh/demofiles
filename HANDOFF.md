@@ -16,9 +16,9 @@ Paste this to start a new chat:
 | 2 | 45s | `false-awakening-scene2.html` | `false-awakening-scene2-short.html` | https://claude.ai/artifact/8UQJV3EJ9saMbQFbm3oXj9 | https://claude.ai/artifact/SMasewjdiuhsScjLCuUsDK |
 | 3 | 40s | `false-awakening-scene3.html` | `false-awakening-scene3-short.html` | https://claude.ai/artifact/QSAsBiU75XqWzUWVeu5aDG | https://claude.ai/artifact/NTyDbqEVTQnqwqJXH9DFDw |
 | 4 | 40s | `false-awakening-scene4.html` | `false-awakening-scene4-short.html` | https://claude.ai/artifact/AHnm5G64widJe34yZuviGu | https://claude.ai/artifact/NW4fNjVMhtPWqdKiVWRfww |
-| 5 | 50s | `false-awakening-scene5.html` | `false-awakening-scene5-short.html` | https://claude.ai/artifact/EQksqDyXM26fvsnJ1D3B6k | https://claude.ai/artifact/QE8US5v4KBQrUUWbHxbX3K |
+| 5 | 46s | `false-awakening-scene5.html` | `false-awakening-scene5-short.html` | https://claude.ai/artifact/EQksqDyXM26fvsnJ1D3B6k | https://claude.ai/artifact/QE8US5v4KBQrUUWbHxbX3K |
 
-Total: about 3 min 46 s. Screenshots are in `screenshots/fa/` (Scene 1) and `screenshots/fa2/`, `fa3/`, `fa4/`, `fa5/`.
+Total: about 3 min 42 s. Screenshots are in `screenshots/fa/` (Scene 1) and `screenshots/fa2/`, `fa3/`, `fa4/`, `fa5/`.
 
 Ignore these older experiments: `scene1.html`, `scene1-v2.html`, `scene1-v2-short.html`, `screenshots/v2/`, `screenshots/scene1_*.png`.
 
@@ -36,7 +36,7 @@ Ethan dreams about his dead dad. He wakes up and tells his mom, then realises it
 ## Scene 5 (v2 BUILT, waiting for the creator's feedback)
 
 Creator feedback on v1: "he gets up, feels relieved, looks at the time, goes back to sleep again. As he lays down to sleep and the lights are off we see the 2 eyes under the bed."
-v2 beats (50 s, built, screenshots taken, play test and full playthrough passed, same artifact links as v1): 0-7.5 sits on bed edge, lamp on, "...Okay." / 7.5-11.5 takes the glass / 11.5-17 drinks, relieved, "It's over. I'm awake." / 17-19 glass down / 19-22.5 clock 02:59 to 03:00 (calm) / 22.5-25.5 tired relieved face "...3 AM." / 25.5-35 wide: "Back to sleep.", he pulls the lamp off himself, lies down in the dark, closes his eyes, camera drifts to the gap under the bed, two eyes open / 35-40.5 floor-level, eyes under the bed blink (no feet) / 40.5-43 eyes narrow and rush in / 43-50 THE END.
+v2 beats (now 46 s, built, screenshots taken, play test and full playthrough passed, same artifact links as v1): 0-7.5 sits on bed edge, lamp on, "...Okay." / 7.5-11.5 takes the glass / 11.5-17 drinks, relieved, "It's over. I'm awake." / 17-19 glass down / 19-22.5 clock 02:59 to 03:00 (calm) / 22.5-25.5 tired relieved face "...3 AM." / 25.5-35 wide: "Back to sleep.", he pulls the lamp off himself, lies down in the dark, closes his eyes, camera drifts to the gap under the bed, two eyes open / 35-37.5 floor-level, eyes under the bed blink (no feet) / 37.5-39.6 eyes narrow and rush in / 39.6-46 THE END. (The eyes part was cut from about 9 s to about 5.8 s because the creator said it stayed on too long.)
 Removed from v1: power cut and flicker, "...Mom?", the creak, his feet in the under-bed shot.
 v2 fix: in the long version the arm picking up the glass looked like a floating hand (the arm's base rose into view). Now the arm comes from the bottom-right corner, he lifts the glass back toward himself off the right edge, and the short crop pans right to follow it (`standClose`, `shortCx`).
 
