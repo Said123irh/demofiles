@@ -499,9 +499,9 @@ function standClose(D,dir){
   alarmClock(585,466,.95,clockTxt(D),clockOn(D),D);
   let hand,lift;
   if(dir>0){hand=ease(clamp((D-7.9)/1.2,0,1));lift=ease(clamp((D-9.6)/1.5,0,1))}
-  else{lift=1-ease(clamp((D-17)/.8,0,1));hand=1-ease(clamp((D-18.1)/.7,0,1))}
-  const gp=[G0[0]-lift*80,G0[1]-lift*600],hp=[gp[0]+44,gp[1]-64],hc=[lerp(1250,hp[0],hand),lerp(H+300,hp[1],hand)];
-  if(hand>0){cap([hc[0]+320,hc[1]+380],hc,64,SK_A);ctx.fillStyle=SK_A;ctx.strokeStyle=INK;ctx.lineWidth=4;ctx.beginPath();ctx.ellipse(hc[0]+8,hc[1],36,46,0,0,7);ctx.fill();ctx.stroke()}
+  else{lift=.55*(1-ease(clamp((D-17)/.8,0,1)));hand=1-ease(clamp((D-18.1)/.7,0,1))}
+  const gp=[G0[0]+lift*600,G0[1]-lift*190-Math.sin(lift*Math.PI)*60],hp=[gp[0]+44,gp[1]-64],hc=[lerp(1250,hp[0],hand),lerp(H+300,hp[1],hand)];
+  if(hand>0){cap([1180+lift*300,H+220],hc,64,SK_A);ctx.fillStyle=SK_A;ctx.strokeStyle=INK;ctx.lineWidth=4;ctx.beginPath();ctx.ellipse(hc[0]+8,hc[1],36,46,0,0,7);ctx.fill();ctx.stroke()}
   glassAt(gp[0],gp[1],2.1,dir>0?.85:.2,0);
   if(hand>0)[-26,-4,18].forEach((dy,i)=>cap([hc[0]+6,hc[1]+dy],[hc[0]-62+i*6,hc[1]+dy+4],17,SK_A));
   ctx.fillStyle='rgba('+NIGHT+','+(.5-.3*L)+')';ctx.fillRect(0,0,W,H);
@@ -620,7 +620,7 @@ function theEnd(D){
   ctx.textBaseline='alphabetic';
 }
 // short (9:16) version: where to centre the vertical slice for each shot
-function shortCx(D){return D<7.5?690:D>=25.5&&D<35?lerp(690,560,sm(32.4,35,D)):(D>=7.5&&D<11.5)||(D>=17&&D<19)?700:W/2}
+function shortCx(D){return D<7.5?690:D>=25.5&&D<35?lerp(690,560,sm(32.4,35,D)):D>=7.5&&D<11.5?lerp(700,900,sm(9.6,10.8,D)):D>=17&&D<19?lerp(900,700,sm(17,17.8,D)):W/2}
 /* ---------- subtitles ---------- */
 const SUBS=[
   [5.2,7.2,'ETHAN','...Okay.',ORANGE],
