@@ -1,0 +1,763 @@
+<title>False Awakening Scene 5</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
+<style>
+/* Layout: one cinema frame, a slim transport bar and a note. Dark-first, single look. */
+:root{
+  --bg:#0c0d0f; --surface:#17191d; --fg:#ece8e1; --muted:#9a968f; --line:#2a2d33;
+  --accent:#d98a3d; --accent-fg:#16110b;
+  --display:'Dela Gothic One','Impact',sans-serif;
+  --body:'Zen Kaku Gothic New','Segoe UI',system-ui,sans-serif;
+  color-scheme:dark;
+}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.5}
+.wrap{max-width:1100px;margin:0 auto;padding-inline:16px;padding-block:20px 32px;display:flex;flex-direction:column;gap:14px}
+h1{font-family:var(--display);font-weight:400;font-size:clamp(22px,4vw,32px);margin:0;line-height:1.1;text-wrap:balance}
+.sub{margin:4px 0 0;color:var(--muted);max-width:62ch}
+.frame{position:relative;border-radius:8px;overflow:hidden;border:1px solid var(--line);background:#000}
+canvas{display:block;width:100%;height:auto;aspect-ratio:16/9;max-width:100%}
+.big{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.35);border:0;cursor:pointer;color:var(--fg);font:inherit;width:100%}
+.big span{background:var(--accent);color:var(--accent-fg);font-weight:700;padding:14px 26px;border-radius:999px;font-size:18px}
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+.bar button{font:inherit;font-weight:700;color:var(--fg);background:transparent;border:1.5px solid var(--line);border-radius:999px;padding:6px 16px;cursor:pointer}
+.bar button:hover{border-color:var(--accent)}
+.bar input[type=range]{flex:1 1 200px;min-width:0;accent-color:var(--accent)}
+.time{font-variant-numeric:tabular-nums;color:var(--muted);min-width:9ch;text-align:right}
+button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.note{color:var(--muted);font-size:13px;max-width:80ch}
+</style>
+
+<div class="wrap">
+  <div>
+    <h1>False Awakening, Scene 5</h1>
+    <p class="sub">Ethan gets a glass of water. The clock says 3 AM. The lights go out. About 50 seconds. Turn the sound on and press play.</p>
+  </div>
+  <div class="frame">
+    <canvas id="c" width="1280" height="720" aria-label="Animated horror scene: a glass of water at 3 AM, the lights go out, and eyes under the bed"></canvas>
+    <button class="big" id="big" aria-label="Play with sound"><span>Play with sound</span></button>
+  </div>
+  <div class="bar">
+    <button id="pp">Play</button>
+    <button id="rs">Restart</button>
+    <input type="range" id="sc" min="0" max="50" step="0.01" value="0" aria-label="Timeline">
+    <span class="time" id="tm">0.0 / 50.0s</span>
+    <button id="fs">Full screen</button>
+  </div>
+  <p class="note">Work in progress test scene. The names and lines are placeholders you can change.</p>
+</div>
+
+<script>
+(function(){
+const oMap=D=>D;
+const cv=document.getElementById('c'),main=cv.getContext('2d'),W=1280,H=720,LEN=50,BAR=64;
+// Short video (9:16): each frame is drawn at 16:9 without bars into a tall slice around the action,
+// then placed between taller bars. CROP is the width of that slice in 16:9 units.
+const SHORT=(new URLSearchParams(location.search).get('format')||document.documentElement.dataset.format)==='short';
+const SW=720,SHH=1280,SBAR=110,SPH=SHH-2*SBAR,CROP=Math.round(H*SW/SPH),SS=1.5;
+let src=null,sctx=null;
+if(SHORT){cv.width=SW;cv.height=SHH;cv.style.aspectRatio='9/16';cv.style.width='min(100%,calc(78vh*9/16))';cv.style.margin='0 auto';
+  src=document.createElement('canvas');src.width=Math.round(CROP*SS);src.height=Math.round(H*SS);sctx=src.getContext('2d')}
+let ctx=main;
+const INK='#1c1e26';
+let t=0,playing=false;
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x)),lerp=(a,b,k)=>a+(b-a)*k;
+const ease=x=>x<.5?2*x*x:1-Math.pow(-2*x+2,2)/2;
+const sm=(a,b,x)=>{const k=clamp((x-a)/(b-a),0,1);return k*k*(3-2*k)};
+const rnd=s=>{const v=Math.sin(s*127.1+311.7)*43758.5453;return v-Math.floor(v)};
+const mono='"Courier New",ui-monospace,monospace',sans='"Zen Kaku Gothic New",system-ui,sans-serif';
+const gn=document.createElement('canvas');gn.width=gn.height=200;
+(function(){const g=gn.getContext('2d'),d=g.createImageData(200,200);for(let i=0;i<d.data.length;i+=4){const v=Math.random()*255;d.data[i]=d.data[i+1]=d.data[i+2]=v;d.data[i+3]=255}g.putImageData(d,0,0)})();
+const off=document.createElement('canvas');
+function withBlur(div,fn){
+  if(div<=1.3){fn();return}
+  const w=Math.max(16,Math.round(W/div)),h=Math.max(9,Math.round(H/div));off.width=w;off.height=h;
+  const oc=off.getContext('2d');oc.setTransform(w/W,0,0,h/H,0,0);const prev=ctx;ctx=oc;fn();ctx=prev;ctx.imageSmoothingEnabled=true;ctx.drawImage(off,0,0,W,H);
+}
+function line(a,b,w,c){ctx.strokeStyle=c;ctx.lineWidth=w;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.stroke()}
+function cap(a,b,w,fill){line(a,b,w+5,INK);line(a,b,w,fill)}
+const rgb=(c,k,a)=>'rgba('+Math.min(255,c[0]*k|0)+','+Math.min(255,c[1]*k|0)+','+Math.min(255,c[2]*k|0)+','+(a==null?1:a)+')';
+const mix=(a,b,k)=>[lerp(a[0],b[0],k),lerp(a[1],b[1],k),lerp(a[2],b[2],k)];
+
+/* ---------- faces ---------- */
+const SK_A='#f0c8a4',SK_D='#e2b490',SK_M='#efc4a0';
+const EN={bY:0,bT:0,eye:1,smile:.05,open:0,skew:0,pup:1};
+const EWARM={bY:-3,bT:-.2,eye:.82,smile:1,open:.1,skew:0,pup:1};
+const EFADE={bY:2,bT:.25,eye:1.05,smile:.05,open:0,skew:0,pup:.85};
+const EWORRY={bY:-4,bT:-.45,eye:1.15,smile:-.45,open:.1,skew:0,pup:.8};
+const EFEAR={bY:-8,bT:-.4,eye:1.35,smile:-.2,open:.45,skew:0,pup:.55};
+const EEAGER={bY:-3,bT:-.15,eye:1.05,smile:.5,open:.4,skew:0,pup:1};
+const mixE=(a,b,k)=>{const r={};for(const n in a)r[n]=lerp(a[n],b[n],k);return r};
+const ARUN={skin:SK_A,hair:'#4a2e1c',style:'spiky'};
+const DAD={skin:SK_D,hair:'#8f8f93',style:'dad',mou:'#4a4646',glasses:1,wrinkle:1};
+const MOM={skin:SK_M,hair:'#6a4529',style:'bun',wrinkle:.4};
+function faceAt(x,y,R,p,look,blink,c){
+  ctx.save();ctx.translate(x,y);ctx.scale(R/55,R/55);
+  ctx.lineJoin='round';ctx.strokeStyle=INK;ctx.lineWidth=4;
+  if(c.style==='bun'){ctx.fillStyle=c.hair;ctx.beginPath();ctx.arc(0,-62,22,0,7);ctx.fill();ctx.stroke()}
+  ctx.fillStyle=c.skin;[-1,1].forEach(s=>{ctx.beginPath();ctx.arc(s*54,6,8,0,7);ctx.fill();ctx.stroke()});
+  ctx.beginPath();ctx.arc(0,0,55,0,7);ctx.fill();ctx.stroke();
+  ctx.fillStyle=c.hair;
+  if(c.style==='spiky'){
+    ctx.beginPath();for(let i=0;i<=8;i++){const a=Math.PI*(1.04+.92*i/8);ctx.lineTo(Math.cos(a)*56,Math.sin(a)*56);
+      if(i<8){const a2=Math.PI*(1.04+.92*(i+.5)/8),r=56+16+(i%3)*5;ctx.lineTo(Math.cos(a2)*r,Math.sin(a2)*r-2)}}
+    ctx.lineTo(45,-18);ctx.quadraticCurveTo(16,-34,-8,-23);ctx.quadraticCurveTo(-30,-27,-47,-17);ctx.closePath();ctx.fill();
+  }else{
+    ctx.beginPath();ctx.arc(0,0,56.5,Math.PI*1.03,Math.PI*1.97);
+    if(c.style==='dad'){ctx.quadraticCurveTo(30,-34,-6,-33);ctx.quadraticCurveTo(-34,-30,-52,-12)}
+    else{ctx.quadraticCurveTo(14,-36,0,-30);ctx.quadraticCurveTo(-14,-36,-52,-12)}
+    ctx.closePath();ctx.fill();
+  }
+  const open=p.eye*blink;
+  [-1,1].forEach(s=>{
+    const ex=s*19,ey=-3,ry=Math.min(15,13*Math.max(p.eye,.2));
+    ctx.strokeStyle=INK;ctx.lineCap='round';
+    if(open<.14){ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(ex-9,ey+1);ctx.lineTo(ex+9,ey+1);ctx.stroke();return}
+    const ery=Math.min(15,13*open);
+    ctx.beginPath();ctx.ellipse(ex,ey,11,ery,0,0,7);ctx.fillStyle='#fff';ctx.fill();ctx.lineWidth=3;ctx.stroke();
+    const pr=Math.min(6*p.pup,ery-1.2),px=ex+look[0]*4.5,py=ey+look[1]*Math.min(3,ery*.3);
+    ctx.fillStyle=INK;ctx.beginPath();ctx.arc(px,py,pr,0,7);ctx.fill();
+    ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(px-1.8,py-2,1.6,0,7);ctx.fill();
+  });
+  if(c.glasses){ctx.strokeStyle='rgba(60,46,40,.85)';ctx.lineWidth=2;[-1,1].forEach(s=>{ctx.beginPath();ctx.arc(s*19,-3,18.5,0,7);ctx.stroke()});ctx.beginPath();ctx.moveTo(-0.5,-6);ctx.lineTo(0.5,-6);ctx.stroke();ctx.beginPath();ctx.moveTo(-37,-6);ctx.lineTo(-52,-4);ctx.moveTo(37,-6);ctx.lineTo(52,-4);ctx.stroke()}
+  if(c.bindi){ctx.fillStyle='#c4262e';ctx.beginPath();ctx.arc(0,-19,3.4,0,7);ctx.fill()}
+  ctx.strokeStyle='rgba(28,30,38,.5)';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(0,8);ctx.quadraticCurveTo(3,13,-2,15);ctx.stroke();
+  const o=p.open,w=20+Math.max(p.smile,0)*6-o*5,y0=30;
+  const cl=[-w,y0-p.smile*6+p.skew*5],cr=[w,y0-p.smile*6-p.skew*5];
+  if(c.mou){ctx.fillStyle=c.mou;ctx.beginPath();ctx.moveTo(-24,19);ctx.quadraticCurveTo(0,10,24,19);ctx.quadraticCurveTo(14,28,0,22);ctx.quadraticCurveTo(-14,28,-24,19);ctx.fill()}
+  ctx.strokeStyle=INK;ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(cl[0],cl[1]);
+  if(o<.07){ctx.quadraticCurveTo(0,y0+p.smile*13,cr[0],cr[1]);ctx.stroke()}
+  else{ctx.quadraticCurveTo(0,y0+p.smile*3-o*3,cr[0],cr[1]);ctx.quadraticCurveTo(0,y0+p.smile*9+o*36,cl[0],cl[1]);ctx.closePath();ctx.fillStyle='#4a1a22';ctx.fill();ctx.stroke()}
+  ctx.restore();
+}
+function headBack(x,y,R,c){
+  ctx.save();ctx.translate(x,y);ctx.scale(R/55,R/55);ctx.lineJoin='round';ctx.strokeStyle=INK;ctx.lineWidth=4;
+  if(c.style==='bun'){ctx.fillStyle=c.hair;ctx.beginPath();ctx.arc(0,-60,22,0,7);ctx.fill();ctx.stroke()}
+  ctx.fillStyle=c.skin;[-1,1].forEach(s=>{ctx.beginPath();ctx.arc(s*54,6,8,0,7);ctx.fill();ctx.stroke()});
+  if(c.style==='spiky'){ctx.fillStyle=c.skin;ctx.beginPath();ctx.arc(0,0,55,0,7);ctx.fill();ctx.stroke();ctx.fillStyle=c.hair;ctx.beginPath();for(let i=0;i<=8;i++){const a=Math.PI*(1.04+.92*i/8);ctx.lineTo(Math.cos(a)*56,Math.sin(a)*56);if(i<8){const a2=Math.PI*(1.04+.92*(i+.5)/8),r=56+16+(i%3)*5;ctx.lineTo(Math.cos(a2)*r,Math.sin(a2)*r-2)}}ctx.arc(0,0,56.5,Math.PI*1.96,Math.PI*2.3);[[26,49],[17,43],[8,50],[0,44],[-8,50],[-17,43],[-26,49]].forEach(p=>ctx.lineTo(p[0],p[1]));ctx.arc(0,0,56.5,Math.PI*.7,Math.PI*1.04);ctx.closePath();ctx.fill();ctx.stroke();ctx.strokeStyle='rgba(0,0,0,.28)';ctx.lineWidth=2.5;[-26,-9,9,26].forEach(x=>{ctx.beginPath();ctx.moveTo(x*.9,-44);ctx.quadraticCurveTo(x*1.1,-10,x,26);ctx.stroke()});ctx.strokeStyle=INK;ctx.lineWidth=4;}else{ctx.fillStyle=c.hair;ctx.beginPath();ctx.arc(0,0,55,0,7);ctx.fill();ctx.stroke();}
+  ctx.strokeStyle='rgba(255,255,255,.22)';ctx.lineWidth=3.5;ctx.beginPath();ctx.arc(-6,-8,36,3.5,5.3);ctx.stroke();if(c.style==='bun'){ctx.strokeStyle='rgba(0,0,0,.35)';ctx.lineWidth=2.5;for(let i=-3;i<=3;i++){ctx.beginPath();ctx.moveTo(i*9,-48);ctx.quadraticCurveTo(i*12,-10,i*8,40);ctx.stroke()}ctx.fillStyle='#d8a93a';ctx.beginPath();ctx.arc(0,-40,4,0,7);ctx.fill()}else{ctx.strokeStyle='rgba(255,255,255,.18)';ctx.lineWidth=3;ctx.beginPath();ctx.arc(8,-10,32,4.2,5.4);ctx.stroke()}
+  ctx.restore();
+}
+
+/* ---------- people ---------- */
+const PANTS='#394150',SHOE='#14161a';
+function limbH(o,a1,l1,a2,l2,dir,w1,w2,fill,end,k,sk){
+  const m=[o[0]+Math.sin(a1)*l1*dir,o[1]+Math.cos(a1)*l1],e=[m[0]+Math.sin(a2)*l2*dir,m[1]+Math.cos(a2)*l2];
+  cap(o,m,w1,fill);cap(m,e,w2,fill);
+  ctx.strokeStyle=INK;ctx.lineWidth=3;
+  if(end==='shoe'){ctx.fillStyle=sk;ctx.beginPath();ctx.ellipse(e[0]+dir*8*k,e[1]+2*k,15*k,7*k,0,0,7);ctx.fill();ctx.stroke()}
+  else{ctx.fillStyle=sk;ctx.beginPath();ctx.arc(e[0],e[1],8.5*k,0,7);ctx.fill();ctx.stroke()}
+}
+function person(x,gy,k,o){
+  const dir=o.dir||1,ph=o.ph||0,sk=o.c.skin,R=55*k*1.2;
+  const bob=o.moving?-Math.abs(Math.sin(ph))*6*k:0;
+  const hip=[x,gy-122*k+bob],neck=[x+(o.run?20*k*dir:0),hip[1]-100*k];
+  ctx.fillStyle='rgba(0,0,0,.25)';ctx.beginPath();ctx.ellipse(x,gy+4,52*k,7*k,0,0,7);ctx.fill();
+  const sh=[neck[0],neck[1]+16*k],shl=[sh[0]-19*k,sh[1]],shr=[sh[0]+19*k,sh[1]];
+  const sw=o.run?.95:.6,a=Math.sin(ph);
+  const armA=(S,sd,front)=>{
+    if(o.pose==='stir'){const s2=Math.sin(o.st||0)*.12;limbH(S,sd*.5,40*k,sd*.5+1.0+s2,38*k,dir,16*k,14*k,o.top,'hand',k,sk)}
+    else if(o.moving){const q=a*(o.run?1.1:.7)*sd;limbH(S,q,46*k,q+(o.run?1.3:.5),44*k,dir,16*k,14*k,o.top,'hand',k,sk)}
+    else limbH(S,sd*.12,46*k,sd*.08,44*k,dir,16*k,14*k,o.top,'hand',k,sk)};
+  armA(shl,-1);
+  if(o.skirt){
+    ctx.beginPath();ctx.moveTo(hip[0]-24*k,hip[1]-8*k);ctx.lineTo(hip[0]+24*k,hip[1]-8*k);ctx.lineTo(hip[0]+44*k,gy-8*k);ctx.lineTo(hip[0]-44*k,gy-8*k);ctx.closePath();
+    ctx.fillStyle=o.bottom;ctx.fill();ctx.strokeStyle=INK;ctx.lineWidth=4;ctx.stroke();
+    ctx.fillStyle='#d8a93a';ctx.fillRect(hip[0]-43*k,gy-26*k,86*k,14*k);
+    ctx.strokeStyle='rgba(0,0,0,.25)';ctx.lineWidth=3;for(let i=-2;i<=2;i++){ctx.beginPath();ctx.moveTo(hip[0]+i*9*k,hip[1]+10*k);ctx.lineTo(hip[0]+i*17*k,gy-28*k);ctx.stroke()}
+    ctx.fillStyle=sk;[-1,1].forEach(s=>{ctx.beginPath();ctx.ellipse(hip[0]+s*14*k,gy-2*k,13*k,5*k,0,0,7);ctx.fill()});
+  }else if(o.moving){
+    limbH([hip[0]-7*k,hip[1]],-a*sw,60*k,-a*sw-Math.max(0,-Math.cos(ph))*.8-.05,58*k,dir,24*k,20*k,o.bottom,'shoe',k,sk);
+    limbH([hip[0]+7*k,hip[1]],a*sw,60*k,a*sw-Math.max(0,Math.cos(ph))*.8-.05,58*k,dir,24*k,20*k,o.bottom,'shoe',k,sk)}
+  else{limbH([hip[0]-7*k,hip[1]],-.08,60*k,-.08,58*k,dir,24*k,20*k,o.bottom,'shoe',k,sk);limbH([hip[0]+7*k,hip[1]],.08,60*k,.08,58*k,dir,24*k,20*k,o.bottom,'shoe',k,sk)}
+  const hem=o.skirt?hip[1]+4*k:hip[1]+12*k;
+  ctx.beginPath();ctx.moveTo(shl[0]-6*k,sh[1]-6*k);ctx.lineTo(shr[0]+6*k,sh[1]-6*k);
+  ctx.quadraticCurveTo(shr[0]+8*k,(sh[1]+hip[1])/2,hip[0]+25*k,hem);ctx.lineTo(hip[0]-25*k,hem);
+  ctx.quadraticCurveTo(shl[0]-8*k,(sh[1]+hip[1])/2,shl[0]-6*k,sh[1]-6*k);ctx.closePath();
+  ctx.fillStyle=o.top;ctx.fill();ctx.strokeStyle=INK;ctx.lineWidth=4;ctx.stroke();
+  if(o.skirt&&o.back){ctx.fillStyle=o.bottom;ctx.beginPath();ctx.moveTo(shl[0]-6*k,sh[1]-4*k);ctx.lineTo(shl[0]+14*k,sh[1]-4*k);ctx.lineTo(hip[0]+26*k,hem+8*k);ctx.lineTo(hip[0]+4*k,hem+8*k);ctx.closePath();ctx.fill();ctx.stroke()}
+  armA(shr,1);
+  cap([neck[0],neck[1]-4*k],[neck[0],sh[1]],15*k,sk);
+  if(o.back)headBack(neck[0],neck[1]-R-2,R,o.c);
+  else faceAt(neck[0],neck[1]-R-2,R,o.expr||EN,o.look||[dir*.6,0],o.blink==null?1:o.blink,o.c);
+}
+
+/* ---------- first person hallway (pseudo 3D) ---------- */
+const F=820,CX=W/2,CY=H/2+10;
+function hall(camz,mode,tt,bob,endZ,fl){
+  const dream=mode==='dream',HW=1.15,FL=-1.6,CE=1.15;
+  const C=dream?{w:[236,194,146],f:[148,96,64],c:[246,224,192],glow:[255,230,176]}:{w:[168,184,198],f:[108,94,84],c:[208,214,222],glow:[238,222,196]};
+  const far=dream?C.glow:[22,26,32];
+  const P=(X,Y,d)=>[CX+X*F/d,CY-(Y-bob)*F/d];
+  ctx.fillStyle=rgb(far,1);ctx.fillRect(0,0,W,H);
+  const quad=(a,b,c,d,f)=>{ctx.fillStyle=f;ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.lineTo(c[0],c[1]);ctx.lineTo(d[0],d[1]);ctx.closePath();ctx.fill()};
+  const dEnd=endZ-camz;
+  if(dEnd>0){const d=Math.max(.4,dEnd),a=P(-HW,CE,d),b=P(HW,FL,d);
+    const g=ctx.createRadialGradient(CX,CY,5,CX,CY,Math.max(60,(b[0]-a[0])*.8));
+    if(dream){g.addColorStop(0,'rgb(255,248,225)');g.addColorStop(1,'rgb(255,214,140)')}else{g.addColorStop(0,'rgb(255,226,170)');g.addColorStop(1,'rgb(176,140,96)')}
+    ctx.fillStyle=g;ctx.fillRect(a[0],a[1],b[0]-a[0],b[1]-a[1])}
+  const off2=(((-camz)%2)+2)%2,K=26;
+  for(let k=K;k>=1;k--){
+    const dNear=Math.max(.3,off2+2*(k-1)),dFar=Math.min(off2+2*k,dEnd);
+    if(dNear>=dEnd)continue;
+    const j=Math.floor((camz+(dNear+dFar)/2)/2);
+    const fogK=1-Math.exp(-dFar/(dream?17:30));
+    let b=dream?.9+.1*Math.min(1,(camz+dFar)/endZ):(((j%3)===0)?1.05:.72)*fl;
+    const sh=(c,m)=>rgb(mix(c.map(v=>v*b*m),far,fogK*(dream?.85:.8)),1);
+    quad(P(-HW,CE,dNear),P(-HW,CE,dFar),P(-HW,FL,dFar),P(-HW,FL,dNear),sh(C.w,1));
+    quad(P(HW,CE,dNear),P(HW,CE,dFar),P(HW,FL,dFar),P(HW,FL,dNear),sh(C.w,.94));
+    quad(P(-HW,FL,dNear),P(HW,FL,dNear),P(HW,FL,dFar),P(-HW,FL,dFar),sh(C.f,1));
+    quad(P(-HW,CE,dNear),P(HW,CE,dNear),P(HW,CE,dFar),P(-HW,CE,dFar),sh(C.c,.95));
+    quad(P(-HW,-1.2,dNear),P(-HW,-1.2,dFar),P(-HW,-1.35,dFar),P(-HW,-1.35,dNear),sh(C.w,.6));
+    quad(P(HW,-1.2,dNear),P(HW,-1.2,dFar),P(HW,-1.35,dFar),P(HW,-1.35,dNear),sh(C.w,.6));
+    if(!dream&&(j%3)===0){const dn=dNear+.3,df=Math.max(dn+.2,dFar-.3);quad(P(-.4,CE-.01,dn),P(.4,CE-.01,dn),P(.4,CE-.01,df),P(-.4,CE-.01,df),rgb([250,252,255],clamp(fl*(1-fogK*.6),0,1)))}
+    if(j%2===1&&j>=1){
+      const dn=dNear+.45,df=Math.max(dn+.3,dFar-.45);
+      quad(P(-HW,.55,dn),P(-HW,.55,df),P(-HW,-.35,df),P(-HW,-.35,dn),sh([70,44,28],1));
+      const i1=.05;quad(P(-HW,.5,dn+i1),P(-HW,.5,df-i1),P(-HW,-.3,df-i1),P(-HW,-.3,dn+i1),sh(dream?[225,205,170]:[200,196,188],1));
+      if(j===3&&!dream){
+        quad(P(-HW,.46,dn+.1),P(-HW,.46,df-.1),P(-HW,-.26,df-.1),P(-HW,-.26,dn+.1),sh([120,110,100],1));
+        const a1=P(-HW,-.27,dn+.1),a2=P(-HW,-.27,df-.1);ctx.strokeStyle=rgb([245,240,230],b*(1-fogK*.5));ctx.lineWidth=Math.max(3,.09*F/dn);ctx.lineCap='round';ctx.beginPath();ctx.moveTo(a1[0],a1[1]);ctx.lineTo(a2[0],a2[1]);ctx.stroke();ctx.strokeStyle=rgb([230,120,140],b*(1-fogK*.5));ctx.lineWidth=Math.max(2,.04*F/dn);ctx.beginPath();ctx.moveTo(a1[0],a1[1]);ctx.lineTo(a2[0],a2[1]);ctx.stroke();
+      }
+    }
+    if(j%3===2){const dn=dNear+.4,df=Math.max(dn+.3,dFar-.4);quad(P(HW,.8,dn),P(HW,.8,df),P(HW,FL,df),P(HW,FL,dn),sh(dream?[120,70,42]:[88,70,58],1))}
+    ctx.strokeStyle='rgba(0,0,0,.12)';ctx.lineWidth=2;[-1,1].forEach(sd=>{const a=P(sd*HW,CE,dFar),c=P(sd*HW,FL,dFar);ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(c[0],c[1]);ctx.stroke()});
+  }
+}
+function motes(tt,amt){
+  for(let i=0;i<46;i++){const x=(rnd(i)*W+Math.sin(tt*.4+i)*30+tt*8*(rnd(i+9)-.3))%W,y=(rnd(i+3)*H+tt*(6+rnd(i+5)*10))%H;
+    const r=1+rnd(i+7)*3;ctx.fillStyle='rgba(255,240,200,'+(.35*amt*(.5+.5*Math.sin(tt*1.2+i)))+')';ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.fill()}
+}
+function bloom(a,col){ctx.globalCompositeOperation='screen';const g=ctx.createRadialGradient(CX,CY,10,CX,CY,620);g.addColorStop(0,'rgba('+col+','+a+')');g.addColorStop(1,'rgba('+col+',0)');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);ctx.globalCompositeOperation='source-over'}
+
+function bedroomWorld(tt,camY,camX,txt){
+  ctx.save();ctx.translate(-camX,-camY);
+  const ww=1900;
+  ctx.fillStyle='#d9dfe6';ctx.fillRect(-300,0,ww,640);
+  const cg=ctx.createLinearGradient(0,0,0,640);cg.addColorStop(0,'#e7ebf0');cg.addColorStop(1,'#c9d0d8');ctx.fillStyle=cg;ctx.fillRect(-300,0,ww,640);
+  /* light patch from window on ceiling */
+  ctx.fillStyle='rgba(255,246,220,.5)';ctx.beginPath();ctx.moveTo(760,640);ctx.lineTo(1020,640);ctx.lineTo(980,380);ctx.lineTo(800,380);ctx.closePath();ctx.fill();
+  /* fan */
+  const fanX=620,fanY=300,rot=tt*9;
+  ctx.fillStyle='#3a3d44';ctx.fillRect(fanX-5,fanY-120,10,100);ctx.beginPath();ctx.ellipse(fanX,fanY,36,14,0,0,7);ctx.fill();
+  for(let g=0;g<3;g++){ctx.save();ctx.translate(fanX,fanY);ctx.rotate(rot+g*2.094);
+    for(let gh=2;gh>=0;gh--){ctx.fillStyle='rgba(58,61,68,'+(gh===0?.9:.18)+')';ctx.save();ctx.rotate(-gh*.1);ctx.beginPath();ctx.ellipse(150,0,130,17,0,0,7);ctx.fill();ctx.restore()}ctx.restore()}
+  /* walls */
+  ctx.fillStyle='#bcc7d3';ctx.fillRect(-300,640,ww,560);
+  ctx.fillStyle='#a4b0be';ctx.fillRect(-300,628,ww,14);
+  /* window */
+  const wg=ctx.createLinearGradient(0,740,0,1000);wg.addColorStop(0,'#fff6dc');wg.addColorStop(1,'#cfe4ff');ctx.fillStyle=wg;ctx.fillRect(520,730,280,260);
+  ctx.strokeStyle='#6a5a48';ctx.lineWidth=10;ctx.strokeRect(520,730,280,260);ctx.beginPath();ctx.moveTo(660,730);ctx.lineTo(660,990);ctx.stroke();
+  ctx.fillStyle='rgba(200,170,150,.6)';ctx.fillRect(500,720,60,290);ctx.fillRect(760,720,60,290);
+  /* wardrobe, door */
+  ctx.fillStyle='#6a4a34';ctx.fillRect(60,690,250,500);ctx.strokeStyle=INK;ctx.lineWidth=4;ctx.strokeRect(60,690,250,500);ctx.beginPath();ctx.moveTo(185,690);ctx.lineTo(185,1190);ctx.stroke();
+  ctx.fillStyle='#8a6a52';ctx.fillRect(1000,680,170,510);ctx.strokeRect(1000,680,170,510);ctx.fillStyle='#d9b45a';ctx.beginPath();ctx.arc(1030,950,8,0,7);ctx.fill();
+  /* side table + clock */
+  ctx.fillStyle='#5a4030';ctx.fillRect(340,1040,150,150);ctx.fillStyle='#14161a';ctx.fillRect(360,990,110,50);ctx.fillStyle='#ff4a3a';ctx.font='700 40px '+mono;ctx.textAlign='center';ctx.fillText(txt||'07:12',415,1030);
+  /* floor + bed blanket */
+  ctx.fillStyle='#8b7667';ctx.fillRect(-300,1190,ww,400);
+  ctx.fillStyle='#8aa3c4';ctx.beginPath();ctx.moveTo(-300,1120);ctx.quadraticCurveTo(300,1080,900,1110);ctx.quadraticCurveTo(1400,1130,1600,1100);ctx.lineTo(1600,1600);ctx.lineTo(-300,1600);ctx.closePath();ctx.fill();
+  ctx.strokeStyle='rgba(30,40,60,.35)';ctx.lineWidth=4;for(let i=0;i<5;i++){ctx.beginPath();ctx.moveTo(100+i*260,1130);ctx.quadraticCurveTo(140+i*260,1250,80+i*260,1400);ctx.stroke()}
+  ctx.restore();
+}
+/* kitchen */
+const GY=600;
+function kitchenSet(tt){
+  ctx.fillStyle='#a9bab6';ctx.fillRect(-200,0,1700,GY);
+  ctx.fillStyle='#8aa09b';ctx.fillRect(-200,GY-190,1700,10);
+  ctx.fillStyle='#6b6458';ctx.fillRect(-200,GY,1700,300);ctx.fillStyle='#5a5348';ctx.fillRect(-200,GY,1700,10);
+  /* doorway left */
+  ctx.fillStyle='#14181d';ctx.fillRect(120,160,230,GY-160);ctx.strokeStyle='#5a4a3a';ctx.lineWidth=12;ctx.strokeRect(120,160,230,GY-160);
+  ctx.fillStyle='rgba(120,90,60,.35)';ctx.fillRect(132,172,206,70);
+  /* window */
+  const wg=ctx.createLinearGradient(0,130,0,330);wg.addColorStop(0,'#fffbe8');wg.addColorStop(1,'#cfe6ff');ctx.fillStyle=wg;ctx.fillRect(1010,130,190,200);ctx.strokeStyle='#6a5a48';ctx.lineWidth=8;ctx.strokeRect(1010,130,190,200);ctx.beginPath();ctx.moveTo(1105,130);ctx.lineTo(1105,330);ctx.stroke();
+  ctx.fillStyle='rgba(255,246,220,.14)';ctx.beginPath();ctx.moveTo(1010,330);ctx.lineTo(1200,330);ctx.lineTo(900,GY);ctx.lineTo(640,GY);ctx.closePath();ctx.fill();
+  /* shelf */
+  ctx.fillStyle='#6a4a34';ctx.fillRect(480,230,170,10);[[500,'#c9a24a'],[540,'#b84b3a'],[580,'#6d8f6a'],[618,'#d9d2c0']].forEach(p=>{ctx.fillStyle=p[1];ctx.fillRect(p[0],190,28,40)});
+  /* clock */
+  ctx.fillStyle='#f2efe6';ctx.beginPath();ctx.arc(780,200,48,0,7);ctx.fill();ctx.strokeStyle=INK;ctx.lineWidth=5;ctx.stroke();clockHands(780,200,48,tt,1);
+  /* counter + stove + pot */
+  ctx.fillStyle='#7a5a42';ctx.fillRect(640,455,470,GY-455);ctx.strokeStyle=INK;ctx.lineWidth=4;ctx.strokeRect(640,455,470,GY-455);
+  ctx.fillStyle='#2b2f34';ctx.fillRect(880,446,120,12);
+  ctx.fillStyle='#a9a69c';ctx.fillRect(900,398,80,50);ctx.strokeRect(900,398,80,50);
+  steam(940,390,tt,1);
+}
+function clockHands(cx,cy,r,tt,s){
+  ctx.strokeStyle=INK;ctx.lineCap='round';
+  const ha=-Math.PI/2+(7+12/60)/12*Math.PI*2,ma=-Math.PI/2+12/60*Math.PI*2;
+  ctx.lineWidth=5*s;ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+Math.cos(ha)*r*.5,cy+Math.sin(ha)*r*.5);ctx.stroke();
+  ctx.lineWidth=3.5*s;ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+Math.cos(ma)*r*.75,cy+Math.sin(ma)*r*.75);ctx.stroke();
+  const st=Math.min(tt,50),sa=-Math.PI/2+Math.floor(st-41+Math.max(0,41))%60/60*Math.PI*2;
+  ctx.strokeStyle='#c4262e';ctx.lineWidth=2*s;ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+Math.cos(sa)*r*.85,cy+Math.sin(sa)*r*.85);ctx.stroke();
+  ctx.fillStyle=INK;ctx.beginPath();ctx.arc(cx,cy,4*s,0,7);ctx.fill();
+}
+function steam(x,y,tt,s){
+  const st=Math.min(tt,50);
+  for(let i=0;i<16;i++){const p=((st*30+i*37)%260)/260,sx=x+Math.sin(st*1.4+i*1.7)*16*s*(.4+p)+(i%5-2)*7*s,sy=y-p*240*s;
+    ctx.fillStyle='rgba(245,245,245,'+(.5*(1-p)*(.5+rnd(i)*.5))+')';ctx.beginPath();ctx.arc(sx,sy,(10+p*26)*s,0,7);ctx.fill()}
+}
+/* ---------- scene 2 helpers ---------- */
+const ETHAN=ARUN,TEE='#6b7280',ORANGE='#ffb05a',GOLD='#f0c987';
+function sayOpen(D){for(const s of SUBS){if(s[2]==='ETHAN'&&D>=s[0]&&D<s[1]-.3)return .22+.3*Math.abs(Math.sin(D*13))}return 0}
+function lids(open){
+  if(open>=.995)return;const lh=(1-open)*(H/2+30);
+  ctx.fillStyle='#0a0606';ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(W,0);ctx.lineTo(W,lh);ctx.quadraticCurveTo(W/2,lh+60*(1-open)+10,0,lh);ctx.closePath();ctx.fill();
+  ctx.beginPath();ctx.moveTo(0,H);ctx.lineTo(W,H);ctx.lineTo(W,H-lh);ctx.quadraticCurveTo(W/2,H-lh-60*(1-open)-10,0,H-lh);ctx.closePath();ctx.fill();
+  ctx.fillStyle='rgba(120,30,20,'+(.35*(1-open))+')';ctx.fillRect(0,lh,W,H-2*lh);
+}
+// open hand, palm or back toward camera; fingers counts every finger including the thumb
+function handDraw(x,y,s,rot,sk,fingers,mirror){
+  ctx.save();ctx.translate(x,y);ctx.rotate(rot);ctx.scale(s*(mirror||1),s);
+  const n=(fingers||5)-1,lens=[40,50,48,40,36,34];
+  for(let i=0;i<n;i++){const fx=n>1?-26+i*52/(n-1):0;cap([fx,-28],[fx*1.2,-30-lens[i%lens.length]],14,sk)}
+  cap([30,6],[56,-20],15,sk);
+  ctx.fillStyle=sk;ctx.strokeStyle=INK;ctx.lineWidth=4;ctx.beginPath();ctx.roundRect(-36,-40,72,78,24);ctx.fill();ctx.stroke();
+  ctx.strokeStyle='rgba(28,30,38,.25)';ctx.lineWidth=2.5;ctx.beginPath();ctx.moveTo(-18,8);ctx.quadraticCurveTo(0,16,20,4);ctx.stroke();
+  ctx.restore();
+}
+function torsoAt(fx,fy,R,col){
+  ctx.fillStyle=col;ctx.strokeStyle=INK;ctx.lineWidth=6;ctx.beginPath();ctx.moveTo(fx-R*1.6,H+60);ctx.lineTo(fx-R*1.35,fy+R*1.5);ctx.quadraticCurveTo(fx-R*.5,fy+R*1.15,fx-R*.3,fy+R*1.15);ctx.lineTo(fx+R*.3,fy+R*1.15);ctx.quadraticCurveTo(fx+R*.5,fy+R*1.15,fx+R*1.35,fy+R*1.5);ctx.lineTo(fx+R*1.6,H+60);ctx.closePath();ctx.fill();ctx.stroke();
+  ctx.fillStyle=SK_A;ctx.fillRect(fx-R*.25,fy+R*.8,R*.5,R*.5);ctx.strokeRect(fx-R*.25,fy+R*.8,R*.5,R*.5);
+}
+
+/* ---------- scene 3 helpers ---------- */
+// An open hand with any number of fingers. Returns the fingertip points (thumb first) in canvas space.
+const FLEN=[36,46,50,46,38,34,30];
+function bigHand(x,y,s,fingers,o){
+  o=o||{};const n=fingers-1,pw=24+n*16,tips=[];
+  const rot=o.rot||0,sx=s*(o.mirror||1),pt=(px,py)=>[x+Math.cos(rot)*px*sx-Math.sin(rot)*py*s,y+Math.sin(rot)*px*sx+Math.cos(rot)*py*s];
+  if(o.arm)cap(o.arm,pt(0,30),o.armW||54*s/2.4,SK_A);
+  ctx.save();ctx.translate(x,y);ctx.rotate(rot);ctx.scale(sx,s);
+  // thumb sticks out to the side
+  const tb=o.bend&&o.bend[0]||0;
+  cap([pw/2-4,8],[pw/2+20,-16+tb*14],15,SK_A);tips.push(pt(pw/2+20,-16+tb*14));
+  for(let i=0;i<n;i++){
+    const fx=-pw/2+12+i*(pw-24)/Math.max(1,n-1),len=FLEN[i%FLEN.length]*(1-(o.bend&&o.bend[i+1]||0)*.35);
+    const tw=(o.twitch&&i===n-1)?Math.sin(o.twitch*9)*4:0;
+    cap([fx,-30],[fx*1.08+tw,-30-len],14,SK_A);tips.push(pt(fx*1.08+tw,-30-len));
+  }
+  ctx.fillStyle=SK_A;ctx.strokeStyle=INK;ctx.lineWidth=4;ctx.beginPath();ctx.roundRect(-pw/2,-40,pw,78,22);ctx.fill();ctx.stroke();
+  ctx.strokeStyle='rgba(28,30,38,.25)';ctx.lineWidth=2.5;ctx.beginPath();ctx.moveTo(-pw*.28,8);ctx.quadraticCurveTo(0,16,pw*.3,4);ctx.stroke();
+  ctx.restore();
+  return tips;
+}
+const MORNING='#c9d0d8';
+function roomBlur(D,div,camY){withBlur(div,()=>bedroomWorld(D,camY,0,'07:12'))}
+
+/* ---------- scene 5 shots ---------- */
+const NIGHT='10,16,40';
+const easeOut=x=>1-Math.pow(1-clamp(x,0,1),3);
+const dart=D=>[(rnd(Math.floor(D*2.6))*2-1)*.9,(rnd(Math.floor(D*2.6)+7)*2-1)*.3];
+const LAMP_ON=3.75,FLIP=21,FLICK=26.6,DARK=28.2;
+// lamp: off, pulled on, then it stutters and dies with the power
+function lampL(D){
+  if(D<LAMP_ON)return 0;
+  if(D<FLICK)return 1;
+  if(D<DARK){const k=(D-FLICK)/(DARK-FLICK);return rnd(Math.floor(D*14)+3)>.25+k*.5?1-k*.35:.06}
+  return 0;
+}
+const clockOn=D=>D<FLICK?1:D<DARK?(lampL(D)>.3?1:.12):0;
+const clockTxt=D=>D<FLIP?'0259':'0300';
+const ETIRED={bY:0,bT:0,eye:.78,smile:-.12,open:0,skew:0,pup:1};
+const ESCARED={bY:0,bT:0,eye:1.3,smile:-.3,open:0,skew:0,pup:.55};
+const withSay=(e,D)=>{const r=Object.assign({},e);r.open=Math.max(r.open,sayOpen(D));return r};
+const SEG={0:'abcdef',1:'bc',2:'abged',3:'abgcd',4:'fgbc',5:'afgcd',6:'afgedc',7:'abc',8:'abcdefg',9:'abcdfg'};
+function seg7(x,y,w,h,ch,on){
+  const t=w*.2,hh=h/2,s=SEG[ch]||'';
+  const R={a:[x+t,y,w-2*t,t],b:[x+w-t,y+t,t,hh-1.5*t],c:[x+w-t,y+hh+t*.5,t,hh-1.5*t],d:[x+t,y+h-t,w-2*t,t],e:[x,y+hh+t*.5,t,hh-1.5*t],f:[x,y+t,t,hh-1.5*t],g:[x+t,y+hh-t/2,w-2*t,t]};
+  for(const k in R){const r=R[k];ctx.fillStyle=s.includes(k)?'rgba(255,60,44,'+(.1+.9*on)+')':'rgba(255,60,44,.07)';ctx.fillRect(r[0]+1,r[1]+1,r[2]-2,r[3]-2)}
+}
+// bedside alarm clock centred at cx,cy. sc 1 is 250px wide.
+function alarmClock(cx,cy,sc,txt,on,D,face){
+  ctx.save();ctx.translate(cx,cy);ctx.scale(sc,sc);
+  if(!face){ctx.fillStyle='#14161a';ctx.strokeStyle=INK;ctx.lineWidth=5;ctx.beginPath();ctx.roundRect(-125,-62,250,124,18);ctx.fill();ctx.stroke();
+    ctx.fillStyle='#07080a';ctx.fillRect(-108,-46,216,92)}
+  if(on>.05){ctx.shadowColor='rgba(255,50,30,'+.9*on+')';ctx.shadowBlur=18}
+  const xs=[-96,-52,14,58];for(let i=0;i<4;i++)seg7(xs[i],-35,38,70,txt[i],on);
+  const colon=on*(Math.floor(D*2)%2?1:.3);
+  ctx.fillStyle='rgba(255,60,44,'+(.07+.9*colon)+')';[-14,14].forEach(y=>{ctx.beginPath();ctx.arc(0,y,5,0,7);ctx.fill()});
+  ctx.restore();
+}
+// glass of water, bottom centre at x,y. The water stays level with the world when tilted.
+function glassAt(x,y,s,lvl,tilt){
+  tilt=tilt||0;const top=-62;
+  ctx.save();ctx.translate(x,y);ctx.rotate(tilt);ctx.scale(s,s);
+  if(lvl>0){ctx.save();ctx.beginPath();ctx.moveTo(-14,0);ctx.lineTo(14,0);ctx.lineTo(17,top);ctx.lineTo(-17,top);ctx.closePath();ctx.clip();
+    ctx.rotate(-tilt);ctx.fillStyle='rgba(140,185,235,.5)';ctx.fillRect(-200,Math.cos(tilt)*top*lvl,400,300);ctx.restore()}
+  ctx.fillStyle='rgba(200,220,245,.12)';ctx.beginPath();ctx.moveTo(-14,0);ctx.lineTo(14,0);ctx.lineTo(17,top);ctx.lineTo(-17,top);ctx.closePath();ctx.fill();
+  ctx.strokeStyle='rgba(220,235,255,.85)';ctx.lineWidth=3.5;ctx.lineJoin='round';ctx.beginPath();ctx.moveTo(-17,top);ctx.lineTo(-14,0);ctx.lineTo(14,0);ctx.lineTo(17,top);ctx.stroke();
+  ctx.beginPath();ctx.ellipse(0,top,17,4,0,0,7);ctx.stroke();
+  ctx.strokeStyle='rgba(255,255,255,.45)';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(-9,top+9);ctx.lineTo(-7.5,-8);ctx.stroke();
+  ctx.restore();
+}
+// bedside lamp with a pull chain. Returns the chain end.
+function lampAt(x,y,s,L,pull){
+  ctx.save();ctx.translate(x,y);ctx.scale(s,s);ctx.strokeStyle=INK;ctx.lineWidth=4;ctx.lineJoin='round';
+  ctx.fillStyle='#3a3026';ctx.beginPath();ctx.ellipse(0,-6,30,9,0,0,7);ctx.fill();ctx.stroke();
+  ctx.fillRect(-5,-90,10,84);ctx.strokeRect(-5,-90,10,84);
+  if(L>0){ctx.fillStyle='rgba(255,236,190,'+L+')';ctx.beginPath();ctx.ellipse(0,-86,46,8,0,0,7);ctx.fill()}
+  ctx.fillStyle=L>0?rgb(mix([96,84,70],[255,214,150],L),1):'#5a5048';
+  ctx.beginPath();ctx.moveTo(-34,-150);ctx.lineTo(34,-150);ctx.lineTo(52,-86);ctx.lineTo(-52,-86);ctx.closePath();ctx.fill();ctx.stroke();
+  const ce=-50+(pull||0)*12;
+  ctx.strokeStyle='#b8a56a';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-26,-86);ctx.lineTo(-26,ce);ctx.stroke();
+  ctx.fillStyle='#b8a56a';ctx.beginPath();ctx.arc(-26,ce,3.5,0,7);ctx.fill();
+  ctx.restore();
+  return [x-26*s,y+ce*s];
+}
+// two-bone arm toward a target; bend picks which side the elbow goes
+function armIK(S,T,l1,l2,bend,k,top){
+  const dx=T[0]-S[0],dy=T[1]-S[1],d=Math.max(1,Math.min(Math.hypot(dx,dy),l1+l2-.5)),a=Math.atan2(dy,dx);
+  const b=Math.acos(clamp((l1*l1+d*d-l2*l2)/(2*l1*d),-1,1));
+  const E=[S[0]+Math.cos(a+bend*b)*l1,S[1]+Math.sin(a+bend*b)*l1],P=[S[0]+Math.cos(a)*d,S[1]+Math.sin(a)*d];
+  cap(S,E,16*k,top);cap(E,P,14*k,SK_A);
+  ctx.fillStyle=SK_A;ctx.strokeStyle=INK;ctx.lineWidth=3;ctx.beginPath();ctx.arc(P[0],P[1],9.5*k,0,7);ctx.fill();ctx.stroke();
+  return P;
+}
+// Ethan sitting on the edge of the bed facing the camera, legs over the side, bare feet on the floor
+function sitter(x,seatY,gy,k,o){
+  const R=55*k*1.2,hu=o.hunch||0,ln=o.lean||0,br=Math.sin((o.t||0)*2.2)*1.5*k;
+  const hip=[x,seatY-6*k],neck=[x+ln,seatY-108*k+hu*24*k+br];
+  const sh=[neck[0],neck[1]+16*k],shl=[sh[0]-19*k,sh[1]],shr=[sh[0]+19*k,sh[1]];
+  ctx.fillStyle='rgba(0,0,0,.3)';ctx.beginPath();ctx.ellipse(x,gy+2,46*k,6*k,0,0,7);ctx.fill();
+  [-1,1].forEach(s=>{const kn=[x+s*20*k,seatY+14*k],ft=[x+s*24*k,gy-10*k];cap(kn,ft,21*k,PANTS);
+    ctx.fillStyle=SK_A;ctx.strokeStyle=INK;ctx.lineWidth=3;ctx.beginPath();ctx.ellipse(ft[0]+s*3*k,gy-3*k,15*k,7*k,0,0,7);ctx.fill();ctx.stroke()});
+  ctx.fillStyle=PANTS;ctx.strokeStyle=INK;ctx.lineWidth=4;ctx.beginPath();ctx.roundRect(x-37*k,seatY-12*k,74*k,38*k,14*k);ctx.fill();ctx.stroke();
+  ctx.strokeStyle='rgba(0,0,0,.3)';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(x,seatY-4*k);ctx.lineTo(x,seatY+24*k);ctx.stroke();
+  const hem=seatY+2*k;
+  ctx.beginPath();ctx.moveTo(shl[0]-6*k,sh[1]-6*k);ctx.lineTo(shr[0]+6*k,sh[1]-6*k);
+  ctx.quadraticCurveTo(shr[0]+8*k,(sh[1]+hip[1])/2,hip[0]+27*k,hem);ctx.lineTo(hip[0]-27*k,hem);
+  ctx.quadraticCurveTo(shl[0]-8*k,(sh[1]+hip[1])/2,shl[0]-6*k,sh[1]-6*k);ctx.closePath();
+  ctx.fillStyle=TEE;ctx.fill();ctx.strokeStyle=INK;ctx.lineWidth=4;ctx.stroke();
+  armIK(shl,o.handL||[x-27*k,seatY+4*k],46*k,44*k,1,k,TEE);
+  cap([neck[0],neck[1]-4*k],[neck[0],sh[1]],15*k,SK_A);
+  faceAt(neck[0]+(o.tilt||0),neck[1]-R-2,R,o.expr||EN,o.look||[0,0],o.blink==null?1:o.blink,ETHAN);
+  return armIK(shr,o.handR||[x+27*k,seatY+4*k],46*k,44*k,o.bendR==null?-1:o.bendR,k,TEE);
+}
+function lampGlow(x,y,r,L){
+  if(L<=0)return;ctx.globalCompositeOperation='screen';const g=ctx.createRadialGradient(x,y,10,x,y,r);
+  g.addColorStop(0,'rgba(255,176,96,'+.8*L+')');g.addColorStop(.45,'rgba(255,160,80,'+.26*L+')');g.addColorStop(1,'rgba(255,170,90,0)');
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);ctx.globalCompositeOperation='source-over';
+}
+// wide shot of the bedroom at night: bed with the dark gap under it, nightstand with lamp, clock and glass
+const SEAT=480,FLOOR=614,EX=640,EK=1.2;
+function roomWide(D,o){
+  const L=lampL(D);
+  ctx.fillStyle='#3a4560';ctx.fillRect(0,0,W,H);
+  const wg=ctx.createLinearGradient(0,110,0,320);wg.addColorStop(0,'#b3c6e8');wg.addColorStop(1,'#7f95c0');ctx.fillStyle=wg;ctx.fillRect(300,110,240,210);
+  ctx.strokeStyle='#262b3a';ctx.lineWidth=12;ctx.strokeRect(300,110,240,210);ctx.lineWidth=8;ctx.beginPath();ctx.moveTo(420,110);ctx.lineTo(420,320);ctx.moveTo(300,215);ctx.lineTo(540,215);ctx.stroke();
+  ctx.fillStyle='#2b3248';ctx.fillRect(268,96,44,256);ctx.fillRect(528,96,44,256);
+  ctx.fillStyle='#2e3650';ctx.strokeStyle=INK;ctx.lineWidth=5;ctx.fillRect(990,170,130,96);ctx.strokeRect(990,170,130,96);ctx.fillStyle='#4a5878';ctx.fillRect(1004,184,102,68);
+  ctx.fillStyle='#3a3029';ctx.fillRect(0,FLOOR,W,H-FLOOR);ctx.fillStyle='#2a221c';ctx.fillRect(0,FLOOR-8,W,10);
+  ctx.fillStyle='rgba(170,190,235,.1)';ctx.beginPath();ctx.moveTo(300,FLOOR);ctx.lineTo(540,FLOOR);ctx.lineTo(620,H);ctx.lineTo(250,H);ctx.closePath();ctx.fill();
+  // bed
+  ctx.strokeStyle=INK;ctx.lineWidth=4;ctx.fillStyle='#4a3626';ctx.beginPath();ctx.roundRect(126,330,46,FLOOR-330,[14,14,0,0]);ctx.fill();ctx.stroke();
+  ctx.fillStyle='#020205';ctx.fillRect(172,520,560,FLOOR-520);
+  [[180,200],[704,724]].forEach(l=>{ctx.fillStyle='#4a3626';ctx.fillRect(l[0],516,l[1]-l[0],FLOOR-516);ctx.strokeRect(l[0],516,l[1]-l[0],FLOOR-516)});
+  ctx.fillStyle='#5a4430';ctx.fillRect(170,500,564,22);ctx.strokeRect(170,500,564,22);
+  ctx.fillStyle='#c9c4ba';ctx.fillRect(172,446,560,56);ctx.strokeRect(172,446,560,56);
+  ctx.fillStyle='#d8d4cc';ctx.beginPath();ctx.ellipse(236,436,58,22,0,0,7);ctx.fill();ctx.stroke();
+  ctx.fillStyle='#34405e';ctx.beginPath();ctx.moveTo(296,440);ctx.quadraticCurveTo(500,428,738,440);ctx.lineTo(738,522);
+  for(let i=1;i<=6;i++){const x0=738-(i-1)*(440/6),x1=738-i*(440/6);ctx.quadraticCurveTo((x0+x1)/2,532+(i%2)*6,x1,522)}
+  ctx.closePath();ctx.fill();ctx.stroke();
+  ctx.strokeStyle='rgba(0,0,0,.3)';ctx.lineWidth=3;[360,470,580,690].forEach(x=>{ctx.beginPath();ctx.moveTo(x,450);ctx.quadraticCurveTo(x+12,485,x-4,520);ctx.stroke()});
+  // nightstand
+  ctx.strokeStyle=INK;ctx.lineWidth=4;ctx.fillStyle='#4a3626';ctx.fillRect(748,488,176,FLOOR-488);ctx.strokeRect(748,488,176,FLOOR-488);
+  ctx.fillStyle='#5a4430';ctx.fillRect(742,478,188,14);ctx.strokeRect(742,478,188,14);
+  ctx.strokeStyle='rgba(0,0,0,.45)';ctx.beginPath();ctx.moveTo(760,544);ctx.lineTo(912,544);ctx.stroke();ctx.fillStyle='#b8a56a';ctx.beginPath();ctx.arc(836,516,5,0,7);ctx.fill();
+  const chain=lampAt(790,480,1,L,o.pull||0);
+  alarmClock(850,462,.26,clockTxt(D),clockOn(D),D);
+  if(o.glass!==false)glassAt(904,480,.9,o.glvl==null?.85:o.glvl);
+  // Ethan
+  const e=o.ethan;
+  let handR=null;if(e.reach){const kr=[EX+27*EK,SEAT+4*EK];handR=[lerp(kr[0],chain[0],e.reach),lerp(kr[1],chain[1]+4,e.reach)]}
+  sitter(EX,SEAT,FLOOR,EK,Object.assign({t:D,handR,bendR:e.reach>.3?1:-1},e));
+  // light
+  ctx.fillStyle='rgba('+NIGHT+','+(.5-.3*L)+')';ctx.fillRect(0,0,W,H);
+  lampGlow(790,400,720,L);
+  if(D>=DARK){ctx.fillStyle='rgba(0,0,0,.42)';ctx.fillRect(0,0,W,H)}
+  if(clockOn(D)>.05)alarmClock(850,462,.26,clockTxt(D),clockOn(D),D,1);
+}
+// 0-7.5: sitting on the edge of the bed, catching his breath. He pulls the lamp on.
+function wakeWide(D){
+  const reach=sm(2.9,3.55,D)*(1-sm(4.2,5.1,D)),pull=sm(3.55,3.72,D)*(1-sm(3.75,4,D));
+  const look=D<2.6?[0,.8]:D<4.5?[.9,-.3]:[0,.3];
+  roomWide(D,{pull,ethan:{hunch:1-sm(2.1,3,D)*.75,lean:reach*36,reach,look,expr:withSay(ETIRED,D),blink:(D>1.4&&D<1.55)||(D>6.2&&D<6.35)?.1:1}});
+  ctx.fillStyle='rgba(0,0,0,'+(1-sm(0,1.8,D))+')';ctx.fillRect(0,0,W,H);
+}
+// close on the nightstand: dir 1 picks the glass up (7.5-11.5), dir -1 puts it back (17-19)
+function standClose(D,dir){
+  const L=lampL(D),G0=[800,524];
+  ctx.fillStyle='#3a4560';ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='#4a3626';ctx.fillRect(0,524,W,H-524);ctx.fillStyle='#5c4632';ctx.fillRect(0,524,W,18);
+  ctx.strokeStyle=INK;ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(0,524);ctx.lineTo(W,524);ctx.moveTo(0,542);ctx.lineTo(W,542);ctx.stroke();
+  lampAt(330,528,2.3,L,0);
+  alarmClock(585,466,.95,clockTxt(D),clockOn(D),D);
+  let hand,lift;
+  if(dir>0){hand=ease(clamp((D-7.9)/1.2,0,1));lift=ease(clamp((D-9.6)/1.5,0,1))}
+  else{lift=1-ease(clamp((D-17)/.8,0,1));hand=1-ease(clamp((D-18.1)/.7,0,1))}
+  const gp=[G0[0]-lift*80,G0[1]-lift*600],hp=[gp[0]+44,gp[1]-64],hc=[lerp(1250,hp[0],hand),lerp(H+300,hp[1],hand)];
+  if(hand>0){cap([hc[0]+320,hc[1]+380],hc,64,SK_A);ctx.fillStyle=SK_A;ctx.strokeStyle=INK;ctx.lineWidth=4;ctx.beginPath();ctx.ellipse(hc[0]+8,hc[1],36,46,0,0,7);ctx.fill();ctx.stroke()}
+  glassAt(gp[0],gp[1],2.1,dir>0?.85:.2,0);
+  if(hand>0)[-26,-4,18].forEach((dy,i)=>cap([hc[0]+6,hc[1]+dy],[hc[0]-62+i*6,hc[1]+dy+4],17,SK_A));
+  ctx.fillStyle='rgba('+NIGHT+','+(.5-.3*L)+')';ctx.fillRect(0,0,W,H);
+  lampGlow(330,250,900,L);
+  alarmClock(585,466,.95,clockTxt(D),clockOn(D),D,1);
+}
+// a chest-up shot of Ethan in his room; lamp light from the right, clock light from below
+function faceSit(D,R,e,look,blink,o){
+  o=o||{};const L=o.L||0,fx=W/2+(o.shake||0),fy=H*.44+(o.dy||0);
+  ctx.fillStyle='#3a4560';ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='#333d57';ctx.fillRect(0,0,W*.22,H);ctx.strokeStyle='rgba(0,0,0,.25)';ctx.lineWidth=6;ctx.beginPath();ctx.moveTo(W*.22,0);ctx.lineTo(W*.22,H);ctx.stroke();
+  torsoAt(fx,fy,R,TEE);
+  faceAt(fx,fy,R,e,look,blink,ETHAN);
+  if(o.sweat){ctx.fillStyle='rgba(200,225,255,.85)';ctx.strokeStyle=INK;ctx.lineWidth=3;const sx=fx-R*.8,sy=fy-R*.4+((D*26)%40);ctx.beginPath();ctx.moveTo(sx,sy-16);ctx.quadraticCurveTo(sx+11,sy+4,sx,sy+8);ctx.quadraticCurveTo(sx-11,sy+4,sx,sy-16);ctx.fill();ctx.stroke()}
+  if(o.after)o.after(fx,fy);
+  ctx.fillStyle='rgba('+NIGHT+','+(.5-.3*L)+')';ctx.fillRect(0,0,W,H);
+  lampGlow(W*1.05,H*.3,1000,L);
+  if(o.red){ctx.globalCompositeOperation='screen';const g=ctx.createRadialGradient(W*.85,H*1.15,10,W*.85,H*1.15,900);g.addColorStop(0,'rgba(255,40,24,'+.4*o.red+')');g.addColorStop(1,'rgba(255,40,24,0)');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);ctx.globalCompositeOperation='source-over'}
+  if(o.dark){ctx.fillStyle='rgba(0,0,0,'+.42*o.dark+')';ctx.fillRect(0,0,W,H);
+    const g=ctx.createRadialGradient(0,0,10,0,0,1000);g.addColorStop(0,'rgba(150,170,220,'+.12*o.dark+')');g.addColorStop(1,'rgba(150,170,220,0)');ctx.globalCompositeOperation='screen';ctx.fillStyle=g;ctx.fillRect(0,0,W,H);ctx.globalCompositeOperation='source-over'}
+}
+// 11.5-17: he drinks the whole glass
+function drinking(D){
+  const R=210,up=ease(clamp((D-11.6)/.8,0,1))*(1-ease(clamp((D-15)/.7,0,1))),drink=clamp((D-12.4)/2.4,0,1);
+  const gulp=D>12.4&&D<14.8?Math.max(0,Math.sin((D-12.4)*Math.PI/.8))*6:0;
+  const e=mixE(ETIRED,{bY:0,bT:0,eye:.95,smile:.05,open:.05,skew:0,pup:1},sm(15.4,16,D));
+  if(up>.6)e.open=.3;
+  faceSit(D,R,withSay(e,D),[0,.1],D>12.3&&D<15.1?0:1,{L:1,dy:-gulp,after:(fx,fy)=>{
+    if(up<=0)return;
+    const th=-(.35+up*.65+drink*.85),s=R/56,mouth=[fx+R*.08,fy-gulp+R*.52],axis=[Math.sin(th)*62*s,-Math.cos(th)*62*s];
+    const rim=[lerp(fx+R*.7,mouth[0],up),lerp(H+200,mouth[1],up)],bot=[rim[0]-axis[0],rim[1]-axis[1]],mid=[bot[0]+axis[0]*.35,bot[1]+axis[1]*.35];
+    cap([fx+R*1.5,H+160],[mid[0]+R*.25,mid[1]+R*.1],R*.3,SK_A);
+    glassAt(bot[0],bot[1],s,lerp(.85,.2,drink),th);
+    ctx.save();ctx.translate(mid[0],mid[1]);ctx.rotate(th);ctx.fillStyle=SK_A;ctx.strokeStyle=INK;ctx.lineWidth=4;
+    ctx.beginPath();ctx.roundRect(-18*s,-16*s,46*s,34*s,12*s);ctx.fill();ctx.stroke();
+    ctx.strokeStyle='rgba(28,30,38,.35)';ctx.lineWidth=3;[-6,4].forEach(y=>{ctx.beginPath();ctx.moveTo(-14*s,y*s);ctx.lineTo(4*s,y*s);ctx.stroke()});ctx.restore();
+  }});
+}
+// 19-23.5: the clock. 02:59 turns to 03:00.
+function clockClose(D){
+  const z=lerp(1.4,1.8,ease(clamp((D-19)/4.5,0,1)));
+  ctx.fillStyle='#07080c';ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='#1e1712';ctx.fillRect(0,H/2+70*z,W,H);
+  alarmClock(W/2,H/2,z,clockTxt(D),1,D);
+  const fl=D>FLIP?Math.exp(-(D-FLIP)*3):0;
+  ctx.globalCompositeOperation='screen';const g=ctx.createRadialGradient(W/2,H/2,20,W/2,H/2,600);g.addColorStop(0,'rgba(255,40,24,'+(.16+.3*fl)+')');g.addColorStop(1,'rgba(255,40,24,0)');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);ctx.globalCompositeOperation='source-over';
+}
+// 23.5-26.6: his face in the red light. "...3 AM."
+function threeAM(D){
+  const R=lerp(230,250,ease(clamp((D-23.5)/3,0,1)));
+  faceSit(D,R,withSay(ESCARED,D),[.7,.6],D>25.95&&D<26.1?.1:1,{L:1,red:1,sweat:1});
+}
+// 26.6-29.5: wide. The lamp flickers and the power dies.
+function lightsDie(D){
+  const look=D<28.6?[.9,-.4]:dart(D);
+  roomWide(D,{ethan:{hunch:0,lean:0,look,expr:ESCARED}});
+}
+// 29.5-35: his face in the dark. A creak. His eyes slide down.
+function inTheDark(D){
+  const R=lerp(230,275,ease(clamp((D-29.5)/5.5,0,1)));
+  const look=D<32.6?dart(D):[lerp(0,0,1),sm(32.8,34,D)];
+  faceSit(D,R,withSay({bY:0,bT:0,eye:1.4,smile:-.35,open:0,skew:0,pup:.45},D),look,1,{dark:1,sweat:1,shake:D>32.6?Math.sin(D*37)*1.5:0});
+}
+// glowing eyes. smile curves them into a grin; open 0..1 for blinking
+function glowEyes(cx,cy,sp,w,h,open,smile,a){
+  if(open<=.03||a<=0)return;
+  ctx.save();ctx.globalAlpha=a;ctx.shadowColor='rgba(255,236,160,.95)';ctx.shadowBlur=w*1.2;ctx.fillStyle='#fff4c8';
+  [-1,1].forEach(s=>{const x=cx+s*sp/2,ox=x+s*w,ix=x-s*w,oy=cy-h*.2,iy=cy+h*.5;
+    ctx.beginPath();ctx.moveTo(ix,iy);ctx.quadraticCurveTo(x,cy-h*2*open,ox,oy);ctx.quadraticCurveTo(x,cy+h*(2*(1-smile)-1.1*smile)*open,ix,iy);ctx.closePath();ctx.fill()});
+  ctx.shadowBlur=0;ctx.fillStyle='rgba(255,255,255,.9)';[-1,1].forEach(s=>{const x=cx+s*sp/2;ctx.beginPath();ctx.ellipse(x,cy-h*.2*open,w*.35,h*.35*open*(1-smile*.7),0,0,7);ctx.fill()});
+  ctx.restore();
+}
+// 35-41: floor level. His bare feet. Under the bed, two eyes open.
+function underBed(D){
+  const k=D-35,z=1+.12*ease(clamp(k/6,0,1));
+  ctx.save();ctx.translate(640,400);ctx.scale(z,z);ctx.translate(-640,-400);
+  ctx.fillStyle='#010103';ctx.fillRect(-100,-100,W+200,H+200);
+  // floor, planks running away from the camera
+  const HY=448,fg=ctx.createLinearGradient(0,HY,0,H);fg.addColorStop(0,'#050404');fg.addColorStop(.35,'#1a1512');fg.addColorStop(1,'#33291f');ctx.fillStyle=fg;ctx.fillRect(-100,HY,W+200,H-HY+100);
+  ctx.strokeStyle='rgba(0,0,0,.45)';ctx.lineWidth=3;for(let i=-8;i<=8;i++){ctx.beginPath();ctx.moveTo(640+i*40,HY);ctx.lineTo(640+i*260,H+60);ctx.stroke()}
+  ctx.fillStyle='rgba(150,170,220,.1)';ctx.beginPath();ctx.moveTo(880,560);ctx.lineTo(1300,540);ctx.lineTo(1300,H+60);ctx.lineTo(760,H+60);ctx.closePath();ctx.fill();
+  // shadow under the bed reaches out over the floor
+  const sg=ctx.createLinearGradient(0,HY,0,560);sg.addColorStop(0,'rgba(0,0,0,1)');sg.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=sg;ctx.fillRect(-100,HY,W+200,112);
+  // the eyes
+  const open=sm(36.6,37.7,D)*(D>38.6&&D<38.9?.05:1);
+  glowEyes(640,392,112,30,12,open,0,1);
+  // bed frame, blanket and legs
+  ctx.fillStyle='#34405e';ctx.strokeStyle=INK;ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(-100,-100);ctx.lineTo(W+100,-100);ctx.lineTo(W+100,170);
+  for(let i=1;i<=8;i++){const x0=W+100-(i-1)*(W+200)/8,x1=W+100-i*(W+200)/8;ctx.quadraticCurveTo((x0+x1)/2,196+(i%2)*10,x1,176)}
+  ctx.closePath();ctx.fill();ctx.stroke();
+  ctx.fillStyle='#3a2a1e';ctx.fillRect(-100,176,W+200,36);ctx.strokeRect(-100,176,W+200,36);
+  [[60,150],[1130,1220]].forEach(l=>{ctx.fillStyle='#3a2a1e';ctx.fillRect(l[0],200,l[1]-l[0],370);ctx.strokeRect(l[0],200,l[1]-l[0],370)});
+  // his shins and feet, right in front of the gap
+  const lift=sm(40.2,40.9,D)*10;
+  [[512,0],[768,1]].forEach(f=>{const x=f[0],y=596-lift*f[1];cap([x,-40],[x+(f[1]?6:-6),y-34],68,PANTS);
+    const fx2=x+(f[1]?10:-10);ctx.fillStyle=SK_A;ctx.strokeStyle=INK;ctx.lineWidth=4;
+    for(let t=0;t<5;t++){const tx=fx2-36+t*18;ctx.beginPath();ctx.arc(tx,y+16,t===(f[1]?0:4)?13:10,0,7);ctx.fill();ctx.stroke()}
+    ctx.beginPath();ctx.ellipse(fx2,y,58,26,0,0,7);ctx.fill();ctx.stroke();
+    ctx.fillStyle=PANTS;ctx.beginPath();ctx.roundRect(x-40,y-70,80,26,8);ctx.fill();ctx.stroke();
+    ctx.fillStyle='rgba(0,0,0,.35)';ctx.beginPath();ctx.ellipse(x,y+26,70,10,0,0,7);ctx.fill()});
+  ctx.restore();
+  ctx.fillStyle='rgba('+NIGHT+',.4)';ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='rgba(0,0,0,'+(.35-.1*Math.sin(D*3))+')';ctx.fillRect(0,0,W,H);
+  // redraw the eyes over the darkness so they shine
+  ctx.save();ctx.translate(640,400);ctx.scale(z,z);ctx.translate(-640,-400);glowEyes(640,392,112,30,12,open,0,.9);ctx.restore();
+}
+// 41-43.5: close on the eyes. They narrow and rush in.
+function eyesClose(D){
+  const k=D-41,rush=Math.pow(clamp((D-43.05)/.45,0,1),2),z=lerp(1,1.3,ease(clamp(k/2,0,1)))*lerp(1,3.2,rush);
+  ctx.fillStyle='#010103';ctx.fillRect(0,0,W,H);
+  const g=ctx.createRadialGradient(W/2,H/2,10,W/2,H/2,700);g.addColorStop(0,'rgba(20,18,30,1)');g.addColorStop(1,'rgba(0,0,0,1)');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  glowEyes(W/2,H/2-10,290*z,62*z,24*z,lerp(1,.38,sm(42.2,42.8,D)),0,1);
+}
+// 43.5-50: THE END
+function theEnd(D){
+  ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);
+  const a=sm(45.2,46.6,D)*(1-sm(49.3,49.95,D))*(.92+.08*rnd(Math.floor(D*18)));
+  if(a<=0)return;
+  ctx.fillStyle='rgba(225,216,202,'+a+')';ctx.font='400 56px "Dela Gothic One",Impact,sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
+  try{ctx.letterSpacing='10px'}catch(e){}
+  ctx.fillText('THE END',W/2+5,H/2);
+  try{ctx.letterSpacing='0px'}catch(e){}
+  ctx.textBaseline='alphabetic';
+}
+// short (9:16) version: where to centre the vertical slice for each shot
+function shortCx(D){return D<7.5||(D>=26.6&&D<29.5)?690:(D>=7.5&&D<11.5)||(D>=17&&D<19)?700:W/2}
+/* ---------- subtitles ---------- */
+const SUBS=[
+  [5.2,7.2,'ETHAN','...Okay.',ORANGE],
+  [15.7,17.2,'ETHAN',"It's over. I'm awake.",ORANGE],
+  [24.1,25.9,'ETHAN','...3 AM.',ORANGE],
+  [30.3,31.9,'ETHAN','...Mom?',ORANGE]
+];
+function subText(s,tt){
+  if(s[5]!=='vanish')return s[3];
+  const k=clamp((tt-s[0]-1.2)/(s[1]-s[0]-1.6),0,1);
+  return s[3].split('').map((ch,i)=>rnd(i*7.3+1)<k?' ':ch).join('');
+}
+function subtitle(tt){
+  for(const s of SUBS){if(tt>=s[0]&&tt<s[1]){const txt=subText(s,tt);
+    ctx.font='700 26px '+sans;const nm=s[2]+':  ',nw=ctx.measureText(nm).width;ctx.font='500 26px '+sans;const tw=ctx.measureText(s[3]).width;
+    const x0=(W-(tw+nw))/2,y=H-BAR/2+2;ctx.textBaseline='middle';ctx.textAlign='left';
+    ctx.font='700 26px '+sans;ctx.fillStyle=s[4];ctx.fillText(nm,x0,y);ctx.font='500 26px '+sans;ctx.fillStyle='#f4efe6';ctx.fillText(txt,x0+nw,y);ctx.textBaseline='alphabetic';break}}
+}
+
+/* ---------- master render ---------- */
+function render(D){
+  D=clamp(D,0,LEN);const tt=D;
+  if(SHORT){ctx=sctx;ctx.setTransform(SS,0,0,SS,-(shortCx(tt)-CROP/2)*SS,0)}else ctx=main;
+  ctx.save();
+  if(tt<7.5)wakeWide(tt);
+  else if(tt<11.5)standClose(tt,1);
+  else if(tt<17)drinking(tt);
+  else if(tt<19)standClose(tt,-1);
+  else if(tt<23.5)clockClose(tt);
+  else if(tt<26.6)threeAM(tt);
+  else if(tt<29.5)lightsDie(tt);
+  else if(tt<35)inTheDark(tt);
+  else if(tt<41)underBed(tt);
+  else if(tt<43.5)eyesClose(tt);
+  else theEnd(tt);
+  ctx.restore();
+  if(SHORT){composeShort(tt);return}
+  if(tt<43.5){
+    const v=ctx.createRadialGradient(W/2,H/2,H*.35,W/2,H/2,H*.95);v.addColorStop(0,'rgba(0,0,0,0)');v.addColorStop(1,'rgba(0,0,0,.6)');ctx.fillStyle=v;ctx.fillRect(0,0,W,H);
+    ctx.globalAlpha=.07;ctx.drawImage(gn,Math.floor(rnd(D*40)*100)-100,Math.floor(rnd(D*40+3)*100)-100,W+200,H+200);ctx.globalAlpha=1;
+  }
+  ctx.fillStyle='#000';ctx.fillRect(0,0,W,BAR);ctx.fillRect(0,H-BAR,W,BAR);
+  subtitle(tt);
+}
+function composeShort(tt){
+  ctx=main;ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#000';ctx.fillRect(0,0,SW,SHH);
+  ctx.imageSmoothingEnabled=true;ctx.drawImage(src,0,SBAR,SW,SPH);
+  if(tt<43.5){const cy=SBAR+SPH/2,v=ctx.createRadialGradient(SW/2,cy,SW*.35,SW/2,cy,SPH*.62);v.addColorStop(0,'rgba(0,0,0,0)');v.addColorStop(1,'rgba(0,0,0,'+.5+')');ctx.fillStyle=v;ctx.fillRect(0,SBAR,SW,SPH);
+    ctx.globalAlpha=.07;ctx.drawImage(gn,Math.floor(rnd(tt*40)*100)-100,SBAR+Math.floor(rnd(tt*40+3)*100)-100,SW+200,SPH+200);ctx.globalAlpha=1}
+  ctx.fillStyle='#000';ctx.fillRect(0,0,SW,SBAR);ctx.fillRect(0,SHH-SBAR,SW,SBAR);
+  for(const s of SUBS){if(tt>=s[0]&&tt<s[1]){
+    const nm=s[2]+':  ',maxW=SW-64,lh=32;ctx.textBaseline='middle';ctx.textAlign='left';
+    ctx.font='700 26px '+sans;const nw=ctx.measureText(nm).width;ctx.font='500 26px '+sans;
+    const lines=[];let cur='';subText(s,tt).split(' ').forEach(w=>{const t2=cur?cur+' '+w:w;if(ctx.measureText(t2).width+(lines.length?0:nw)>maxW&&cur){lines.push(cur);cur=w}else cur=t2});lines.push(cur);
+    const y0=SHH-SBAR/2-(lines.length-1)*lh/2;
+    lines.forEach((ln,i)=>{ctx.font='500 26px '+sans;const lead=i?0:nw,x0=(SW-(ctx.measureText(ln).width+lead))/2;
+      if(!i){ctx.font='700 26px '+sans;ctx.fillStyle=s[4];ctx.fillText(nm,x0,y0)}
+      ctx.font='500 26px '+sans;ctx.fillStyle='#f4efe6';ctx.fillText(ln,x0+lead,y0+i*lh)});
+    ctx.textBaseline='alphabetic';break}}
+}
+
+/* ---------- audio ---------- */
+let AC=null,master,nb,padG,fanG,roomG,subG,tinG,fanLfo,evi=0,lastT=0,nextStep=0,nextBeat=0,nextNote=0,nextTick=0,nextBub=0;
+function initAudio(){
+  if(AC)return;const A=window.AudioContext||window.webkitAudioContext;if(!A)return;AC=new A();
+  master=AC.createGain();master.gain.value=.85;master.connect(AC.destination);
+  nb=AC.createBuffer(1,AC.sampleRate*2,AC.sampleRate);const d=nb.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
+  padG=AC.createGain();padG.gain.value=0;padG.connect(master);[146.8,220,277.2,369.9].forEach((f,i)=>{const o=AC.createOscillator();o.type=i%2?'triangle':'sine';o.frequency.value=f;const g=AC.createGain();g.gain.value=.4/(i+1);o.connect(g);g.connect(padG);o.start()});
+  fanG=AC.createGain();fanG.gain.value=0;const lp=AC.createBiquadFilter();lp.type='lowpass';lp.frequency.value=420;const s=AC.createBufferSource();s.buffer=nb;s.loop=true;s.connect(lp);lp.connect(fanG);fanG.connect(master);s.start();
+  fanLfo=AC.createOscillator();fanLfo.frequency.value=4.2;const lg=AC.createGain();lg.gain.value=.03;fanLfo.connect(lg);lg.connect(fanG.gain);fanLfo.start();
+  roomG=AC.createGain();roomG.gain.value=0;roomG.connect(master);const ro=AC.createOscillator();ro.frequency.value=58;ro.connect(roomG);ro.start();
+  subG=AC.createGain();subG.gain.value=0;const sl=AC.createBiquadFilter();sl.type='lowpass';sl.frequency.value=120;sl.connect(subG);subG.connect(master);[38,38.7].forEach(f=>{const o=AC.createOscillator();o.type='sawtooth';o.frequency.value=f;o.connect(sl);o.start()});
+  tinG=AC.createGain();tinG.gain.value=0;tinG.connect(master);const to=AC.createOscillator();to.frequency.value=5200;to.connect(tinG);to.start();
+}
+function nz(freq,q,dur,vol,type,delay){
+  const s=AC.createBufferSource();s.buffer=nb;const f=AC.createBiquadFilter();f.type=type||'bandpass';f.frequency.value=freq;f.Q.value=q;const g=AC.createGain();const n=AC.currentTime+(delay||0);
+  g.gain.setValueAtTime(0,n);g.gain.linearRampToValueAtTime(vol,n+Math.min(.02,dur/3));g.gain.exponentialRampToValueAtTime(.0001,n+dur);s.connect(f);f.connect(g);g.connect(master);s.start(n,Math.random());s.stop(n+dur+.05);
+}
+function swell(f0,f1,dur,vol){const n=AC.currentTime,s=AC.createBufferSource();s.buffer=nb;const f=AC.createBiquadFilter();f.type='bandpass';f.Q.value=2;f.frequency.setValueAtTime(f0,n);f.frequency.exponentialRampToValueAtTime(f1,n+dur);const g=AC.createGain();g.gain.setValueAtTime(0,n);g.gain.linearRampToValueAtTime(vol,n+dur*.9);g.gain.linearRampToValueAtTime(0,n+dur);s.connect(f);f.connect(g);g.connect(master);s.start(n);s.stop(n+dur+.1)}
+function thump(f,dur,vol){const n=AC.currentTime,o=AC.createOscillator(),g=AC.createGain();o.frequency.setValueAtTime(f,n);o.frequency.exponentialRampToValueAtTime(30,n+dur);g.gain.setValueAtTime(vol,n);g.gain.exponentialRampToValueAtTime(.0001,n+dur);o.connect(g);g.connect(master);o.start(n);o.stop(n+dur+.05)}
+function bell(f,vol){const n=AC.currentTime,o=AC.createOscillator(),g=AC.createGain();o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(0,n);g.gain.linearRampToValueAtTime(vol,n+.01);g.gain.exponentialRampToValueAtTime(.0001,n+2.2);o.connect(g);g.connect(master);o.start(n);o.stop(n+2.3)}
+function sting(vol){const n=AC.currentTime;[880,932,1244].forEach(f=>{const o=AC.createOscillator(),g=AC.createGain(),lp=AC.createBiquadFilter();o.type='sawtooth';o.frequency.value=f;lp.type='lowpass';lp.frequency.value=3200;g.gain.setValueAtTime(vol,n);g.gain.exponentialRampToValueAtTime(.0001,n+1.1);o.connect(lp);lp.connect(g);g.connect(master);o.start(n);o.stop(n+1.2)})}
+const click=()=>{nz(3200,4,.04,.3);nz(1500,3,.03,.15)};
+const swallow=()=>{thump(150,.14,.35);nz(420,2,.12,.08)};
+const clink=v=>{bell(2600,v);nz(3000,5,.03,v*2)};
+const EVT=[
+  [.3,()=>nz(600,.7,1.6,.1,'lowpass')],
+  [2.2,()=>nz(600,.7,1.4,.08,'lowpass')],
+  [LAMP_ON,click],
+  [9.4,()=>clink(.04)],
+  [12.7,swallow],[13.5,swallow],[14.3,swallow],
+  [15.3,()=>nz(700,.8,1.2,.12,'lowpass')],
+  [17.8,()=>clink(.06)],
+  [FLIP,()=>{nz(2600,6,.05,.2);thump(55,.8,.5);swell(60,240,2.5,.12)}],
+  ...[26.6,26.9,27.25,27.5,27.8].map(t=>[t,()=>nz(110,3,.15,.25)]),
+  [DARK,()=>{thump(50,.9,.9);nz(90,2,.5,.3)}],
+  [32.6,()=>{for(let i=0;i<14;i++)nz(650+rnd(i)*500,9,.035,.12,'bandpass',i*.045)}],
+  [36.6,()=>swell(60,500,1.5,.18)],
+  [42.2,()=>swell(300,2400,1.2,.2)],
+  [43.5,()=>{sting(.18);thump(38,1,1)}],
+  [45.2,()=>{thump(42,2,.7);bell(98,.12)}],
+  [49.95,()=>{master.gain.cancelScheduledValues(AC.currentTime);master.gain.setValueAtTime(0,AC.currentTime)}]
+];
+function audioUpdate(tt){
+  if(!AC)return;const n=AC.currentTime,set=(g,v)=>g.gain.setTargetAtTime(v,n,.1);
+  set(padG,0);
+  set(fanG,tt<DARK?.03:0);
+  set(roomG,.015*lampL(tt));
+  set(subG,tt>FLIP&&tt<DARK?lerp(.05,.15,clamp((tt-FLIP)/6,0,1)):tt>32.6&&tt<35?.08:tt>=35&&tt<43.5?lerp(.12,.34,clamp((tt-35)/8,0,1)):0);
+  set(tinG,tt>36.6&&tt<43.5?.02:0);
+  if(playing){
+    while(evi<EVT.length&&EVT[evi][0]<=tt){if(EVT[evi][0]>lastT-.001)EVT[evi][1]();evi++}
+    let hb=0;
+    if(tt>.4&&tt<7.5)hb=lerp(.6,.95,clamp(tt/7,0,1));else if(tt>=FLIP&&tt<DARK)hb=.7;else if(tt>=DARK&&tt<35)hb=.55;else if(tt>=35&&tt<43.5)hb=lerp(.5,.3,clamp((tt-35)/8,0,1));
+    if(hb&&tt>=nextBeat){thump(60,.18,.55);setTimeout(()=>{if(AC&&playing)thump(52,.2,.4)},hb*170);nextBeat=tt+hb}
+  }
+  lastT=tt;
+}
+function resetAudioTrackers(){const o=oMap(t);evi=0;while(evi<EVT.length&&EVT[evi][0]<o)evi++;lastT=o;nextStep=nextBeat=nextNote=nextTick=nextBub=o;if(AC&&master)master.gain.setValueAtTime(o>=49.95?0:.85,AC.currentTime)}
+
+/* ---------- UI ---------- */
+const pp=document.getElementById('pp'),rs=document.getElementById('rs'),sc=document.getElementById('sc'),tm=document.getElementById('tm'),big=document.getElementById('big'),fs=document.getElementById('fs');
+function ui(){pp.textContent=playing?'Pause':(t>=LEN?'Replay':'Play');sc.value=t;tm.textContent=t.toFixed(1)+' / '+LEN.toFixed(1)+'s';big.hidden=playing||t>0.01}
+function play(){initAudio();if(AC&&AC.state==='suspended')AC.resume();if(t>=LEN)t=0;resetAudioTrackers();playing=true;ui()}
+function pause(){playing=false;if(master&&AC)master.gain.setTargetAtTime(.0001,AC.currentTime,.05);ui()}
+pp.onclick=()=>{if(playing)pause();else play()};
+big.onclick=play;
+rs.onclick=()=>{t=0;play()};
+sc.oninput=()=>{t=parseFloat(sc.value);resetAudioTrackers();ui()};
+fs.onclick=()=>{const el=cv.parentElement;try{(el.requestFullscreen||el.webkitRequestFullscreen).call(el).catch(()=>{})}catch(e){}};
+let last=performance.now();
+function tick(now){const dt=Math.min(.1,(now-last)/1000);last=now;
+  if(playing){t+=dt;if(t>=LEN){t=LEN;playing=false}ui()}
+  render(t);audioUpdate(oMap(t));requestAnimationFrame(tick)}
+window.__seek=v=>{t=v;render(t)};
+ui();
+(document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve()).then(()=>requestAnimationFrame(tick));
+})();
+</script>
