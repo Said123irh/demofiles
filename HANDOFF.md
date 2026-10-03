@@ -2,7 +2,7 @@
 
 Paste this to start a new chat:
 
-> Continue my False Awakening horror short. Read `HANDOFF.md` on branch `claude/jolly-newton-mgsn1z` of `Said123irh/demofiles` first. All five scenes are built; I want to make changes.
+> Continue my False Awakening horror short. Read `HANDOFF.md` on branch `claude/jolly-newton-mgsn1z` of `Said123irh/demofiles` first. All five scenes are built and joined into MP4s; I want to make changes.
 
 ## Where things are
 
@@ -25,6 +25,12 @@ Ignore these older experiments: `scene1.html`, `scene1-v2.html`, `scene1-v2-shor
 ## The story (from the creator's script)
 
 Ethan dreams about his dead dad. He wakes up and tells his mom, then realises it is still a dream. Every time he wakes, it is another dream. In dreams he always has an extra finger. He is trapped, cannot scream, cannot breathe. He wakes gasping with a dark figure on top of him and cannot move. He closes and opens his eyes and nobody is there. His fingers are normal. He drinks water, sees 3 AM, the lights go off, and two shining eyes appear under the bed. THE END.
+
+## Final MP4 videos (all 5 scenes joined)
+
+- `False-Awakening-long-16x9.mp4` (1280x720) and `False-Awakening-short-9x16.mp4` (720x1280), 30 fps, 3 min 42 s, H.264 + AAC, about 70 MB each (CRF 23 so they stay under GitHub's 100 MB file limit).
+- Built with `render/build.sh` (run from the repo root). `render/audio.js` plays each scene in headless Chromium in real time and records its Web Audio output; `render/frames.js` seeks every frame with `__seek(t)` and pipes the canvas into ffmpeg. Each scene's audio and video are muxed (with a -1 dB limiter, because Scene 2 peaked at 0 dB), then the scenes are joined in order.
+- After changing a scene, delete that scene's files in `render/work/` (aN.webm, vlN.mp4, vsN.mp4) or the whole folder and run `render/build.sh` again. The audio step plays in real time (about 4 min for all scenes); frames take about 7 min for both versions.
 
 ## What each scene shows now
 
