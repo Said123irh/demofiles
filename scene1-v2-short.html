@@ -14,12 +14,12 @@ canvas{width:min(100vw,177.78vh);height:min(56.25vw,100vh);background:#000;displ
 </head>
 <body>
 <canvas id="cv"></canvas>
-<div id="ov"><div id="ovt">CLICK TO PLAY WITH SOUND</div><small>False Awakening, Scene 1 &middot; about 46 seconds &middot; Space pauses &middot; R restarts</small></div>
+<div id="ov"><div id="ovt">CLICK TO PLAY WITH SOUND</div><small>False Awakening, Scene 1 &middot; about 50 seconds &middot; Space pauses &middot; R restarts</small></div>
 <script>
 (()=>{
 const SHORT=(new URLSearchParams(location.search).get('format')||document.documentElement.dataset.format)==='short';
 // W x SH is the world every shot is drawn in; CW x CH is the output frame, PW x PH the picture between the bars
-const W=1280,SH=592,CX=W/2,CY=SH/2,DUR=46,TAU=Math.PI*2,OL='#1c1e26';
+const W=1280,SH=592,CX=W/2,CY=SH/2,DUR=49.5,TAU=Math.PI*2,OL='#1c1e26';
 const CW=SHORT?720:1280,CH=SHORT?1280:720,BAR=SHORT?110:64,PW=CW,PH=CH-2*BAR;
 const cv=document.getElementById('cv');cv.width=CW;cv.height=CH;
 if(SHORT){cv.style.width='min(100vw,56.25vh)';cv.style.height='min(177.78vw,100vh)'}
@@ -196,7 +196,9 @@ function person(o){
     c.beginPath();c.arc(m.hx+18,m.hy-17,9,-1.2,1.2);c.lineWidth=5;c.strokeStyle=OL;c.stroke();c.fillStyle='#4a2f1e';c.fillRect(m.hx-11,m.hy-33,24,6);
     c.beginPath();c.arc(m.hx,m.hy,15,Math.PI*0.9,Math.PI*2.1);fillOL(skin,4.5)}
   }
+  c.save();c.translate(0,-226);c.rotate(o.headTilt||0);c.translate(0,226);
   if(back)headBack(o);else headFront(o);
+  c.restore();
   c.restore();
   c.restore();
 }
@@ -326,13 +328,20 @@ function cam(u,d,o){
 const blinkAt=t=>{const f=(t%3.3)/3.3;return f>0.95?Math.sin((f-0.95)/0.05*Math.PI):0};
 
 /* ================= shots ================= */
-// Authored times are mapped onto the cut: dream hallway 7.5s -> 4s, run 3.3s -> 1.8s.
-const M=x=>x<7.5?x*4/7.5:x<26.3?x-3.5:x<29.6?22.8+(x-26.3)*1.8/3.3:x-5;
+// Authored times are mapped onto the cut: dream hallway 7.5s -> 4s, porch 5s -> 6.5s,
+// Dad close up (before the whiteout) 4.1s -> 6.1s, run 3.3s -> 1.8s.
+const M=x=>x<7.5?x*4/7.5:x<12.5?4+(x-7.5)*1.3:x<16.6?10.5+(x-12.5)*6.1/4.1:x<26.3?x:x<29.6?26.3+(x-26.3)*1.8/3.3:x-1.5;
 const T={};Object.entries({A:[0,7.5],B:[7.5,12.5],C:[12.5,18.1],E:[18.1,22],F:[22,24.8],G:[24.8,26.3],R:[26.3,29.6],H:[29.6,33.4],K:[33.4,35.6],I:[35.6,43],J:[43,49]}).forEach(([k,v])=>T[k]=v.map(M));
+const DAD_COL='#f0c987',ETHAN_COL='#ffb05a',MOM_COL='#bcd3a8';
 const LINES=[
-  {who:'ETHAN',text:'This is a dream.',t0:32.0,t1:35.4,syl:[[0,.22],[.28,.16],[.48,.16],[.72,.5]],col:'#ffb05a'},
-  {who:'MOM',text:'Then wake up, Ethan.',t0:39.3,t1:42.8,syl:[[0,.22],[.28,.2],[.5,.2],[.78,.22],[1.04,.4]],col:'#bcd3a8'}
+  {who:'DAD',text:"Ethan, you're late.",t0:6.8,t1:9.4,syl:[[0,.2],[.24,.2],[.5,.2],[.74,.45]],col:DAD_COL},
+  {who:'ETHAN',text:'Dad?',t0:11.0,t1:12.6,syl:[[0,.5]],col:ETHAN_COL},
+  {who:'DAD',text:"Don't stay too long, buddy.",t0:13.2,t1:16.3,syl:[[0,.2],[.24,.2],[.48,.2],[.72,.35],[1.15,.2],[1.38,.4]],col:DAD_COL},
+  {who:'ETHAN',id:'dream',text:'This is a dream.',t0:35.5,t1:38.9,syl:[[0,.22],[.28,.16],[.48,.16],[.72,.5]],col:ETHAN_COL},
+  {who:'MOM',text:'Then wake up, Ethan.',t0:42.8,t1:46.3,syl:[[0,.22],[.28,.2],[.5,.2],[.78,.22],[1.04,.4]],col:MOM_COL}
 ];
+// how much a speaker is talking right now (0..1), used for small head moves on characters seen from behind
+const talking=(t,who)=>LINES.filter(L=>L.who===who).reduce((m,L)=>Math.max(m,mouthAt(t,L)),0);
 const mouthAt=(t,L)=>{let m=0;L.syl.forEach(s=>{const p=(t-L.t0-s[0])/s[1];if(p>0&&p<1)m=Math.max(m,Math.sin(p*Math.PI))});return m};
 
 // A: dream hallway, first person walk toward the bright porch door
@@ -386,10 +395,10 @@ function porchBG(u){
 // B: porch, Dad stands with his back to the camera
 function shotB(t){
   const u=t-T.B[0],d=T.B[1]-T.B[0];
-  c.save();cam(u,d,{z0:1,z1:1.22,fy:300,drift:5,y1:-6});
+  c.save();c.translate(lerp(SHORT?300:380,0,ease(seg(u,0.3,2.5))),0);cam(u,d,{z0:1,z1:1.22,fy:300,drift:5,y1:-6});
   porchBG(u);
   c.fillStyle=lin(0,290,0,430,[[0,'rgba(255,242,218,0)'],[0.5,'rgba(255,242,218,0.5)'],[1,'rgba(255,242,218,0)']]);c.fillRect(-400,290,W+800,140);
-  person(Object.assign({},DAD,{x:CX,y:520,s:0.95,back:true,shadow:true,fold:true,rot:Math.sin(u*0.7)*0.004,breath:Math.sin(u*1.2)*1.2}));
+  person(Object.assign({},DAD,{x:CX,y:520,s:0.95,back:true,shadow:true,fold:true,headTilt:Math.sin(t*9)*0.035*talking(t,'DAD')+0.02*talking(t,'DAD'),rot:Math.sin(u*0.7)*0.004,breath:Math.sin(u*1.2)*1.2}));
   dust(u,40);
   c.restore();
   if(u<0.7){c.fillStyle='rgba(255,248,228,'+(1-ease(u/0.7))*0.9+')';c.fillRect(-W,-SH,W*3,SH*3)}
@@ -400,7 +409,7 @@ function shotC(t){
   c.save();cam(u,d,{z0:1,z1:1.2,fy:200,drift:4,x1:-10});
   blurred(()=>{c.translate(CX,CY);c.scale(1.7,1.7);c.translate(-CX-80,-CY+70);porchBG(u)},9,'#e8cc9f');
   glow(CX,CY,700,'255,236,200',0.25);
-  person(Object.assign({},DAD,{x:CX,y:905,s:2.6,back:true,fold:true,rot:Math.sin(u*0.6)*0.006,breath:Math.sin(u*1.2)*1.4}));
+  person(Object.assign({},DAD,{x:CX,y:905,s:2.6,back:true,fold:true,headTilt:Math.sin(t*9)*0.03*talking(t,'DAD')+0.02*talking(t,'DAD'),rot:Math.sin(u*0.6)*0.006,breath:Math.sin(u*1.2)*1.4}));
   dust(u,30);
   c.restore();
 }
@@ -556,7 +565,7 @@ function shotI(t){
   c.save();cam(u,d,{z0:1,z1:1.16,fy:240,drift:3});
   blurred(()=>{c.translate(CX,CY);c.scale(1.7,1.7);c.translate(-653,-212);kitchenBG(t)},11,'#7a869c');
   c.fillStyle='rgba(30,36,52,.2)';c.fillRect(-300,-300,W+600,SH+600);
-  const spk=mouthAt(t,LINES[0]),post=seg(t,M(40.4),M(43)),tremble=post*2.2,look=t>M(41.6)?-0.9*ease(seg(t,M(41.6),M(42.2))):0;
+  const spk=mouthAt(t,LINES.find(L=>L.id==='dream')),post=seg(t,M(40.4),M(43)),tremble=post*2.2,look=t>M(41.6)?-0.9*ease(seg(t,M(41.6),M(42.2))):0;
   const ex={brow:0.7+0.5*seg(t,M(35.6),M(37)),eye:1.25+0.15*post,pup:0.65,open:spk*0.9+(spk<0.05&&t>M(40.4)?0.12:0),smile:-0.5,stress:1,sweat:t>M(38),look,blink:(t>M(36.6)&&t<M(40.8))?0:blinkAt(t+1)};
   person(Object.assign({},ETHAN,{x:CX+Math.sin(t*38)*tremble,y:1150,s:3.4,expr:ex,arms:[0.1,0.1],breath:Math.abs(Math.sin(u*2.6))*2}));
   c.restore();
