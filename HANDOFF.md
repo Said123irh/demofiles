@@ -33,22 +33,12 @@ Ethan dreams about his dead dad. He wakes up and tells his mom, then realises it
 - **Scene 3**: hands calm "Okay...", counts fingers with a glowing ring on each fingertip (no pointing hand), sixth turns red "...Six.", close-up "Six fingers..." / "I'm still dreaming.", overhead in bed trying to get up three times "Get up..." / "Get up!" / "I can't move.", silent scream on the pillow (all sound cuts, subtitle "MOM! HELP ME!" loses its letters), vision closes on the ceiling fan to black.
 - **Scene 4**: wakes gasping at the dark ceiling, paralysed close-up (only eyes move) "...I can't move.", POV down his chest: faceless black figure crouched on him against the moonlit window, leans in, dark fingers creep onto his forehead, eyes squeezed shut "It's not real. It's not real.", eyes open, nobody there, relief, counts five normal fingers in moonlight "One... Five." / "...Five.", fade to black.
 
-## Scene 5 (BUILT, waiting for the creator's feedback)
+## Scene 5 (REVISION IN PROGRESS, v2)
 
-Status: built, screenshots taken, play test passed (no page errors, full 50 s playthrough). The creator has not reviewed it yet and has not listened to the sound. Fix what they flag.
-
-Beats (50 s, built without a separate sign-off because the creator asked to build straight away):
-- 0-7.5 wide night bedroom, Ethan sits on the edge of the bed, pulls the lamp chain, "...Okay."
-- 7.5-11.5 nightstand close-up (lamp, clock 02:59, glass of water), his hand takes the glass
-- 11.5-17 he drinks (3 swallows), "It's over. I'm awake."
-- 17-19 glass set back next to the clock
-- 19-23.5 clock push-in, 02:59 flips to 03:00
-- 23.5-26.6 his face lit red by the clock, "...3 AM."
-- 26.6-29.5 wide, lamp flickers, power dies (fan and hum stop)
-- 29.5-35 his face in the dark, "...Mom?", a creak, his eyes slide down
-- 35-41 floor-level shot: his bare feet, two shining eyes open in the dark under the bed between them, blink
-- 41-43.5 close on the eyes, they curve into a smile, rush in, smash to black
-- 43.5-50 THE END
+Creator feedback on v1: "he gets up, feels relieved, looks at the time, goes back to sleep again. As he lays down to sleep and the lights are off we see the 2 eyes under the bed."
+v2 beats being built (50 s): 0-7.5 sits on bed edge, lamp on, "...Okay." / 7.5-11.5 takes the glass / 11.5-17 drinks, relieved, "It's over. I'm awake." / 17-19 glass down / 19-22.5 clock 02:59 to 03:00 (calm) / 22.5-25.5 tired relieved face "...3 AM." / 25.5-35 wide: "Back to sleep.", he pulls the lamp off himself, lies down in the dark, closes his eyes, camera drifts to the gap under the bed, two eyes open / 35-40.5 floor-level, eyes under the bed blink (no feet) / 40.5-43 eyes narrow and rush in / 43-50 THE END.
+Removed from v1: power cut and flicker, "...Mom?", the creak, his feet in the under-bed shot.
+If this chat ran out mid-revision, check the latest commit on `claude/jolly-newton-mgsn1z`.
 
 Scene 5 code notes: new helpers `lampL(D)` (lamp level, flicker, power cut at `DARK`), `alarmClock` (7-segment digits via `seg7`), `glassAt` (water stays level when tilted), `lampAt` (pull chain), `armIK`, `sitter` (Ethan sitting on the bed edge facing camera, full body with bare feet), `roomWide`, `faceSit` (chest-up shot with lamp, red clock and dark lighting), `glowEyes`. Short version picks the crop centre per shot with `shortCx(D)`. Times: `LAMP_ON=3.75`, `FLIP=21` (03:00), `FLICK=26.6`, `DARK=28.2`. The glowing eyes narrow at the end; an earlier crescent grin was dropped because it read like eyebrows. "THE END" uses the Dela Gothic One font (falls back to Impact).
 
