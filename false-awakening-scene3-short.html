@@ -341,13 +341,20 @@ function bigHand(x,y,s,fingers,o){
   ctx.restore();
   return tips;
 }
-// the other hand pointing with one finger, coming in from the lower right
+// the other hand pointing with one finger, coming in from the lower right.
+// Drawn upright (finger up) then rotated so the fingertip lands on tip.
 function pointer(tip,s){
-  const k=s/2.6,fist=[tip[0]+60*k,tip[1]+70*k];
-  cap([fist[0]+160*k,H+200],fist,70*k,SK_A);
-  cap(fist,tip,22*k,SK_A);
-  ctx.fillStyle=SK_A;ctx.strokeStyle=INK;ctx.lineWidth=4;ctx.beginPath();ctx.ellipse(fist[0]+12*k,fist[1]+14*k,46*k,40*k,-.6,0,7);ctx.fill();ctx.stroke();
-  ctx.strokeStyle='rgba(28,30,38,.35)';ctx.lineWidth=2.5;[-1,1].forEach(q=>{ctx.beginPath();ctx.moveTo(fist[0]-10*k,fist[1]+q*12*k+10*k);ctx.lineTo(fist[0]+30*k,fist[1]+q*12*k+18*k);ctx.stroke()});
+  const k=s/2.6*1.3,rot=-.45,L=78;
+  ctx.save();ctx.translate(tip[0],tip[1]);ctx.rotate(rot);ctx.scale(k,k);ctx.translate(18,L+40);
+  ctx.lineJoin='round';
+  cap([6,30],[30,520],54,SK_A);                 // forearm
+  cap([-18,-30],[-18,-30-L],22,SK_A);           // index finger, straight
+  ctx.fillStyle=SK_A;ctx.strokeStyle=INK;ctx.lineWidth=4;
+  ctx.beginPath();ctx.roundRect(-38,-44,76,88,28);ctx.fill();ctx.stroke(); // fist
+  ctx.strokeStyle='rgba(28,30,38,.45)';ctx.lineWidth=3;ctx.lineCap='round';
+  [-16,2,20].forEach(y=>{ctx.beginPath();ctx.moveTo(-36,y);ctx.lineTo(-14,y);ctx.stroke()}); // curled finger creases
+  cap([30,18],[-8,-2],20,SK_A);                 // thumb across the front
+  ctx.restore();
 }
 const MORNING='#c9d0d8';
 function roomBlur(D,div,camY){withBlur(div,()=>bedroomWorld(D,camY,0,'07:12'))}
