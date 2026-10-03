@@ -2,11 +2,11 @@
 
 Paste this to start a new chat:
 
-> Continue my False Awakening horror short. Read `HANDOFF.md` on branch `claude/scene-3-canvas-animation-porg9o` of `Said123irh/demofiles` first, then build Scene 5.
+> Continue my False Awakening horror short. Read `HANDOFF.md` on branch `claude/jolly-newton-mgsn1z` of `Said123irh/demofiles` first. All five scenes are built; I want to make changes.
 
 ## Where things are
 
-- Repo: `Said123irh/demofiles`, branch `claude/scene-3-canvas-animation-porg9o`
+- Repo: `Said123irh/demofiles`. Latest branch: `claude/jolly-newton-mgsn1z` (has Scenes 1 to 5). Scenes 1 to 4 were built on `claude/scene-3-canvas-animation-porg9o`.
 - Each scene is one self-contained HTML file with a canvas animation, synthesised sound and a play bar.
 - Every scene has a long (16:9) and a short (9:16) version.
 
@@ -16,9 +16,9 @@ Paste this to start a new chat:
 | 2 | 45s | `false-awakening-scene2.html` | `false-awakening-scene2-short.html` | https://claude.ai/artifact/8UQJV3EJ9saMbQFbm3oXj9 | https://claude.ai/artifact/SMasewjdiuhsScjLCuUsDK |
 | 3 | 40s | `false-awakening-scene3.html` | `false-awakening-scene3-short.html` | https://claude.ai/artifact/QSAsBiU75XqWzUWVeu5aDG | https://claude.ai/artifact/NTyDbqEVTQnqwqJXH9DFDw |
 | 4 | 40s | `false-awakening-scene4.html` | `false-awakening-scene4-short.html` | https://claude.ai/artifact/AHnm5G64widJe34yZuviGu | https://claude.ai/artifact/NW4fNjVMhtPWqdKiVWRfww |
-| 5 | not built | | | | |
+| 5 | 50s | `false-awakening-scene5.html` | `false-awakening-scene5-short.html` | https://claude.ai/artifact/EQksqDyXM26fvsnJ1D3B6k | https://claude.ai/artifact/QE8US5v4KBQrUUWbHxbX3K |
 
-Total so far: about 2 min 56 s. Screenshots are in `screenshots/fa/` (Scene 1) and `screenshots/fa2/`, `fa3/`, `fa4/`.
+Total: about 3 min 46 s. Screenshots are in `screenshots/fa/` (Scene 1) and `screenshots/fa2/`, `fa3/`, `fa4/`, `fa5/`.
 
 Ignore these older experiments: `scene1.html`, `scene1-v2.html`, `scene1-v2-short.html`, `screenshots/v2/`, `screenshots/scene1_*.png`.
 
@@ -33,11 +33,11 @@ Ethan dreams about his dead dad. He wakes up and tells his mom, then realises it
 - **Scene 3**: hands calm "Okay...", counts fingers with a glowing ring on each fingertip (no pointing hand), sixth turns red "...Six.", close-up "Six fingers..." / "I'm still dreaming.", overhead in bed trying to get up three times "Get up..." / "Get up!" / "I can't move.", silent scream on the pillow (all sound cuts, subtitle "MOM! HELP ME!" loses its letters), vision closes on the ceiling fan to black.
 - **Scene 4**: wakes gasping at the dark ceiling, paralysed close-up (only eyes move) "...I can't move.", POV down his chest: faceless black figure crouched on him against the moonlit window, leans in, dark fingers creep onto his forehead, eyes squeezed shut "It's not real. It's not real.", eyes open, nobody there, relief, counts five normal fingers in moonlight "One... Five." / "...Five.", fade to black.
 
-## Scene 5 (IN PROGRESS, being built on branch `claude/jolly-newton-mgsn1z`)
+## Scene 5 (BUILT, waiting for the creator's feedback)
 
-Status: building `false-awakening-scene5.html` (long) and `false-awakening-scene5-short.html`. If this chat ran out, check that branch for the latest files and the status line here.
+Status: built, screenshots taken, play test passed (no page errors, full 50 s playthrough). The creator has not reviewed it yet and has not listened to the sound. Fix what they flag.
 
-Beat plan used (50 s, built without a separate sign-off because the creator asked to build straight away):
+Beats (50 s, built without a separate sign-off because the creator asked to build straight away):
 - 0-7.5 wide night bedroom, Ethan sits on the edge of the bed, pulls the lamp chain, "...Okay."
 - 7.5-11.5 nightstand close-up (lamp, clock 02:59, glass of water), his hand takes the glass
 - 11.5-17 he drinks (3 swallows), "It's over. I'm awake."
@@ -49,6 +49,8 @@ Beat plan used (50 s, built without a separate sign-off because the creator aske
 - 35-41 floor-level shot: his bare feet, two shining eyes open in the dark under the bed between them, blink
 - 41-43.5 close on the eyes, they curve into a smile, rush in, smash to black
 - 43.5-50 THE END
+
+Scene 5 code notes: new helpers `lampL(D)` (lamp level, flicker, power cut at `DARK`), `alarmClock` (7-segment digits via `seg7`), `glassAt` (water stays level when tilted), `lampAt` (pull chain), `armIK`, `sitter` (Ethan sitting on the bed edge facing camera, full body with bare feet), `roomWide`, `faceSit` (chest-up shot with lamp, red clock and dark lighting), `glowEyes`. Short version picks the crop centre per shot with `shortCx(D)`. Times: `LAMP_ON=3.75`, `FLIP=21` (03:00), `FLICK=26.6`, `DARK=28.2`. The glowing eyes narrow at the end; an earlier crescent grin was dropped because it read like eyebrows. "THE END" uses the Dela Gothic One font (falls back to Impact).
 
 ### Original Scene 5 notes from the script
 
