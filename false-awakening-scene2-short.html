@@ -31,7 +31,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
 <div class="wrap">
   <div>
     <h1>False Awakening, Scene 2</h1>
-    <p class="sub">Ethan is stuck in the dream. Every time he wakes up, he is still dreaming. About 49 seconds. Turn the sound on and press play.</p>
+    <p class="sub">Ethan is stuck in the dream. Every time he wakes up, he is still dreaming. About 45 seconds. Turn the sound on and press play.</p>
   </div>
   <div class="frame">
     <canvas id="c" width="1280" height="720" aria-label="Animated horror scene: a dream, a false awakening and a silent kitchen"></canvas>
@@ -40,8 +40,8 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
   <div class="bar">
     <button id="pp">Play</button>
     <button id="rs">Restart</button>
-    <input type="range" id="sc" min="0" max="49" step="0.01" value="0" aria-label="Timeline">
-    <span class="time" id="tm">0.0 / 49.0s</span>
+    <input type="range" id="sc" min="0" max="45" step="0.01" value="0" aria-label="Timeline">
+    <span class="time" id="tm">0.0 / 45.0s</span>
     <button id="fs">Full screen</button>
   </div>
   <p class="note">Work in progress test scene. The names and lines are placeholders you can change.</p>
@@ -49,8 +49,8 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
 
 <script>
 (function(){
-const oMap=D=>D;
-const cv=document.getElementById('c'),main=cv.getContext('2d'),W=1280,H=720,LEN=49,BAR=64;
+const oMap=D=>D<8?D:D+4; // the old 8-12s pinch shot was cut
+const cv=document.getElementById('c'),main=cv.getContext('2d'),W=1280,H=720,LEN=45,BAR=64;
 // Short video (9:16): each frame is drawn at 16:9 without bars into a tall slice around the action,
 // then placed between taller bars. CROP is the width of that slice in 16:9 units.
 const SHORT=(new URLSearchParams(location.search).get('format')||document.documentElement.dataset.format)==='short';
@@ -352,27 +352,6 @@ function slapClose(D){
     const hx=lerp(W*.5+d*(W*.75),W*.5+d*R*.75,p),hy=fy+R*.35;
     cap([hx+d*80,hy+90],[hx+d*420,H+200],R*.36,SK_A);handDraw(hx,hy,R/120,d*-.35,SK_A,5,d)}});
 }
-// 8-12: first person, pinches his arm and feels nothing. "Why can't I feel anything?"
-function pinchFP(D){
-  const k=D-8;
-  withBlur(9,()=>{ctx.save();ctx.translate(W/2,H/2);ctx.scale(2.2,2.2);ctx.translate(-880,-520);kitchenSet(D+41);ctx.restore()});
-  ctx.fillStyle='rgba(20,30,30,.18)';ctx.fillRect(0,0,W,H);
-  const sway=Math.sin(D*.8)*6;
-  // his left forearm across the frame, sleeve at the elbow
-  const a=[-60,640+sway],b=[760,470+sway];
-  cap(a,b,120,SK_A);cap(a,[120,600+sway],140,TEE);
-  handDraw(820,452+sway,1.25,1.75,SK_A,5,1);
-  // pinch: right hand comes in from the bottom right
-  const reach=ease(clamp((k-.2)/.9,0,1)),sq=sm(1.1,1.6,k)*(1-sm(3.5,3.8,k)),jit=Math.sin(D*50)*2*sq;
-  const px=520+jit,py=520+sway;
-  const hx=lerp(1100,px+60,reach),hy=lerp(900,py+50,reach);
-  if(sq>0){ctx.fillStyle=SK_A;ctx.strokeStyle=INK;ctx.lineWidth=4;ctx.beginPath();ctx.ellipse(px,py-8,24+sq*8,14+sq*10,0,0,7);ctx.fill();ctx.stroke();
-    ctx.fillStyle='rgba(220,90,80,'+(.4*sq)+')';ctx.beginPath();ctx.ellipse(px,py-8,18,10,0,0,7);ctx.fill()}
-  cap([hx+40,hy+60],[hx+380,H+220],110,SK_A);
-  const gap=lerp(46,12,sq);
-  cap([hx,hy],[px+2,py-gap],30,SK_A);cap([hx+20,hy+10],[px+6,py+gap*.55],30,SK_A);
-  ctx.fillStyle=SK_A;ctx.strokeStyle=INK;ctx.lineWidth=5;ctx.beginPath();ctx.ellipse(hx+38,hy+36,62,48,-.5,0,7);ctx.fill();ctx.stroke();
-}
 // 12-16: endless hallway, he trips, black
 function endlessHall(D){
   const k=D-12,fall=sm(14.55,15.05,D);
@@ -409,7 +388,8 @@ function reliefClose(D){
     cap([hx+s*30,hy+70],[hx+s*R*.9,H+200],R*.38,SK_A);handDraw(hx,hy,R/118,s*-.18,SK_A,5,s)});
 }
 // 24-34: bathroom mirror. The reflection lags, smiles, screams without sound. Lights die.
-const realX=t=>470+Math.sin((t-24)*1.2)*45+(t>27?Math.sin((t-27)*2.2)*22:0);
+// both stand still and breathe together; at 31s the reflection lunges at the glass and Ethan jolts back
+const breathY=t=>Math.sin(t*1.3)*3;
 function mirrorLight(D){if(D<32.2)return 1;if(D<33.2)return rnd(Math.floor(D*22))>.45?.95:.2;return 0}
 function mirrorScene(D){
   ctx.fillStyle='#c4cfcc';ctx.fillRect(0,0,W,H);
@@ -422,12 +402,12 @@ function mirrorScene(D){
   ctx.fillStyle='#9fb0ad';ctx.fillRect(mx,my,mw,mh);
   ctx.strokeStyle='rgba(40,60,60,.25)';for(let x=mx;x<=mx+mw;x+=48){ctx.beginPath();ctx.moveTo(x,my);ctx.lineTo(x,my+mh);ctx.stroke()}
   ctx.fillStyle='#6a5a48';ctx.fillRect(mx+mw-130,my+40,110,mh);
-  // reflection: follows him late, then stops following
-  const lagT=D<25.2?D:D<28?D-.55:28-.55,rx=560+(realX(lagT)-470)*.85,ry=312,R=92;
+  // reflection: stands exactly like him, then grins, then lunges screaming
+  const lunge=ease(sm(31,31.25,D)),rx=560,ry=312+breathY(D)+lunge*40,R=92*(1+lunge*.55);
   let e={bY:0,bT:0,eye:1,smile:.05,open:0,skew:0,pup:1};
   if(D>29)e=mixE(e,{bY:0,bT:0,eye:.55,smile:2.6,open:.05,skew:.35,pup:.45},sm(29,30.6,D));
   const scr=sm(31,31.2,D);if(D>31)e=mixE(e,{bY:0,bT:0,eye:1.5,smile:0,open:0,skew:0,pup:.3},scr);
-  const shake=D>31?Math.sin(D*60)*4:0;
+  const shake=D>31?Math.sin(D*60)*5:0;
   torsoAt(rx+shake,ry,R,TEE);
   faceAt(rx+shake,ry,R,e,[0,0],D>29?1:((D%3.1<.12)?.1:1),ETHAN);
   // silent scream: a wide dark oval over the mouth
@@ -441,16 +421,36 @@ function mirrorScene(D){
   ctx.fillStyle='#cfd6d4';ctx.beginPath();ctx.ellipse(780,600,150,26,0,0,7);ctx.fill();ctx.stroke();
   ctx.fillStyle='#a9b0b4';ctx.fillRect(770,520,20,62);ctx.strokeRect(770,520,20,62);
   // Ethan from behind, in the foreground
-  const hx=realX(D);
+  const jolt=sm(31.05,31.2,D)*(1-.6*sm(31.6,32.2,D)),hx=450+Math.sin(D*47)*7*jolt,hy=breathY(D)+jolt*55;
+  ctx.save();ctx.translate(0,hy);
   ctx.fillStyle=TEE;ctx.beginPath();ctx.moveTo(hx-230,H+20);ctx.quadraticCurveTo(hx-200,700,hx-50,690);ctx.lineTo(hx+50,690);ctx.quadraticCurveTo(hx+200,700,hx+230,H+20);ctx.closePath();ctx.fill();ctx.stroke();
   headBack(hx,600,112,ETHAN);
+  ctx.restore();
   ctx.fillStyle='rgba(0,0,0,'+(1-mirrorLight(D))*.96+')';ctx.fillRect(0,0,W,H);
 }
 // 40-41.6: dark hallway toward the lit kitchen doorway
 function darkHall(D){const k=D-40;hall(lerp(0,6.4,k/1.6),'real',D,Math.sin(D*5)*.03,10,.3);ctx.fillStyle='rgba(4,6,14,.4)';ctx.fillRect(0,0,W,H)}
 // 41.6-43.1: three people at the table, backs to camera. The middle head turns.
-function seated(x,y,R,c,top){
-  ctx.fillStyle=top;ctx.strokeStyle=INK;ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(x-R*1.25,y+R*3.2);ctx.lineTo(x-R*1.1,y+R*1.35);ctx.quadraticCurveTo(x-R*.6,y+R*1.05,x,y+R*1.05);ctx.quadraticCurveTo(x+R*.6,y+R*1.05,x+R*1.1,y+R*1.35);ctx.lineTo(x+R*1.25,y+R*3.2);ctx.closePath();ctx.fill();ctx.stroke();
+// seated from behind on a chair: shoes, lower legs, chair, back, arms, head
+function seatedBack(x,floorY,k,c,top,bottom,turn){
+  const sk=c.skin,seatY=floorY-64*k,hip=[x,seatY-4*k],neck=[x,hip[1]-100*k],R=55*k*1.2;
+  ctx.strokeStyle=INK;ctx.lineWidth=3;
+  ctx.fillStyle='#2e2219';[-1,1].forEach(s2=>{ctx.fillRect(x+s2*34*k-4*k,seatY,8*k,floorY-seatY);ctx.strokeRect(x+s2*34*k-4*k,seatY,8*k,floorY-seatY)});
+  [-1,1].forEach(s2=>{cap([x+s2*11*k,seatY+4*k],[x+s2*13*k,floorY-8*k],22*k,bottom);
+    ctx.fillStyle=SHOE;ctx.strokeStyle=INK;ctx.lineWidth=3;ctx.beginPath();ctx.ellipse(x+s2*13*k,floorY-4*k,12*k,7*k,0,0,7);ctx.fill();ctx.stroke()});
+  ctx.fillStyle='#3a2a1e';ctx.fillRect(x-42*k,seatY-4*k,84*k,12*k);ctx.strokeRect(x-42*k,seatY-4*k,84*k,12*k);
+  const sh=[neck[0],neck[1]+16*k],shl=[sh[0]-19*k,sh[1]],shr=[sh[0]+19*k,sh[1]];
+  ctx.beginPath();ctx.moveTo(shl[0]-6*k,sh[1]-6*k);ctx.lineTo(shr[0]+6*k,sh[1]-6*k);ctx.quadraticCurveTo(shr[0]+8*k,(sh[1]+hip[1])/2,hip[0]+25*k,hip[1]+2*k);ctx.lineTo(hip[0]-25*k,hip[1]+2*k);ctx.quadraticCurveTo(shl[0]-8*k,(sh[1]+hip[1])/2,shl[0]-6*k,sh[1]-6*k);ctx.closePath();
+  ctx.fillStyle=top;ctx.fill();ctx.strokeStyle=INK;ctx.lineWidth=4;ctx.stroke();
+  // arms go forward to the table, so from behind only the upper arms show
+  [[shl,-1],[shr,1]].forEach(([S,s2])=>cap(S,[S[0]+s2*6*k,S[1]+48*k],16*k,top));
+  cap([neck[0],neck[1]-4*k],[neck[0],sh[1]],15*k,sk);
+  const hy=neck[1]-R-2;
+  if(turn==null){headBack(neck[0],hy,R,c);return}
+  const sx=Math.max(.05,Math.abs(Math.cos(turn*Math.PI)));
+  ctx.save();ctx.translate(neck[0],hy);ctx.scale(sx,1);ctx.translate(-neck[0],-hy);
+  if(turn<.5)headBack(neck[0],hy,R,c);else faceAt(neck[0],hy,R,{bY:0,bT:0,eye:1.25,smile:0,open:0,skew:0,pup:1.9},[0,0],1,c);
+  ctx.restore();
 }
 function tableScene(D){
   const z=lerp(1,1.12,ease(clamp((D-41.6)/1.5,0,1)));
@@ -461,16 +461,12 @@ function tableScene(D){
   ctx.fillStyle='rgba(120,150,200,.18)';ctx.fillRect(820,150,120,150);
   const cone=ctx.createRadialGradient(640,170,10,640,420,420);cone.addColorStop(0,'rgba(255,210,140,.45)');cone.addColorStop(1,'rgba(255,210,140,0)');ctx.fillStyle=cone;ctx.fillRect(300,70,680,H);
   ctx.fillStyle='#2a2d34';ctx.fillRect(637,70,6,80);ctx.fillStyle='#d8b878';ctx.beginPath();ctx.moveTo(610,170);ctx.lineTo(670,170);ctx.lineTo(655,150);ctx.lineTo(625,150);ctx.closePath();ctx.fill();
-  const R=46,y=330;
-  [[470,MOM,'#56664a'],[640,DAD,'#6e3a2e'],[810,ETHAN,'#4c5260']].forEach(([x,c,top],i)=>{
-    seated(x,y,R,c,top);
-    if(i!==1){headBack(x,y,R,c);return}
-    const r=ease(clamp((D-42.3)/.5,0,1)),sx=Math.max(.05,Math.abs(Math.cos(r*Math.PI)));
-    ctx.save();ctx.translate(x,y);ctx.scale(sx,1);ctx.translate(-x,-y);
-    if(r<.5)headBack(x,y,R,c);else faceAt(x,y,R,{bY:0,bT:0,eye:1.25,smile:0,open:0,skew:0,pup:1.9},[0,0],1,DAD);
-    ctx.restore();
-  });
-  ctx.fillStyle='#3a2a1e';ctx.strokeStyle=INK;ctx.lineWidth=4;ctx.fillRect(360,470,560,26);ctx.strokeRect(360,470,560,26);ctx.fillRect(390,496,16,200);ctx.fillRect(874,496,16,200);
+  // floor, then the table beyond them, then the three seated figures in front of it
+  ctx.fillStyle='#1a1512';ctx.fillRect(300,500,680,H);
+  ctx.fillStyle='#3a2a1e';ctx.strokeStyle=INK;ctx.lineWidth=4;ctx.fillRect(360,420,560,22);ctx.strokeRect(360,420,560,22);
+  [380,900].forEach(x=>{ctx.fillRect(x-7,442,14,90);ctx.strokeRect(x-7,442,14,90)});
+  const turn=ease(clamp((D-42.3)/.5,0,1));
+  [[470,MOM,'#56664a','#3d4f6b'],[640,DAD,'#6e3a2e','#2b2d36'],[810,ETHAN,'#4c5260','#394150']].forEach(([x,c,top,bot],i)=>seatedBack(x,610,.85,c,top,bot,i===1?turn:null));
   ctx.restore();
   ctx.strokeStyle='#3a2c20';ctx.lineWidth=24;ctx.strokeRect(300,70,680,H+40);
   ctx.restore();
@@ -489,7 +485,6 @@ function handsUp(D){
 const SUBS=[
   [0.5,3.8,'ETHAN','This is a dream. Wake up!',ORANGE],
   [6.2,7.9,'ETHAN','Come on... wake up!',ORANGE],
-  [9.4,11.9,'ETHAN',"Why can't I feel anything?",ORANGE],
   [20.2,23.6,'ETHAN','It was just a dream. Just a dream.',ORANGE],
   [36.4,38.8,'DAD','Ethan! Breakfast!',GOLD],
   [43.3,44.6,'ETHAN','...Dad?',ORANGE],
@@ -504,24 +499,23 @@ function subtitle(tt){
 
 /* ---------- master render ---------- */
 function render(D){
-  D=clamp(D,0,LEN);const tt=D;
-  if(SHORT){ctx=sctx;ctx.setTransform(SS,0,0,SS,-(shortFx(tt,D)-CROP/2)*SS,0)}else ctx=main;
+  D=clamp(D,0,LEN);const tt=oMap(D);
+  if(SHORT){ctx=sctx;ctx.setTransform(SS,0,0,SS,-(shortFx(tt)-CROP/2)*SS,0)}else ctx=main;
   ctx.save();
-  if(D<4)kitchenStuck(D);
-  else if(D<8)slapClose(D);
-  else if(D<12)pinchFP(D);
-  else if(D<16)endlessHall(D);
-  else if(D<19.4)bedPOV(D,16,'07:12',0);
-  else if(D<24)reliefClose(D);
-  else if(D<34)mirrorScene(D);
-  else if(D<40)bedPOV(D,34,'03:33',1);
-  else if(D<41.6)darkHall(D);
-  else if(D<43.1)tableScene(D);
-  else if(D<44){ctx.fillStyle='#000';ctx.fillRect(0,0,W,H)}
-  else handsUp(D);
+  if(tt<4)kitchenStuck(tt);
+  else if(tt<12)slapClose(tt);
+  else if(tt<16)endlessHall(tt);
+  else if(tt<19.4)bedPOV(tt,16,'07:12',0);
+  else if(tt<24)reliefClose(tt);
+  else if(tt<34)mirrorScene(tt);
+  else if(tt<40)bedPOV(tt,34,'03:33',1);
+  else if(tt<41.6)darkHall(tt);
+  else if(tt<43.1)tableScene(tt);
+  else if(tt<44){ctx.fillStyle='#000';ctx.fillRect(0,0,W,H)}
+  else handsUp(tt);
   ctx.restore();
   if(SHORT){composeShort(tt);return}
-  const lit=!(D>=33.3&&D<34)&&!(D>=43.1&&D<44)&&D<48.9;
+  const lit=!(tt>=33.3&&tt<34)&&!(tt>=43.1&&tt<44)&&tt<48.9;
   if(lit){
     const v=ctx.createRadialGradient(W/2,H/2,H*.35,W/2,H/2,H*.95);v.addColorStop(0,'rgba(0,0,0,0)');v.addColorStop(1,'rgba(0,0,0,.55)');ctx.fillStyle=v;ctx.fillRect(0,0,W,H);
     ctx.globalAlpha=.07;ctx.drawImage(gn,Math.floor(rnd(D*40)*100)-100,Math.floor(rnd(D*40+3)*100)-100,W+200,H+200);ctx.globalAlpha=1;
@@ -532,7 +526,7 @@ function render(D){
 
 /* ---------- short video framing ---------- */
 // Which 16:9 x to centre the vertical slice on, shot by shot.
-function shortFx(tt,D){
+function shortFx(D){
   const cl=x=>clamp(x,CROP/2,W-CROP/2);
   if(D<4){const z=lerp(1.7,1.85,ease(clamp(D/4,0,1)));return cl(W/2+(390-470)*z)}
   if(D<16)return W/2;
