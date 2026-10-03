@@ -33,7 +33,24 @@ Ethan dreams about his dead dad. He wakes up and tells his mom, then realises it
 - **Scene 3**: hands calm "Okay...", counts fingers with a glowing ring on each fingertip (no pointing hand), sixth turns red "...Six.", close-up "Six fingers..." / "I'm still dreaming.", overhead in bed trying to get up three times "Get up..." / "Get up!" / "I can't move.", silent scream on the pillow (all sound cuts, subtitle "MOM! HELP ME!" loses its letters), vision closes on the ceiling fan to black.
 - **Scene 4**: wakes gasping at the dark ceiling, paralysed close-up (only eyes move) "...I can't move.", POV down his chest: faceless black figure crouched on him against the moonlit window, leans in, dark fingers creep onto his forehead, eyes squeezed shut "It's not real. It's not real.", eyes open, nobody there, relief, counts five normal fingers in moonlight "One... Five." / "...Five.", fade to black.
 
-## Scene 5 (next to build, planned in the script)
+## Scene 5 (IN PROGRESS, being built on branch `claude/jolly-newton-mgsn1z`)
+
+Status: building `false-awakening-scene5.html` (long) and `false-awakening-scene5-short.html`. If this chat ran out, check that branch for the latest files and the status line here.
+
+Beat plan used (50 s, built without a separate sign-off because the creator asked to build straight away):
+- 0-7.5 wide night bedroom, Ethan sits on the edge of the bed, pulls the lamp chain, "...Okay."
+- 7.5-11.5 nightstand close-up (lamp, clock 02:59, glass of water), his hand takes the glass
+- 11.5-17 he drinks (3 swallows), "It's over. I'm awake."
+- 17-19 glass set back next to the clock
+- 19-23.5 clock push-in, 02:59 flips to 03:00
+- 23.5-26.6 his face lit red by the clock, "...3 AM."
+- 26.6-29.5 wide, lamp flickers, power dies (fan and hum stop)
+- 29.5-35 his face in the dark, "...Mom?", a creak, his eyes slide down
+- 35-41 floor-level shot: his bare feet, two shining eyes open in the dark under the bed between them, blink
+- 41-43.5 close on the eyes, they curve into a smile, rush in, smash to black
+- 43.5-50 THE END
+
+### Original Scene 5 notes from the script
 
 - He drinks water.
 - Clock shows 3 AM.
