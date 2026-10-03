@@ -641,8 +641,6 @@ function buildAudio(){
   function tone(type,f,t,a,d,pk,{hold=0,f2,rev=0}={}){const o=ac.createOscillator();o.type=type;o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+a+hold+d);o.connect(G(t,a,d,pk,hold,out,rev));o.start(t);o.stop(t+a+hold+d+0.1)}
   function noise(t,a,d,pk,{type='lowpass',f=800,q=1,f2,hold=0,rev=0}={}){const s=ac.createBufferSource();s.buffer=nb;s.loop=true;const fl=ac.createBiquadFilter();fl.type=type;fl.frequency.setValueAtTime(f,t);if(f2)fl.frequency.exponentialRampToValueAtTime(f2,t+a+hold+d);fl.Q.value=q;s.connect(fl);fl.connect(G(t,a,d,pk,hold,out,rev));s.start(t,Math.random());s.stop(t+a+hold+d+0.1)}
   function bell(t,f,pk){[[1,1],[2.76,0.35],[5.4,0.15]].forEach(p=>tone('sine',f*p[0],t,0.005,3.2/Math.sqrt(p[0]),pk*p[1],{rev:1.2}))}
-  function voice(t,f0,dur,pk){const o=ac.createOscillator();o.type='sawtooth';o.frequency.setValueAtTime(f0*1.06,t);o.frequency.linearRampToValueAtTime(f0*0.94,t+dur);
-    const g=G(t,0.02,dur*0.7,pk,dur*0.2,out,0.25);[[650,4],[1700,6]].forEach(fm=>{const b=ac.createBiquadFilter();b.type='bandpass';b.frequency.value=fm[0];b.Q.value=fm[1];o.connect(b);b.connect(g)});o.start(t);o.stop(t+dur+0.4)}
   const heart=(t,pk=0.5)=>{tone('sine',58,T0(t),0.01,0.16,pk,{f2:40});tone('sine',52,T0(t+0.16),0.01,0.14,pk*0.72,{f2:38})};
   // dream: drone, bells, footsteps, wind chime, porch breeze
   [55,82.4,110.5].forEach((f,i)=>tone(i?'triangle':'sine',f,T0(0),3,3,0.07-i*0.015,{hold:9,rev:0.4}));
@@ -666,7 +664,6 @@ function buildAudio(){
   [30.5,31.4,32.3].forEach(t=>noise(T0(t),0.2,0.35,0.06,{type:'bandpass',f:1400,q:0.8}));
   // dread drone
   tone('sawtooth',41,T0(34),8,6,0.07);tone('sawtooth',43.5,T0(34),8,6,0.05);tone('sine',82,T0(36),6,3,0.06);
-  LINES.forEach((L,li)=>L.syl.forEach(s=>voice(T0(L.t0+s[0]),li?210:128,s[1],0.12)));
   for(let t=37.6;t<43;t+=0.62)heart(t,0.3);
   tone('sine',30,T0(44),3,2,0.12,{hold:0});
 }
