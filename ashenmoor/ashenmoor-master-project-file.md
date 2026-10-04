@@ -12,9 +12,11 @@ Share this file with Claude Code as the single source of truth for the series.
 - **Story spine stays fixed.** Audience steers the middle, and all choices must lead back to the spine.
 - **Writing style:** simple plain English, no em dashes, kid friendly language.
 - **Hero:** Wick Marrow, 17, Lamplighter.
-- **Episode 1 script:** see ashenmoor-episode-1.md.
+- **Episode scripts:** see ashenmoor-episode-1.md and ashenmoor-episode-2.md.
+- **Lore lock and easter egg tracker:** see ashenmoor-lore-and-easter-eggs.md. Plant at least one tie-in per episode and log it there.
 - **Episode 1 status:** finished as a pixel animation (`ashenmoor-episode-1.html`, `ashenmoor-episode-1.mp4`, 3:49) with two thumbnails. See `HANDOFF.md` for how it is built.
-- **Next job:** the creator sends the Episode 2 script (and which option won the Episode 1 vote); build it the same way as Episode 1.
+- **Episode 2 status:** finished as a pixel animation (`ashenmoor-episode-2.html`, `ashenmoor-episode-2.mp4`, 4:06). Episode 1 vote winner: A (go down into the crypt). New character: the Bone-Wight Sentry.
+- **Next job:** the creator sends the Episode 3 script (and which option won the Episode 2 vote); build it the same way.
 - **Look decided so far:** Wick is the big-head chibi sprite, normal font (Atkinson Hyperlegible) for subtitles and choice screens, voices shown as subtitles, call to action is "Comment A or B" only.
 
 ---
@@ -160,7 +162,7 @@ As far as I know, YouTube comments do not have a built in poll. Here is the best
 
 ---
 
-## 7. WHERE EACH CHOICE LEADS (Episode 2 plan; Episode 1 script is in its own file)
+## 7. WHERE EACH CHOICE LEADS (Episode 2 plan, now done: A won. The Episode 3 plan is at the end of ashenmoor-episode-2.md)
 
 ### If A wins: "Down the Stair"
 Wick goes alone into the crypt. He finds old Eldmere murals showing the Sunwell and a queen holding a lantern that looks exactly like his. A Bone-Wight guards the inner door. Ends with a choice: fight it, trick it, or run.
@@ -493,4 +495,5 @@ Goal: keep 4 minute daily episodes cheap to animate. Cost depends on how many di
 # PART 5: CANON TRACKER (fill in as episodes go live)
 | Ep | Choice offered | Winner | Vote % | Party members | Key story facts |
 |---|---|---|---|---|---|
-| 1 | A: Go down into the crypt (Dangerous. But might find answers.) / B: Wake Elder Bram and show him the key (Safe. But Bram has been hiding something.) | TBD | TBD | Wick | Wick found the crypt key. Lantern glows strangely. Lamps lean toward Wick. Gloomhounds fear the lantern, one stood its ground. Hidden half-collapsed stair under the chapel floor; something breathes below. Bram has not seen the key. |
+| 1 | A: Go down into the crypt (Dangerous. But might find answers.) / B: Wake Elder Bram and show him the key (Safe. But Bram has been hiding something.) | A | TBD | Wick | Wick found the crypt key. Lantern glows strangely. Lamps lean toward Wick. Gloomhounds fear the lantern, one stood its ground. Hidden half-collapsed stair under the chapel floor; something breathes below. Bram has not seen the key. |
+| 2 | A: Blast it with a Flare (Big burst of light. Might scare it off. Might shake the door loose.) / B: Talk to it (Safe for now. But Wick would have to tell it who he is, and he does not know yet.) | TBD | TBD | Wick | The stair vanished behind Wick; no way back. Murals show the Sunwell, the Lantern Seven (one face scratched out) and Queen Isolde holding a lantern identical to Wick's. Carving: "Queen Isolde, last Lamplighter of Eldmere." A Bone-Wight Sentry guards the sealed iron door (flame symbol, same as the key) and recognizes the light: "It is... hers." A golden light behind the door pulses in the same rhythm as Wick's lantern. The Sentry's sword cracked the floor in front of the door. |

@@ -1,0 +1,774 @@
+<title>Down the Stair</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+/* Layout: a lantern-lit screening card. Player first, then the scene list as a script index. One night look. */
+:root{
+  --night:#0b1024;      /* page ground, Ashenmoor night */
+  --dusk:#151c3a;       /* raised surfaces */
+  --fog:#2a3360;        /* lines and borders */
+  --ash:#aab0cf;        /* muted text */
+  --parchment:#f1e6cf;  /* main text */
+  --lamp:#ffb347;       /* the one accent: lantern flame */
+  --ember:#2a1806;      /* text on the accent */
+  --body:'Atkinson Hyperlegible','Segoe UI',system-ui,sans-serif;
+  color-scheme:dark;
+}
+body{background:var(--night);color:var(--parchment);font-family:var(--body);font-size:16px;line-height:1.55}
+.wrap{max-width:1120px;margin:0 auto;padding-inline:16px;padding-block:24px 40px;display:flex;flex-direction:column;gap:18px}
+.eyebrow{font-family:var(--body);font-size:14px;letter-spacing:.12em;text-transform:uppercase;color:var(--lamp);margin:0}
+h1{font-family:var(--body);font-weight:700;font-size:clamp(28px,5vw,46px);line-height:1.05;margin:4px 0 0;text-wrap:balance}
+.sub{margin:8px 0 0;color:var(--ash);max-width:64ch}
+.frame{position:relative;background:#000;box-shadow:0 0 0 4px var(--fog),0 0 0 8px var(--night),0 0 0 12px var(--dusk);margin:12px}
+canvas{display:block;width:100%;height:auto;aspect-ratio:16/9;max-width:100%;image-rendering:pixelated}
+.big{position:absolute;inset:0;width:100%;display:flex;align-items:center;justify-content:center;background:rgba(5,8,20,.45);border:0;cursor:pointer;font:inherit;color:inherit}
+.big span{font-family:var(--body);font-weight:700;font-size:clamp(16px,3vw,24px);background:var(--lamp);color:var(--ember);padding:12px 24px;box-shadow:0 0 0 4px var(--ember),0 0 0 8px var(--lamp)}
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;background:var(--dusk);padding:10px 12px;box-shadow:0 0 0 3px var(--fog)}
+.bar button,.scenes button{font-family:var(--body);font-weight:700;font-size:15px;color:var(--parchment);background:var(--night);border:0;box-shadow:inset 0 0 0 2px var(--fog);padding:6px 14px;cursor:pointer}
+.bar button:hover,.scenes button:hover{box-shadow:inset 0 0 0 2px var(--lamp)}
+.bar #pp{background:var(--lamp);color:var(--ember);box-shadow:none;min-width:7ch}
+.bar input[type=range]{flex:1 1 220px;min-width:0;accent-color:var(--lamp)}
+.time{font-family:var(--body);font-variant-numeric:tabular-nums;color:var(--ash);min-width:11ch;text-align:right}
+button:focus-visible,input:focus-visible{outline:3px solid var(--lamp);outline-offset:2px}
+h2{font-family:var(--body);font-weight:700;font-size:20px;margin:6px 0 0;color:var(--parchment)}
+.scenes{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,320px),1fr));gap:10px}
+.scenes button{width:100%;text-align:left;display:grid;grid-template-columns:auto 1fr;gap:4px 12px;padding:10px 12px;font-family:var(--body);font-weight:400}
+.scenes .tc{font-family:var(--body);color:var(--lamp);font-variant-numeric:tabular-nums;grid-row:span 2}
+.scenes .nm{font-weight:700}
+.scenes .ds{color:var(--ash);font-size:14px}
+.scenes button[aria-current="true"]{box-shadow:inset 0 0 0 2px var(--lamp);background:var(--dusk)}
+.note{color:var(--ash);font-size:14px;max-width:80ch;margin:0}
+</style>
+
+<div class="wrap">
+  <header>
+    <p class="eyebrow">The Lamplighter of Ashenmoor &middot; Episode 2</p>
+    <h1>Down the Stair</h1>
+    <p class="sub">About 4 minutes of pixel animation, with subtitles in place of the voices. Turn the sound on and press play.</p>
+  </header>
+  <div class="frame">
+    <canvas id="c" width="1280" height="720" aria-label="Pixel animation of Episode 2: Wick goes down the crypt stair, finds murals of the Sunwell and Queen Isolde, and meets a Bone-Wight Sentry at the Queen's door"></canvas>
+    <button class="big" id="big" aria-label="Play with sound"><span>&#9654; Play with sound</span></button>
+  </div>
+  <div class="bar">
+    <button id="pp">Play</button>
+    <button id="rs">Restart</button>
+    <input type="range" id="sc" min="0" max="246" step="0.01" value="0" aria-label="Timeline">
+    <span class="time" id="tm">0:00 / 4:06</span>
+    <button id="fs">Full screen</button>
+  </div>
+  <h2>Scenes</h2>
+  <ul class="scenes" id="scenes"></ul>
+  <p class="note">The timings follow the script. The narrator, Wick and the Sentry are shown as subtitles, so a recorded voice track can be laid over the same timings.</p>
+</div>
+
+<script>
+(function(){
+const cv=document.getElementById('c'),M=cv.getContext('2d'),W=1280,H=720,STORY=246,LEN=246;
+// Episode 2 timings are written directly, so story time and playback time are the same.
+const story=x=>x,play2=x=>x;
+const LW=320,LH=180;                     // the pixel frame, scaled x4 to the screen
+const fb=document.createElement('canvas');fb.width=LW;fb.height=LH;const g=fb.getContext('2d');
+const lb=document.createElement('canvas');lb.width=LW;lb.height=LH;const lg=lb.getContext('2d');
+g.imageSmoothingEnabled=false;M.imageSmoothingEnabled=false;
+const PIX='"Atkinson Hyperlegible","Segoe UI",system-ui,sans-serif';
+let t=0,playing=false;
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x)),lerp=(a,b,k)=>a+(b-a)*k;
+const sm=(a,b,x)=>{const k=clamp((x-a)/(b-a),0,1);return k*k*(3-2*k)};
+const rnd=s=>{const v=Math.sin(s*127.1+311.7)*43758.5453;return v-Math.floor(v)};
+const mixc=(a,b,k)=>{const A=parseInt(a.slice(1),16),B=parseInt(b.slice(1),16);const ch=s=>Math.round(lerp(A>>s&255,B>>s&255,k));return 'rgb('+ch(16)+','+ch(8)+','+ch(0)+')'};
+
+/* ---------- scene list (from the script) ---------- */
+const SCENES=[
+  [0,'Last time','The key, the stair, and your vote: A.'],
+  [11,'Title card','Episode 2: Down the Stair.'],
+  [25,'The stair','Wick goes down. The dark closes behind him.'],
+  [67,'The murals','The Sunwell, seven heroes, and a queen with Wick\'s lantern.'],
+  [118,'The Sentry','A Bone-Wight guards the Queen\'s door.'],
+  [181.5,'The door','A golden light pulses with Wick\'s lantern.'],
+  [213,'The choice','A: blast it with a Flare. B: talk to it.']
+];
+
+/* ---------- camera and pixel helpers ---------- */
+let CX=0,CY=0,Z=1;
+function cam(x,y,z){Z=z;CX=Math.round(x*z)/z;CY=Math.round(y*z)/z;applyCam()}
+function applyCam(){g.setTransform(Z,0,0,Z,-CX*Z,-CY*Z)}
+function screen(){g.setTransform(1,0,0,1,0,0)}
+function R(x,y,w,h,c){g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),w,h)}
+let LS=[],EM=[],EMS=[];
+function light(x,y,r,s,cool){LS.push([x,y,r,s,cool])}
+
+// a,A iron; u rust; o,O bone; x dark gap (new for the Bone-Wight Sentry)
+const PAL={h:'#2b2233',H:'#4a3b55',S:'#c48a6a',s:'#e9b48c',e:'#1b1422',m:'#9a5a48',c:'#6d7180',d:'#4b4e5a',p:'#9a7650',l:'#3a3442',b:'#6a4428',B:'#432a18',
+  w:'#e6e2da',W:'#b9b3aa',r:'#4a5d78',R:'#34435a',k:'#0e0b16',K:'#5a4a90',a:'#6b6470',A:'#45404e',u:'#8a5434',o:'#d9d0b8',O:'#a39a84',x:'#1a1620'};
+function mk(rows){const c=document.createElement('canvas');c.width=rows[0].length;c.height=rows.length;const x=c.getContext('2d');
+  rows.forEach((r,j)=>{for(let i=0;i<r.length;i++){const col=PAL[r[i]];if(col){x.fillStyle=col;x.fillRect(i,j,1,1)}}});return c}
+function spr(c,x,y,flip){x=Math.round(x);y=Math.round(y);if(flip){g.save();g.translate(x+c.width,y);g.scale(-1,1);g.drawImage(c,0,0);g.restore()}else g.drawImage(c,x,y)}
+
+// Wick, big-head chibi design (14 x 16). Hand that holds the lantern stick is at (10,10).
+const WTOP=["...hhhhhhh....","..hhHhhhhhh...",".hhhhhhhhhhh..",".hhhhhhhhhhh..",".hhhsssssssh..",".hhsswesswes..",".hhsswesswes..",
+  "..hssssssSs...","...sssssss....","..cccccccc....",".cccccccccc...",".cdccccpcc....",".cdccccpcc....","..ddcccccc...."];
+const WLEG=[["...bb..bb.....","..BBB..BBB...."],["..bb....bb....",".BBB....BBB..."],["....bbbb......","...BBBBBB....."]];
+const WICK=WLEG.map(l=>mk(WTOP.concat(l))),WW=14,WH=16,HX=10,HY=10;
+const BRAM=mk(["...wwwww....","..wwwwwww...","..wwwsssw...","..wwsssess..","..wwsssss...","...wwwwww...","...wWwwWw...","....wwww....",
+  "..rrrrrrr...",".rrrrrrrrs..",".rRrrrrrr...",".rRrrrrrr...",".rRrrrrrr...",".rRrrrrrr...",".rRRrrrrr...",".rRRrrrrr...",".rRRrrrrr...",".RRRRRRRR...","..BB..BB....","..BB..BB...."]);
+const HTOP=["................K.K...","...............KkKk...","..............Kkkkkk..","K.............kkkkkkkK",".Kkkkkkkkkkkkkkkkkkkkk","..kkkkkkkkkkkkkkkkkK..","..kkkkkkkkkkkkkkkk....","..kkkkkkkkkkkkkkkk...."];
+const HOUND=[mk(HTOP.concat(["..kk.kk......kk.kk....","..k...k......k...k....",".kk..kk.....kk..kk...."])),
+  mk(HTOP.concat(["...kk.kk....kk.kk.....","...k..k......k..k.....","..kk.kk.....kk.kk....."]))];
+// Bone-Wight Sentry (16 x 24), faces left. Eyes at (3,4) and (6,4), sword hand at (1,13).
+const SENTRY=mk(["....aaaaaa......","...aAaaaaaa.....","..aaaaaaaaaa....","..aoooooooaA....","..oxooxoooaA....","..ooooooooaA....","...oxoxoxoa.....","....oooooa......",
+  "...aaaaaaaa.....",".uaaaaaaaaaau...",".aaaaoaaaaaaa...",".aa.aaaoaaa.aa..",".oo.aauaaaa.aa..",".oo.aaaaaua.oo..",".o..aaoaaaa..o..","....AAAAAAA.....",
+  "....auaaaua.....","....aa...aa.....","....oo...oo.....","....oo...oo.....","....Oo...oO.....","....aa...au.....","...aaa...aaa....","...AAA...AAA...."]);
+// the same armour slumped in a heap before it rises (16 x 6). Helmet eyes at (7,2) and (9,2).
+const PILE=mk(["......aaaa......",".....aAaaaa.....","..u..aoxoxa..a..",".aaa.aooooa.aAa.","aaAaaaaaaaaaaaaa","AAAAAAuAAAAAAAuA"]);
+
+/* ---------- characters ---------- */
+// o: {flip, walk, lift, talk, shake, crouch, bright, key, kg (key glow), hop}; gy = ground under the feet
+function wick(x,gy,tt,o){
+  o=o||{};const crouch=o.crouch?2:0,y=gy-WH+crouch-Math.round(o.hop||0),sx=x+(o.shake?(Math.floor(tt*14)%2?1:-1):0);
+  const fr=o.walk?1+(Math.floor(tt*6)%2):0;
+  spr(WICK[fr],sx,y,o.flip);
+  const px=(rx,w)=>o.flip?sx+WW-rx-(w||1):sx+rx;
+  if(o.talk&&Math.floor(tt*8)%2)R(px(8),y+8,1,1,PAL.m);
+  // lantern on a stick
+  const lift=o.lift||0,tipY=Math.round(lerp(HY-3,HY-8,lift)),hy=Math.round(lerp(HY,HY-2,lift));
+  R(px(HX),y+hy,1,1,PAL.s);
+  const n=Math.max(3,Math.abs(hy-tipY));for(let k=1;k<=n;k++)R(px(HX+Math.round(3*k/n)),y+Math.round(lerp(hy,tipY,k/n)),1,1,'#7a5530');
+  R(px(HX+3,3),y+tipY+1,3,1,'#2e2218');R(px(HX+3),y+tipY+2,1,3,'#2e2218');R(px(HX+5),y+tipY+2,1,3,'#2e2218');R(px(HX+3,3),y+tipY+5,3,1,'#2e2218');
+  const fx=px(HX+4),fy=y+tipY+2,b=o.bright==null?1:o.bright,fl=Math.floor(tt*9)%3;
+  EM.push(()=>{R(fx,fy+1,1,2,'#ffd25a');R(fx,fy+(fl?1:0),1,1,'#fff6c8');if(b>1.4)R(fx,fy,1,1,'#ffffff')});
+  light(fx+.5,fy+2,20*b,1);
+  if(o.key){const kx=px(2,3),ky=y+12,kg=o.kg||0;R(kx,ky,3,1,'#8a5a32');EM.push(()=>{R(o.flip?kx+2:kx,ky,1,1,'#ff9a3c');if(kg>.5)R(o.flip?kx+1:kx+1,ky,1,1,'#ffd27a')});light(kx+1,ky,6+8*kg,.6+.4*kg)}
+  return [fx,fy];
+}
+function bram(x,gy,tt,talk){spr(BRAM,x,gy-20,false);if(talk&&Math.floor(tt*7)%2)R(x+7,gy-15,1,1,'#3a2a24')}
+function hound(x,gy,tt,o){
+  const fr=o.walk?Math.floor(tt*(o.run?10:5))%2:0,y=gy-11;
+  const ga=g.globalAlpha;EM.push(()=>{g.globalAlpha=ga;spr(HOUND[fr],x,y,o.flip);
+    for(let i=0;i<5;i++){const s=Math.floor(tt*6)+i*13+o.id*7;if(rnd(s)<.6){const wx=x+3+Math.floor(rnd(s+1)*15),wy=y+3-Math.floor(rnd(s+2)*3);R(wx,wy,1,1,'#3a2c66')}}g.globalAlpha=1});
+  const ex=o.flip?x+4:x+17,ey=y+3+(o.cower?1:0);
+  EM.push(()=>{R(ex,ey,1,1,'#ff3434');if(o.glare)R(ex+(o.flip?-1:1),ey,1,1,'#ff7a5a')});
+}
+function key(x,y,glow){R(x,y,2,3,'#7a4a2a');R(x+2,y+1,5,1,'#7a4a2a');R(x+5,y+2,1,1,'#7a4a2a');R(x+6,y+2,1,1,'#7a4a2a');
+  EM.push(()=>{R(x,y+1,1,1,'#ff9a3c');if(glow>.5)R(x+1,y+1,1,1,'#ffd27a')});light(x+1,y+1,6+10*glow,.5+.5*glow)}
+// the sword, drawn as a line from the hand at angle a (0 points right, PI/2 points down)
+function sword(hx,hy,a){const ca=Math.cos(a),sa=Math.sin(a);
+  for(let k=1;k<=15;k++){const px=hx+k*ca,py=hy+k*sa;
+    if(k<=2)R(px,py,1,1,'#4a3020');
+    else if(k===3){R(px,py,1,1,'#7a6a5a');R(px-sa,py+ca,1,1,'#7a6a5a');R(px+sa,py-ca,1,1,'#7a6a5a')}
+    else R(px,py,1,1,k===8||k===11?'#8a6a5a':k===15?'#e0e4ec':'#a8aebc')}
+  return [hx+15*ca,hy+15*sa]}
+// o: {rise (0 heap .. 1 standing), sw (sword angle), drop (hand lowered), eyes (0..1), shake, talk}
+function sentry(x,gy,tt,o){
+  const sx=Math.round(x+(o.shake?(Math.floor(tt*14)%2?1:-1):0)),rise=o.rise==null?1:o.rise,e=o.eyes||0;
+  let ex=0,ey=0;
+  if(rise<1){spr(PILE,sx,gy-6,false);R(sx-12,gy-1,13,1,'#8a8e9a');R(sx-14,gy-1,2,1,'#4a3020');if(rise<=0){ex=sx+7;ey=gy-4}}
+  if(rise>0){const top=gy-24+Math.round((1-rise)*24);
+    g.save();g.beginPath();g.rect(sx-40,gy-60,100,60);g.clip();
+    g.drawImage(SENTRY,sx,top);
+    if(o.talk&&Math.floor(tt*7)%2)R(sx+4,top+7,3,1,'#0e0b16');
+    g.restore();
+    if(rise>=1)sword(sx+1,top+13+(o.drop||0),o.sw==null?2.18:o.sw);
+    ex=sx+3;ey=top+4}
+  if(e>0&&ey<gy){const e2=rise>0?3:2;
+    EM.push(()=>{g.globalAlpha=Math.min(1,e);R(ex,ey,1,1,e>.8?'#e6f6ff':'#8fd0ff');R(ex+e2,ey,1,1,e>.8?'#e6f6ff':'#8fd0ff');g.globalAlpha=1});
+    light(ex+1.5,ey,12*e,.6*e,true)}
+}
+
+/* ---------- the village of Emberfall (used by the recap; world is 480 x 180, ground at 148) ---------- */
+const GY=148,LX=[18,48,80,104,142,206,236,302];
+const FOG=document.createElement('canvas');FOG.width=640;FOG.height=48;
+(function(){const x=FOG.getContext('2d');for(let i=0;i<260;i++){const cx=rnd(i)*640,cy=10+rnd(i+.5)*30,w=10+rnd(i+.7)*40,h=2+rnd(i+.9)*5;x.fillStyle='rgba(170,185,225,'+(.035+rnd(i+.3)*.05)+')';x.fillRect(Math.round(cx),Math.round(cy),Math.round(w),Math.round(h));if(cx+w>640)x.fillRect(Math.round(cx-640),Math.round(cy),Math.round(w),Math.round(h))}})();
+const STARS=[...Array(70)].map((_,i)=>[Math.floor(rnd(i*3.1)*LW),Math.floor(rnd(i*5.7)*90),rnd(i*1.3)]);
+
+function sky(nk){
+  screen();
+  const top=mixc('#25305a','#070a1a',nk),mid=mixc('#5a4270','#111a38',nk),bot=mixc('#d9824c','#1f2c4f',nk);
+  const gr=g.createLinearGradient(0,0,0,LH);gr.addColorStop(0,top);gr.addColorStop(.55,mid);gr.addColorStop(.85,bot);g.fillStyle=gr;g.fillRect(0,0,LW,LH);
+  if(nk>.2)EMS.push(tt=>{for(const s of STARS){const a=(nk-.2)*(.5+.5*Math.sin(tt*2+s[2]*20));if(a>.15){g.fillStyle='rgba(230,235,255,'+Math.min(1,a)+')';g.fillRect(s[0],s[1],1,1)}}});
+}
+function hills(){
+  g.setTransform(Z,0,0,Z,-Math.round(CX*.5*Z),-CY*Z);
+  g.fillStyle='#1a2140';for(let x=-40;x<420;x+=2){const h=14+8*Math.sin(x*.035)+5*Math.sin(x*.11);g.fillRect(x,GY-6-h,2,h+6)}
+  applyCam();
+}
+function roof(x,w,top,c1,c2){for(let j=0;;j++){const ins=Math.floor(j*1.25),ww=w+4-ins*2;if(ww<=2)break;R(x-2+ins,top-j,ww,1,j%4===0?c2:c1)}}
+function house(x,w,wh,o){
+  const top=GY-wh;R(x,top,w,wh,o.wall);for(let j=top+3;j<GY;j+=4)R(x,j,w,1,o.wall2);
+  roof(x,w,top-1,o.roof,o.roof2);
+  for(const [wx,wy] of o.win){R(x+wx,top+wy,5,5,'#1c1622');if(o.lit){EM.push(()=>{R(x+wx+1,top+wy+1,3,3,'#ffb85c');R(x+wx+1,top+wy+1,1,1,'#ffe0a0')});light(x+wx+2.5,top+wy+2.5,9,.55)}}
+  if(o.door!=null){R(x+o.door,GY-12,8,12,o.open?'#ffb85c':'#3a2618');if(!o.open)R(x+o.door+6,GY-6,1,1,'#c9a050');else light(x+o.door+4,GY-6,18,.8)}
+}
+function chapel(){
+  const x=250,w=46,top=GY-34;
+  R(x,top,w,34,'#4e4a5a');for(let j=top+3;j<GY;j+=5)R(x,j,w,1,'#433f4e');
+  roof(x,w,top-1,'#2e2a38','#252230');
+  R(266,top-34,14,20,'#4e4a5a');R(270,top-30,6,7,'#1c1622');R(272,top-29,2,4,'#7a6a4a');
+  for(let j=0;j<9;j++)R(266+Math.floor(j*.8),top-35-j,14-Math.floor(j*.8)*2,1,'#2e2a38');R(272,top-48,2,4,'#6a6070');R(271,top-46,4,1,'#6a6070');
+  R(270,top+6,6,6,'#1c1622');R(271,top+7,4,4,'#2c3a66');
+  R(268,GY-14,10,14,'#2a1a12');R(268,GY-15,10,1,'#3a2a20');R(273,GY-14,1,14,'#1c120c');
+}
+function well(){R(116,GY-8,12,8,'#5a5a66');R(116,GY-8,12,1,'#6c6c78');R(117,GY-20,1,12,'#4a3424');R(126,GY-20,1,12,'#4a3424');R(114,GY-22,16,2,'#3a2a20')}
+function pine(x,h,c){for(let j=0;j<h;j++){const w=1+Math.floor(j*.45)*2-(j%5===4?2:0);R(x-Math.floor(w/2),GY-h-3+j,Math.max(1,w),1,c)}R(x,GY-3,1,3,'#1a1410')}
+function forest(){for(let i=0;i<14;i++){const x=318+i*12+Math.floor(rnd(i)*6);pine(x,34+Math.floor(rnd(i+9)*16),'#0f1d22')}
+  for(let i=0;i<12;i++){const x=324+i*13+Math.floor(rnd(i+3)*5);pine(x,24+Math.floor(rnd(i+5)*12),'#16282a')}}
+function ground(){R(-60,GY,620,40,'#26331f');R(-60,GY,620,1,'#3a4d2e');R(-60,GY+5,620,5,'#3e342c');for(let x=-60;x<560;x+=7)R(x+Math.floor(rnd(x)*4),GY+5,2,1,'#4a3f34')}
+function lamp(i,lit,lean,tt){
+  const x=LX[i];R(x,GY-22,2,22,'#2a2530');R(x-1,GY-2,4,2,'#2a2530');
+  R(x-2,GY-30,6,1,'#2a2530');R(x-2,GY-29,1,6,'#2a2530');R(x+3,GY-29,1,6,'#2a2530');R(x-2,GY-23,6,1,'#2a2530');R(x-1,GY-29,4,6,'#15131c');R(x,GY-31,2,1,'#2a2530');
+  const on=lit>=1||(lit>0&&rnd(Math.floor(tt*14)+i)<lit);
+  if(on){const L=Math.round(lean||0);
+    EM.push(()=>{R(x,GY-26,2,3,'#ff9a3c');R(x+(L>0?1:0),GY-27,1,1,'#ffd25a');if(L)R(x+(L>0?2:-1),GY-28,1,1,'#ffd25a');else R(x,GY-28,1,1,'#ffd25a');R(x,GY-25,1,1,'#fff2b8')});
+    light(x+1,GY-26,24,1)}
+}
+function fog(tt,a,y){screen();g.globalAlpha=a;const ox=-Math.round(((tt*3+CX*.8)%640+640)%640);g.drawImage(FOG,ox,y);g.drawImage(FOG,ox+640,y);
+  const ox2=-Math.round(((tt*5+CX*1.2+300)%640+640)%640);g.drawImage(FOG,ox2,y+14);g.drawImage(FOG,ox2+640,y+14);g.globalAlpha=1;applyCam()}
+function village(tt,o){
+  sky(o.nk);applyCam();hills();forest();
+  house(4,40,26,{wall:'#6a4a36',wall2:'#5e4230',roof:'#7a3a2a',roof2:'#5e2c20',win:[[8,8],[26,8]],lit:true});
+  house(56,40,24,{wall:'#5e5040',wall2:'#544636',roof:'#4a3a5a',roof2:'#3a2c48',win:[[6,7],[28,7]],lit:true,door:16});
+  well();
+  house(150,46,28,{wall:'#6e5642',wall2:'#634c3a',roof:'#6a3428',roof2:'#52281e',win:[[4,8],[33,8]],lit:true,door:16,open:o.bramDoor});
+  chapel();ground();
+  for(let i=0;i<8;i++)lamp(i,o.lit(i),o.lean?o.lean(i):0,tt);
+}
+
+/* ---------- the crypt hall (world x -40 to 400, wall 50 to 148, floor from 148) ---------- */
+const MX=[36,92,148],MYS=[92,92,104],VX=214;   // mural left edges and tops, edge of the dark that ate the stair
+const HALL=document.createElement('canvas');HALL.width=440;HALL.height=130;
+(function(){const x=HALL.getContext('2d'),P=(a,b,w,h,c)=>{x.fillStyle=c;x.fillRect(a,b,w,h)};
+  P(0,0,440,98,'#1c2238');
+  for(let j=0;j<98;j+=6){P(0,j,440,1,'#141a2c');const off=(j/6)%2?6:0;for(let i=off;i<440;i+=12)P(i,j,1,6,'#141a2c')}
+  for(let i=0;i<70;i++)P(Math.floor(rnd(i+50)*440),1+Math.floor(rnd(i+80)*94),2,1,'#252c46');
+  P(0,98,440,32,'#2a2c3a');P(0,98,440,1,'#3c3e50');for(let i=0;i<440;i+=10)P(i+Math.floor(rnd(i)*3),101,1,29,'#22242f');
+  for(const px of [32,88,144,200,250]){const a=px+40;P(a,0,4,98,'#262c48');P(a,0,1,98,'#323a5c');P(a-1,0,6,3,'#2e3452');P(a-1,95,6,3,'#2e3452')}
+})();
+// the three murals: painted once, then a dim copy for the dark and a gold copy for when the lantern wakes the paint
+const FIG=[...Array(7)].map((_,i)=>{const a=-Math.PI/2+i*2*Math.PI/7;return [Math.round(24+17*Math.cos(a))-1,Math.round(16+11*Math.sin(a))-3]});
+function muralBase(i){
+  const c=document.createElement('canvas');c.width=48;c.height=32;const x=c.getContext('2d'),P=(a,b,w,h,col)=>{x.fillStyle=col;x.fillRect(a,b,w,h)};
+  if(i===0){ // the Sunwell, a crowd looking up
+    P(0,0,48,32,'#1d2a4a');P(0,0,48,10,'#2a3c66');
+    P(20,9,8,21,'#8a8496');P(26,9,2,21,'#6a6476');P(23,14,2,3,'#2a2440');P(23,21,2,3,'#2a2440');
+    P(18,7,12,2,'#a09ab0');P(18,6,2,1,'#a09ab0');P(22,6,1,1,'#a09ab0');P(25,6,1,1,'#a09ab0');P(28,6,2,1,'#a09ab0');
+    P(22,1,5,4,'#ffd25a');P(23,0,3,1,'#ffd25a');P(23,2,3,2,'#fff2b8');P(18,2,2,1,'#ffd25a');P(29,2,2,1,'#ffd25a');P(20,5,1,1,'#ffd25a');P(28,5,1,1,'#ffd25a');
+    P(0,29,48,3,'#2e3a2a');
+    const sk=['#e0b090','#c48a6a','#a87050'],cl=['#b04a3a','#5a7ab0','#6a9a4a','#c0a050','#8a5ab0'];
+    [3,6,9,12,15,33,36,39,42,45].forEach((px,k)=>{P(px,25,1,1,sk[k%3]);P(px,26,1,3,cl[k%5]);if(k%2)P(px+(px<24?1:-1),24,1,1,sk[k%3])});
+  }else if(i===1){ // the seven heroes in a ring around the tower
+    P(0,0,48,32,'#2a1f3a');P(0,29,48,3,'#2e2a3a');
+    for(let k=0;k<40;k++){const a=k/40*Math.PI*2;if(k%2)P(Math.round(24+17*Math.cos(a)),Math.round(18+11*Math.sin(a)),1,1,'#5a4a78')}
+    P(22,14,4,12,'#8a8496');P(25,14,1,12,'#6a6476');P(23,12,2,2,'#ffd25a');
+    const body=['#c0c4d0','#7a4ab0','#b04a3a','#5aa0a0','#6a9a4a','#e8e0d0','#8a8a7a'],head=['#e0b090','#e0b090','#c48a6a','#a8c0e0','#7aa060','#e0b090','#8a8a8a'];
+    FIG.forEach(([fx,fy],k)=>{P(fx,fy,2,2,head[k]);P(fx,fy+2,2,4,body[k])});
+  }else{ // Queen Isolde holding up a lantern on a stick
+    P(0,0,48,32,'#1a2448');[[4,4],[9,19],[40,6],[44,22],[34,2],[6,27]].forEach(([a,b])=>P(a,b,1,1,'#c8d0f0'));
+    for(let r=10;r<32;r++){const w=2+Math.floor((r-10)*.45);P(26-w,r,w*2,1,'#5a4a9a');P(25,r,2,1,'#7a6ab8')}
+    P(24,6,4,4,'#e0b090');P(23,5,6,1,'#4a2a20');P(23,6,1,6,'#4a2a20');P(28,6,1,6,'#4a2a20');
+    P(23,4,6,1,'#ffcc44');P(23,3,1,1,'#ffcc44');P(25,2,2,2,'#ffcc44');P(28,3,1,1,'#ffcc44');
+    P(22,12,1,1,'#e0b090');P(21,13,1,1,'#e0b090');P(20,14,1,1,'#e0b090');
+    [[19,13],[18,12],[17,11],[16,10]].forEach(([a,b])=>P(a,b,1,1,'#7a5530'));
+    P(13,11,3,1,'#2e2218');P(13,12,1,3,'#2e2218');P(15,12,1,3,'#2e2218');P(13,15,3,1,'#2e2218');P(14,12,1,3,'#ffd25a');P(14,13,1,1,'#fff2b8');
+    [[11,13],[17,14],[14,9],[14,17]].forEach(([a,b])=>P(a,b,1,1,'#ffe9a0'));
+    P(0,30,48,2,'#2a2a3a');
+  }
+  return c;
+}
+function tintC(src,f){const c=document.createElement('canvas');c.width=src.width;c.height=src.height;const x=c.getContext('2d');x.drawImage(src,0,0);
+  const id=x.getImageData(0,0,c.width,c.height),d=id.data;for(let k=0;k<d.length;k+=4){const o=f(d[k],d[k+1],d[k+2]);d[k]=o[0];d[k+1]=o[1];d[k+2]=o[2]}x.putImageData(id,0,0);return c}
+// one face scratched out, hard, again and again. Stays bare stone even when the paint glows.
+function scratch(c){const x=c.getContext('2d'),[fx,fy]=FIG[1];
+  for(let k=0;k<16;k++){x.fillStyle=k%3?'#c4bcb0':'#3a3038';x.fillRect(fx-1+Math.floor(rnd(k+300)*5),fy-1+Math.floor(rnd(k+400)*5),1,1)}
+  x.fillStyle='#d8d0c4';for(let d=-1;d<4;d++){x.fillRect(fx+d,fy+d-1,1,1);x.fillRect(fx+2-d,fy+d-1,1,1)}}
+const MUR=[0,1,2].map(i=>{const b=muralBase(i),dull=tintC(b,(r,gg,bb)=>[r*.42+6,gg*.42+8,bb*.5+14]),lit=tintC(b,(r,gg,bb)=>[Math.min(255,r*1.25+22),Math.min(255,gg*1.1+12),bb*.8]);
+  if(i===1){scratch(dull);scratch(lit)}return {dull,lit}});
+
+const FLAME=["..o..",".oo..",".ooo.","ooooo","oo.oo",".ooo."];
+function door(o){
+  R(290,98,52,50,'#2c2c40');R(292,92,48,6,'#2c2c40');R(296,88,40,4,'#2c2c40');R(302,85,28,3,'#2c2c40');
+  R(296,104,40,44,'#38343f');R(298,100,36,4,'#38343f');R(302,97,28,3,'#38343f');
+  R(296,112,40,1,'#28242e');R(296,134,40,1,'#28242e');R(316,97,1,51,'#28242e');
+  for(let i=299;i<336;i+=6){R(i,111,1,1,'#5a5462');R(i,133,1,1,'#5a5462')}
+  R(311,124,2,2,'#5a5462');R(320,124,2,2,'#5a5462');
+  FLAME.forEach((row,j)=>{for(let i=0;i<5;i++)if(row[i]==='o')R(314+i,114+j,1,1,'#5a4436')});
+  const s=o.sym||0,gp=o.gap||0;
+  if(s>0){EM.push(()=>{g.globalAlpha=Math.min(1,s);FLAME.forEach((row,j)=>{for(let i=0;i<5;i++)if(row[i]==='o')R(314+i,114+j,1,1,j>=2&&j<=4&&i>=1&&i<=3?'#fff2b8':'#ffb347')});g.globalAlpha=1});light(316.5,117,14*s,.5*s)}
+  if(gp>0){EM.push(()=>{g.globalAlpha=Math.min(1,gp);R(297,147,38,1,'#ffd27a');g.globalAlpha=.5*Math.min(1,gp);R(299,148,34,1,'#ffcc66');g.globalAlpha=1});light(316,146,10+18*gp,.2+.7*gp)}
+}
+function hall(tt,o){
+  screen();R(0,0,LW,LH,'#05060c');applyCam();
+  g.drawImage(HALL,-40,50);
+  MX.forEach((mx,i)=>{const my=MYS[i];R(mx-1,my-1,50,34,'#2a2434');g.drawImage(MUR[i].dull,mx,my);const k=o.m?o.m[i]:0;
+    if(k>0){EM.push(()=>{g.globalAlpha=k;g.drawImage(MUR[i].lit,mx,my);g.globalAlpha=1});light(mx+24,my+16,26*k,.35*k)}});
+  if(o.count>=0&&o.count<7){const [fx,fy]=FIG[o.count];EM.push(()=>R(MX[1]+fx,MYS[1]+fy+7,2,1,'#fff6c8'));light(MX[1]+fx+1,MYS[1]+fy+7,5,.6)}
+  // the carved plate under the queen
+  R(156,138,40,6,'#3a3646');R(156,138,40,1,'#4a4658');
+  const marks=[];for(let i=0;i<13;i++)if(i!==5)marks.push([164+i*2,140]);for(let i=0;i<18;i++)if(i!==4&&i!==15)marks.push([158+i*2,142]);
+  for(const [a,b] of marks)R(a,b,1,1,'#24202e');
+  const pk=o.plate||0;if(pk>0){EM.push(()=>{g.globalAlpha=pk;for(const [a,b] of marks)R(a,b,1,1,'#ffcc66');g.globalAlpha=1});light(176,141,18*pk,.4*pk)}
+  door(o.door||{});
+  // the hall ends at the Queen's door; a faint cold light shows its shape
+  light(316,118,48,.28,true);
+}
+// the dark that swallowed the stair: drawn after the light, so even the lantern cannot touch it
+function voidDark(tt){applyCam();if(VX<=CX)return;
+  for(let y=Math.floor(CY);y<CY+LH/Z;y+=2){const e=VX+Math.round(2*Math.sin(y*.35+tt*2.2)+Math.sin(y*.13-tt*1.3));R(CX-2,y,e-(CX-2),2,'#000')}}
+
+/* ---------- lighting pass ---------- */
+function lightPass(dark,tt){
+  screen();lg.setTransform(1,0,0,1,0,0);lg.globalCompositeOperation='source-over';lg.clearRect(0,0,LW,LH);
+  lg.fillStyle='rgba(5,7,22,'+dark+')';lg.fillRect(0,0,LW,LH);lg.globalCompositeOperation='destination-out';
+  for(const [x,y,r,s] of LS){const sx=(x-CX)*Z,sy=(y-CY)*Z,sr=r*Z,f=s*(.94+.06*Math.sin(tt*17+x));const gr=lg.createRadialGradient(sx,sy,0,sx,sy,sr);
+    gr.addColorStop(0,'rgba(0,0,0,'+f+')');gr.addColorStop(.45,'rgba(0,0,0,'+f*.6+')');gr.addColorStop(1,'rgba(0,0,0,0)');lg.fillStyle=gr;lg.fillRect(sx-sr,sy-sr,sr*2,sr*2)}
+  // band the light into steps so it reads as pixel art
+  const id=lg.getImageData(0,0,LW,LH),d=id.data;for(let i=3;i<d.length;i+=4)d[i]=Math.round(d[i]/51)*51;lg.putImageData(id,0,0);
+  g.drawImage(lb,0,0);
+  for(const f of EMS)f(tt);
+  applyCam();for(const f of EM)f();
+  screen();g.globalCompositeOperation='lighter';
+  for(const [x,y,r,s,cool] of LS){const sx=(x-CX)*Z,sy=(y-CY)*Z,sr=r*Z*.8,gr=g.createRadialGradient(sx,sy,0,sx,sy,sr);
+    gr.addColorStop(0,cool?'rgba(90,140,220,'+.16*s+')':'rgba(255,160,70,'+.2*s+')');gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.fillRect(sx-sr,sy-sr,sr*2,sr*2)}
+  g.globalCompositeOperation='source-over';
+}
+function begin(){LS=[];EM=[];EMS=[];screen();g.fillStyle='#000';g.fillRect(0,0,LW,LH)}
+
+/* ---------- Episode 1 scenes, kept for the recap clips ---------- */
+function sceneTitle(tt){
+  begin();cam(0,0,1);
+  if(tt>1.5){const a=sm(1.5,2.5,tt),fl=Math.floor(tt*8)%3;
+    EM.push(()=>{g.globalAlpha=a;R(159,88,2,3,'#ff9a3c');R(159+(fl===1?1:0),87,1,1,'#ffd25a');R(159,90,1,1,'#fff2b8');g.globalAlpha=1});light(160,89,30*a,a)}
+  lightPass(1,tt);
+}
+const lit4=i=>(i<4||i===5||i===6)?1:0;
+function houndState(i,tt){
+  const T0=[330,344,358][i],T1=[318,334,348][i];
+  if(tt<118)return null;
+  let x,flip=true,walk=false,run=false,a=1;
+  if(tt<128){const k=clamp((tt-118-i*.8)/8,0,1);x=lerp(390+i*14,T0,k);walk=k>0&&k<1;a=sm(118,121,tt)}
+  else if(tt<140)x=T0;
+  else if(tt<146){const k=sm(140,146,tt);x=lerp(T0,T1,k);walk=k>0&&k<1}
+  else x=T1;
+  if(i>0&&tt>=148.4){const k=clamp((tt-148.4-i*.3)/4,0,1);x=lerp(T1,430,k);flip=false;run=walk=k<1;if(k>=1)return null}
+  if(i===0&&tt>=170){const k=clamp((tt-170)/4,0,1);x=lerp(T1,440,k);flip=false;run=walk=k<1;if(k>=1)return null}
+  return {x,flip,walk,run,a,cower:tt>146&&tt<148.4,glare:i===0&&tt>150&&tt<170,id:i};
+}
+function sceneForest(tt){
+  begin();
+  let cx=256;if(tt>183)cx=Math.round(lerp(256,214,sm(183,187,tt)));
+  cam(cx,70,2);
+  village(tt,{nk:1,lit:lit4});
+  for(let i=0;i<3;i++){const h=houndState(i,tt);if(h){g.globalAlpha=h.a;hound(Math.round(h.x),GY,tt,h);g.globalAlpha=1}}
+  const dropped=tt>=171.6,picked=tt>=181.2;
+  if(dropped&&!picked)key(326,GY-3,.4+.3*Math.sin(tt*4));
+  let wx=292,walk=false,crouch=false;
+  if(tt>=176&&tt<180){wx=Math.round(lerp(292,316,(tt-176)/4));walk=true}else if(tt>=180)wx=316;
+  if(tt>=180.4&&tt<181.8)crouch=true;
+  let lift=0;if(tt>146&&tt<154)lift=sm(146,146.4,tt);else if(tt>=154&&tt<170)lift=.5;
+  let b=1;if(tt>146&&tt<154)b=lerp(1,2.2,sm(146,146.5,tt))-lerp(0,.9,sm(150,154,tt));else if(tt>=154&&tt<170)b=1.35;
+  wick(wx,GY,tt,{flip:false,walk,crouch,lift,bright:b,shake:tt>128&&tt<146,key:picked});
+  if(tt>183&&tt<188.2){for(let i=0;i<14;i++){const k=((tt-183)*.45+i/14)%1,sx=lerp(wx+4,273,k),sy=GY-8-Math.sin(k*Math.PI)*14+Math.sin(tt*5+i)*1.5;
+    if(rnd(i+Math.floor(tt*10))>.25)EM.push(()=>R(Math.round(sx),Math.round(sy),1,1,i%3?'#ff9a3c':'#ffe0a0'));if(i%4===0)light(sx,sy,5,.5)}}
+  fog(tt,1,GY-24);
+  lightPass(.78,tt);
+}
+function chapelRoom(moon){
+  R(0,0,200,60,'#2e2119');for(let x=0;x<200;x+=6)R(x,0,1,60,'#241912');for(let x=3;x<200;x+=12)R(x,18+((x*7)%20),1,2,'#3a2a20');
+  R(70,12,20,28,'#1a1620');R(72,14,16,26,'#2c4270');R(74,12,12,2,'#1a1620');R(79,14,2,26,'#1a1620');R(72,26,16,1,'#1a1620');
+  if(moon>0)light(80,26,30,.45*moon,true);
+  for(const px of [4,120]){R(px,48,30,4,'#4a3322');R(px+2,52,2,8,'#3a2618');R(px+26,52,2,8,'#3a2618');R(px,40,2,12,'#3a2618')}
+  R(110,44,18,16,'#5a5262');R(108,42,22,3,'#6a6272');R(118,38,2,4,'#d8d0c0');R(118,37,2,1,'#3a3a3a');
+}
+// the stair opening under the chapel floor (Episode 1, scene 5). Used as the third recap clip.
+function sceneChapel(tt){
+  begin();cam(0,20,2);
+  chapelRoom(1);
+  R(0,60,160,4,'#4a4652');for(let x=0;x<160;x+=10)R(x,60,1,4,'#3a3642');R(0,64,160,50,'#2a2230');for(let i=0;i<60;i++)R(Math.floor(rnd(i)*160),64+Math.floor(rnd(i+.4)*48),1,1,'#3a3042');R(56,64,48,48,'#08070c');
+  const k=sm(188.3,190.8,tt);
+  for(let s=0;s<9;s++){const sx=58+s*5,sy=64+s*3;if(s===4){R(sx,sy+1,3,2,'#3c3a44');continue}if(s===6)continue;R(sx,sy,6,3,'#5c5866');R(sx,sy,6,1,'#7a7686')}
+  R(78,80,3,2,'#3c3a44');R(86,84,2,1,'#3c3a44');
+  if(tt>188.3&&tt<192)for(let i=0;i<10;i++){const dy=((tt-188.3)*30+i*9)%30;R(60+i*4,60+dy,1,1,'#8a8090')}
+  R(56-Math.round(k*22),60,24,4,'#5a5662');R(80+Math.round(k*22),60,24,4,'#5a5662');R(56-Math.round(k*22),60,24,1,'#6a6672');R(80+Math.round(k*22),60,24,1,'#6a6672');
+  if(k>.6)light(84,84,16,.45,true);
+  wick(32,60,tt,{bright:1.6,key:true,lift:tt>193?.4:0});
+  lightPass(.86,tt);
+}
+
+/* ---------- Scene 1: last time (1 to 11), then the title card (11 to 25) ---------- */
+let NOTALK=false;
+function sceneRecap(tt){
+  NOTALK=true;
+  if(tt<4.3)sceneForest(148.6+Math.max(0,tt-1)*.9);       // the Gloomhounds run away
+  else if(tt<7.6)sceneForest(183.4+(tt-4.3)*.6);           // the glowing key points to the chapel
+  else sceneChapel(189.4+(tt-7.6)*1.1);                    // the hidden stair opens
+  NOTALK=false;
+}
+
+/* ---------- Scene 2: the stair (25 to 67) ---------- */
+function stairWick(tt){
+  const wx=lerp(42,128,clamp((tt-35)/9,0,1)),idx=Math.floor((wx+7-58)/5);
+  return [Math.round(wx),idx<0?60:64+Math.min(idx,15)*3];
+}
+function chapelStair(moon){
+  chapelRoom(moon);
+  R(0,60,58,4,'#4a4652');R(102,60,98,4,'#4a4652');for(let x=0;x<200;x+=10)if(x<58||x>102)R(x,60,1,4,'#3a3642');
+  R(34,58,22,2,'#5a5662');R(104,58,22,2,'#5a5662');R(34,58,22,1,'#6a6672');R(104,58,22,1,'#6a6672');
+  R(0,64,200,90,'#2a2230');for(let i=0;i<90;i++)R(Math.floor(rnd(i)*200),64+Math.floor(rnd(i+.4)*88),1,1,'#3a3042');
+  R(56,60,92,64,'#08070c');
+  for(let s=0;s<16;s++){const sx=58+s*5,sy=64+s*3;if(s===4||s===10){R(sx,sy+1,4,2,'#3c3a44');continue}R(sx,sy,6,3,'#5c5866');R(sx,sy,6,1,'#7a7686')}
+  R(56,112,92,12,'#1a1822');R(56,112,92,1,'#24222e');
+}
+function lookUp(tt){
+  begin();cam(0,0,1);
+  const k=sm(44.6,48.6,tt),s=Math.round(lerp(34,2,k)),cx=160,cy=34;
+  for(let j=0;j<10;j++){const f=j/10,w=Math.round(lerp(150,s+6,f)),y=Math.round(lerp(176,cy+s/2+2,Math.pow(f,.7)));R(cx-w/2,y,w,2,'#3c3a48');R(cx-w/2,y,w,1,'#5c5866')}
+  if(tt<48.8){EM.push(()=>{R(cx-s/2,cy-s/2,s,s,'#6a7290');if(s>4)R(cx-s/2+1,cy-s/2+1,s-2,s-2,'#8a92b0')});light(cx,cy,s*1.6+4,.8,true)}
+  wick(146,176,tt,{bright:1.1,key:true,lift:.2,shake:true});
+  lightPass(.95,tt);
+}
+function sceneStair(tt){
+  if(tt>=44&&tt<49.5){lookUp(tt);return}
+  begin();
+  if(tt<44){
+    const [wx,gy]=stairWick(tt),k=sm(35,44,tt);
+    cam(Math.round(lerp(0,60,k)),Math.round(lerp(20,62,k)),2);
+    chapelStair(1-k);
+    wick(wx,gy,tt,{key:true,kg:tt>33&&tt<37?1:0,shake:tt<35,walk:tt>=35,bright:1.3,talk:talking('W',tt),lift:.3});
+    // the key tugs toward the dark like a compass
+    if(tt>33&&tt<37.5){for(let i=0;i<10;i++){const q=((tt-33)*.5+i/10)%1,sx=lerp(wx+3,128,q),sy=lerp(gy-4,110,q)+Math.sin(tt*5+i);
+      if(rnd(i+Math.floor(tt*10))>.25)EM.push(()=>R(Math.round(sx),Math.round(sy),1,1,i%3?'#ff9a3c':'#ffe0a0'));if(i%4===0)light(sx,sy,5,.5)}}
+    lightPass(lerp(.86,.95,k),tt);
+    // each step he takes, the dark closes behind him
+    if(tt>36){applyCam();const edge=wx-3;for(let y=Math.floor(CY);y<CY+LH/Z;y+=2){const e=edge+Math.round(2*Math.sin(y*.4+tt*3));R(CX-2,y,e-(CX-2),2,'#000')}}
+    return}
+  // alone at the bottom, the only light is in his hand
+  cam(117,GY-34,4);
+  R(60,GY,240,30,'#1a1822');R(60,GY,240,1,'#24222e');
+  let b=1;if(tt>62&&tt<62.8)b=1+1.1*Math.sin((tt-62)/.8*Math.PI);else if(tt>=62.8)b=lerp(1,1.35,sm(62.8,64,tt));
+  wick(150,GY,tt,{talk:talking('W',tt),bright:b,lift:tt>51?.6:0,key:true,shake:tt<62});
+  lightPass(.97,tt);
+}
+
+/* ---------- Scene 3: the murals (67 to 118) ---------- */
+function wickX3(tt){if(tt<72)return lerp(0,30,(tt-67)/5);if(tt<80)return lerp(30,86,(tt-72)/8);if(tt<93.8)return 86;if(tt<99.2)return lerp(86,142,(tt-93.8)/5.4);return 142}
+function sceneHall(tt){
+  begin();const wx=Math.round(wickX3(tt)),walk=tt<80||(tt>=93.8&&tt<99.2);
+  if(tt>=80.5&&tt<94)cam(76,92,4);else if(tt>=99.2)cam(132,lerp(101,112,sm(102.2,103.2,tt)),4);else cam(clamp(wx-50,-20,200),70,2);
+  hall(tt,{m:[sm(68.4,70.4,tt),sm(78.4,80.4,tt),sm(96.6,98.6,tt)],count:tt>=81.2&&tt<85?Math.floor((tt-81.2)/.54):-1,plate:sm(102.4,103.6,tt)});
+  let b=1.25;if(tt>115&&tt<115.8)b=1.25+.8*Math.sin((tt-115)/.8*Math.PI);
+  const lift=tt>=99.2?lerp(0,2.4,sm(99.3,99.9,tt)):(tt>=80.5&&tt<94?.4:0);
+  wick(wx,GY,tt,{walk,talk:talking('W',tt),bright:b,lift,key:true});
+  fog(tt,.25,GY-22);lightPass(.9,tt);
+}
+
+/* ---------- Scene 4: the Sentry (118 to 181.5) ---------- */
+function wickX4(tt){if(tt<124)return lerp(218,250,(tt-118)/6);if(tt<137)return 250;if(tt<139.5)return lerp(250,228,(tt-137)/2.5);if(tt<146)return 228;
+  if(tt<148)return lerp(228,244,(tt-146)/2);if(tt<150.65)return 244;if(tt<151.15)return lerp(244,234,(tt-150.65)/.5);return 234}
+function swordAt(tt){
+  if(tt<148.5)return [2.18,0];
+  if(tt<150.2)return [lerp(2.18,4.54,sm(148.5,150.2,tt)),0];
+  if(tt<150.6)return [4.54,0];
+  if(tt<150.75)return [lerp(4.54,2.53,(tt-150.6)/.15),3*(tt-150.6)/.15];
+  if(tt<153.5)return [2.53,3];
+  return [lerp(2.53,2.18,sm(153.5,155,tt)),Math.round(lerp(3,0,sm(153.5,155,tt)))];
+}
+function sceneSentry(tt){
+  begin();
+  const cx=200-50*sm(136.8,139.6,tt)+50*sm(144.6,147,tt);cam(Math.round(cx),70,2);
+  hall(tt,{m:[1,1,1]});
+  const sxp=tt<148?274:Math.round(lerp(274,266,sm(148,149.6,tt)));
+  const rise=tt<124.8?0:sm(124.8,127.6,tt);
+  let eyes=tt<124?0:sm(124,124.6,tt);if(tt>151.6&&tt<154)eyes=rnd(Math.floor(tt*12))>.4?1:.3;
+  const [sw,drop]=swordAt(tt);
+  sentry(sxp,GY,tt,{rise,sw,drop,eyes,talk:talking('S',tt)});
+  // the slam: cracks stay in the floor, dust flies
+  if(tt>=150.75){const tx=254;[[0,0],[-1,1],[1,1],[-2,2],[2,1],[-3,1],[3,2],[1,3]].forEach(([a,b])=>R(tx+a,GY+b,1,1,'#07060c'))}
+  if(tt>=150.75&&tt<153){const dt=tt-150.75;for(let i=0;i<18;i++){const vx=(rnd(i+500)-.5)*36,vy=-(10+rnd(i+600)*26),px=254+vx*dt,py=GY+vy*dt+30*dt*dt;
+    if(py<=GY)EM.push(()=>{g.globalAlpha=1-dt/2.25;R(px,py,1,1,i%3?'#8a8090':'#b0a8b8');g.globalAlpha=1})}}
+  const wx=Math.round(wickX4(tt)),hop=tt>=150.65&&tt<151.15?5*Math.sin((tt-150.65)/.5*Math.PI):0;
+  let b=1.25;if(tt>151.2&&tt<165)b=1.45;
+  wick(wx,GY,tt,{flip:tt>=136.8&&tt<145.4,walk:tt<124||(tt>=137&&tt<139.5)||(tt>=146&&tt<148),shake:(tt>128&&tt<133.6)||(tt>150.6&&tt<152),
+    talk:talking('W',tt),bright:b,hop,lift:tt>151.2?.5:0,key:true});
+  fog(tt,.25,GY-22);lightPass(.88,tt);voidDark(tt);
+}
+
+/* ---------- Scene 5: the door (181.5 to 213), Scene 6: the choice (213 on) ---------- */
+// one heartbeat: a double pulse every 1.4 seconds. The lantern, the key and the light behind the door share it.
+function beat(tt){const p=(((tt-184)%1.4)+1.4)%1.4/1.4,G=c=>Math.exp(-Math.pow((p-c)/.05,2));return G(0)+.6*G(.2)+G(1)}
+function sceneDoor(tt){
+  begin();cam(190,78,2);
+  const bt=tt>184?beat(tt):0,sym=sm(182.5,184.5,tt)*(.6+.4*bt),gap=tt>184?.2+.8*bt:sm(182.5,184,tt)*.2;
+  hall(tt,{m:[1,1,1],door:{sym,gap}});
+  const shake=tt>194&&tt<204;
+  sentry(266,GY,tt,{rise:1,sw:2.18+(shake?.06*Math.sin(tt*40):0),eyes:1,shake,talk:talking('S',tt)});
+  [[0,0],[-1,1],[1,1],[-2,2],[2,1],[-3,1],[3,2],[1,3]].forEach(([a,b])=>R(254+a,GY+b,1,1,'#07060c'));
+  wick(234,GY,tt,{bright:1.2+.6*bt,lift:.5,key:true,kg:bt,talk:talking('W',tt)});
+  fog(tt,.25,GY-22);lightPass(.88,tt);voidDark(tt);
+}
+
+/* ---------- subtitles ---------- */
+const VOICE={N:['NARRATOR','#c9b7ff'],W:['WICK','#ffb347'],B:['ELDER BRAM','#9fd3c7'],S:['SENTRY','#8fd0ff']};
+const SUBS=[
+  [1.4,5.9,'N','Last time, Wick, a nervous lamplighter, found a glowing key under the chapel.'],
+  [6.2,8.1,'N','You voted to go down.'],
+  [8.4,10.6,'N','So down we go.'],
+  [26.0,29.3,'W','Okay. Stairs. I love stairs.'],
+  [29.6,33.4,'W','Stairs are just a hill that goes inside.'],
+  [38.6,42.8,'N','Wick is afraid of one thing more than monsters.'],
+  [43.1,45.2,'N','Total darkness.'],
+  [45.6,50.6,'N','And now the only light in the whole crypt is the one in his hand.'],
+  [52.4,56.6,'W','Please do not go out. Please do not go out.'],
+  [56.9,61.4,'W','I will never complain about the smell of lamp oil again.'],
+  [63.6,66.2,'W','...Thank you. Good lantern.'],
+  [69.0,71.2,'N','This is the Sunwell.'],
+  [71.5,75.6,'N','A hundred years ago, it held a piece of the sun.'],
+  [75.9,79.6,'N','Everything was bright. Everything was safe.'],
+  [81.2,85.2,'W','Seven heroes... Elder Bram never told me about these.'],
+  [85.5,88.6,'W','...Why is that one scratched out?'],
+  [89.0,93.6,'N','Some things are scratched out on purpose. Remember that.'],
+  [100.0,102.4,'W','...That\'s my lantern.'],
+  [104.2,110.0,'W','My lantern is on a wall. In a painting. A hundred years old.'],
+  [110.4,114.6,'W','...Okay. Now I am scared in a brand new way.'],
+  [128.0,133.4,'S','HALT. NONE MAY PASS. THE QUEEN\'S DOOR IS SEALED.'],
+  [133.8,136.6,'W','Hi. Sorry. Wrong door. Going now.'],
+  [140.0,142.0,'W','...No way back.'],
+  [142.3,146.0,'W','Great. Love that for me. Forward it is.'],
+  [154.4,157.8,'S','The stair opens for one light only.'],
+  [158.2,161.6,'S','...That light. It is warm.'],
+  [162.0,164.8,'S','It is... hers.'],
+  [165.4,169.6,'N','Bone-Wights are the old soldiers of Eldmere.'],
+  [169.9,172.2,'N','They never stopped guarding.'],
+  [172.5,175.0,'N','They never learned the war was over.'],
+  [175.3,180.8,'N','And this one has just seen a light it thought it would never see again.'],
+  [186.0,190.4,'W','...It is glowing at the same speed as my lantern.'],
+  [190.7,193.0,'W','Why is it doing that?'],
+  [195.0,199.4,'S','I cannot let you in. But I cannot stop you.'],
+  [199.8,203.6,'S','...Which is it? Which is it?'],
+  [204.2,206.6,'N','The Sentry is confused.'],
+  [206.9,212.4,'N','And a confused guard with a very big sword is the most dangerous kind.'],
+  [214.0,216.8,'N','The Sentry will not step aside.'],
+  [217.1,222.0,'N','The door will not open without a fight, or a very good reason.'],
+  [222.3,224.4,'N','What does Wick do?'],
+  [232.0,237.4,'N','You decide. Comment A or B on the pinned comment below.'],
+  [237.6,239.8,'N','See you tomorrow.']
+];
+function talking(who,tt){if(NOTALK)return false;const c={WICK:'W',BRAM:'B'}[who]||who;for(const s of SUBS)if(s[2]===c&&tt>=s[0]&&tt<s[1]-.2)return true;return false}
+function wrap(text,maxW){const out=[];let cur='';for(const w of text.split(' ')){const t2=cur?cur+' '+w:w;if(M.measureText(t2).width>maxW&&cur){out.push(cur);cur=w}else cur=t2}out.push(cur);return out}
+function subtitle(tt){
+  for(const s of SUBS){if(tt<s[0]||tt>=s[1])continue;
+    const [name,col]=VOICE[s[2]],a=Math.min(sm(s[0],s[0]+.15,tt),1-sm(s[1]-.15,s[1],tt));
+    M.save();M.globalAlpha=a;M.font='400 34px '+PIX;const lines=wrap(s[3],1000),lh=42;
+    const bw=Math.min(1100,Math.max(...lines.map(l=>M.measureText(l).width))+64),bh=lines.length*lh+58,bx=(W-bw)/2,by=H-bh-26;
+    M.fillStyle='rgba(6,8,20,.82)';M.fillRect(bx,by,bw,bh);M.fillStyle=col;M.fillRect(bx,by,bw,4);M.fillRect(bx,by+bh-4,bw,4);M.fillRect(bx,by,4,bh);M.fillRect(bx+bw-4,by,4,bh);
+    M.font='700 22px '+PIX;M.textBaseline='top';M.textAlign='left';M.fillText(name,bx+24,by+14);
+    M.font='400 34px '+PIX;M.fillStyle='#f1e6cf';lines.forEach((l,i)=>M.fillText(l,bx+24,by+42+i*lh));
+    M.restore();break}
+}
+
+/* ---------- overlays drawn at full size ---------- */
+function pixelBox(x,y,w,h,edge,fill){M.fillStyle=fill;M.fillRect(x+6,y,w-12,h);M.fillRect(x,y+6,w,h-12);M.fillStyle=edge;M.fillRect(x+6,y,w-12,6);M.fillRect(x+6,y+h-6,w-12,6);M.fillRect(x,y+6,6,h-12);M.fillRect(x+w-6,y+6,6,h-12)}
+function recapText(tt){
+  const a=Math.min(sm(1,1.4,tt),1-sm(10.6,11,tt));if(a<=0)return;
+  M.save();M.globalAlpha=a;M.textBaseline='top';M.textAlign='left';
+  pixelBox(36,32,236,64,'#ffb347','#151c3a');M.font='700 30px '+PIX;M.fillStyle='#ffb347';M.fillText('LAST TIME',62,48);
+  const b=Math.min(sm(6.1,6.6,tt),1-sm(10.5,10.9,tt));
+  if(b>0){M.globalAlpha=a*b;const bx=W-36-560,by=32+Math.round((1-b)*-20);pixelBox(bx,by,560,96,'#ffb347','#151c3a');
+    M.fillStyle='#ffb347';M.fillRect(bx+20,by+18,60,60);M.fillStyle='#2a1806';M.font='700 46px '+PIX;M.textAlign='center';M.fillText('A',bx+50,by+22);M.textAlign='left';
+    M.fillStyle='#aab0cf';M.font='700 20px '+PIX;M.fillText('YOU CHOSE',bx+100,by+18);M.fillStyle='#ffffff';M.font='700 32px '+PIX;M.fillText('Go down into the crypt.',bx+100,by+42)}
+  M.restore();
+}
+function titleText(tt){
+  const a=Math.min(sm(13,14.5,tt),1-sm(23.4,24.4,tt));if(a<=0)return;
+  M.save();M.globalAlpha=a;M.textAlign='center';M.textBaseline='middle';
+  M.font='400 30px '+PIX;M.fillStyle='#aab0cf';M.fillText('THE LAMPLIGHTER',W/2,150);
+  M.font='700 92px '+PIX;M.fillStyle='#3a1c06';M.fillText('OF ASHENMOOR',W/2+6,226);M.fillStyle='#ffb347';M.fillText('OF ASHENMOOR',W/2,220);
+  M.font='700 30px '+PIX;M.fillStyle='#f1e6cf';M.fillText('EPISODE 2: DOWN THE STAIR',W/2,470);
+  M.restore();
+}
+function carvingText(tt){
+  const a=Math.min(sm(103.2,103.8,tt),1-sm(116.4,117.2,tt));if(a<=0)return;
+  M.save();M.globalAlpha=a;M.textAlign='center';M.textBaseline='top';const cx=704;
+  pixelBox(cx-340,400,680,128,'#6a5a40','#1d1a26');
+  M.font='700 36px '+PIX;M.fillStyle='#3a1c06';M.fillText('QUEEN ISOLDE,',cx+3,421);M.fillText('LAST LAMPLIGHTER OF ELDMERE',cx+3,467);
+  M.fillStyle='#ffcc66';M.fillText('QUEEN ISOLDE,',cx,418);M.fillText('LAST LAMPLIGHTER OF ELDMERE',cx,464);
+  M.restore();
+}
+// one new character per episode, with its one line tag
+function nameCard(tt){
+  const a=Math.min(sm(127.8,128.4,tt),1-sm(134.4,135,tt));if(a<=0)return;
+  M.save();M.globalAlpha=a;M.textAlign='left';M.textBaseline='top';const x=40+Math.round((1-sm(127.8,128.4,tt))*-30);
+  pixelBox(x,36,640,124,'#8fd0ff','#0d1224');
+  M.font='700 20px '+PIX;M.fillStyle='#8fd0ff';M.fillText('NEW CHARACTER',x+28,52);
+  M.font='700 40px '+PIX;M.fillStyle='#ffffff';M.fillText('BONE-WIGHT SENTRY',x+28,76);
+  M.font='400 24px '+PIX;M.fillStyle='#e9e2d0';M.fillText('The skeleton who still guards a dead queen.',x+28,122);
+  M.restore();
+}
+function choiceScreen(tt){
+  const dim=sm(213,215,tt);M.fillStyle='rgba(6,8,22,'+.8*dim+')';M.fillRect(0,0,W,H);
+  M.save();M.textBaseline='top';M.textAlign='center';
+  const ta=sm(214,215.5,tt);M.globalAlpha=ta;M.font='700 54px '+PIX;M.fillStyle='#3a1c06';M.fillText('WHAT DOES WICK DO?',W/2+4,58);M.fillStyle='#ffb347';M.fillText('WHAT DOES WICK DO?',W/2,54);
+  const opts=[['A','Blast it with a Flare.','Big burst of light. Might scare it off. Might shake the door loose.',222.6],['B','Talk to it.','Safe for now. But Wick would have to tell it who he is, and he does not know yet.',223.3]];
+  opts.forEach((o,i)=>{const k=sm(o[3],o[3]+.35,tt);if(k<=0)return;const bx=70+i*580,by=150+Math.round((1-k)*30),bw=560,bh=300;
+    M.globalAlpha=k;const pulse=tt>225?(Math.floor(tt*2+i)%2?'#ffb347':'#c9822a'):'#ffb347';
+    pixelBox(bx,by,bw,bh,pulse,'#151c3a');
+    M.fillStyle='#ffb347';M.fillRect(bx+28,by+28,72,72);M.fillStyle='#2a1806';M.font='700 56px '+PIX;M.fillText(o[0],bx+64,by+34);
+    M.textAlign='left';M.fillStyle='#ffffff';M.font='700 36px '+PIX;const tl=wrap(o[1],bw-152);tl.forEach((l,j)=>M.fillText(l,bx+124,by+28+j*42));
+    const sy=by+Math.max(124,28+tl.length*42+18);M.font='400 28px '+PIX;M.fillStyle='#e9e2d0';wrap(o[2],bw-56).forEach((l,j)=>M.fillText(l,bx+28,sy+j*36));M.textAlign='center'});
+  const fa=sm(231.6,232.4,tt);if(fa>0){M.globalAlpha=fa;M.font='400 28px '+PIX;M.fillStyle='#f1e6cf';M.fillText('Comment A or B',W/2,486)}
+  M.restore();
+}
+
+/* ---------- master render ---------- */
+function blackAt(tt){let a=0;
+  const dip=(c,w)=>{a=Math.max(a,1-clamp(Math.abs(tt-c)/w,0,1))};
+  if(tt<1)a=1-sm(.2,1,tt);
+  dip(4.3,.12);dip(7.6,.12);dip(11,.4);dip(25,.5);dip(44,.2);dip(49.5,.25);dip(67,.5);dip(80.5,.15);dip(94,.15);dip(99.2,.15);dip(118,.5);dip(181.5,.5);
+  if(tt>240.4)a=Math.max(a,sm(240.4,242.4,tt));return a}
+function render(tt){
+  tt=clamp(tt,0,STORY);
+  let shake=0;
+  if(tt<11)sceneRecap(tt);
+  else if(tt<25)sceneTitle(tt-10);
+  else if(tt<67)sceneStair(tt);
+  else if(tt<118)sceneHall(tt);
+  else if(tt<181.5)sceneSentry(tt);
+  else if(tt<213)sceneDoor(tt);
+  else sceneDoor(212.4);
+  if(tt>124.8&&tt<127.6)shake=2;if(tt>150.6&&tt<151.2)shake=5;if(tt>8&&tt<8.9)shake=3;
+  M.setTransform(1,0,0,1,0,0);M.fillStyle='#000';M.fillRect(0,0,W,H);
+  // slow push on the recap clips, and the slow zoom on the Queen's door
+  let z=1,fx=W/2,fy=H/2;
+  if(tt<11){const seg=tt<4.3?1:tt<7.6?4.3:7.6;z=1+.05*clamp((tt-seg)/3.3,0,1)}
+  else if(tt>=181.5){z=lerp(1,1.35,sm(181.5,200,tt));fx=960;fy=560}
+  const sw=W/z,sh=H/z,sx=fx-fx/z,sy=fy-fy/z,ox=shake?(Math.floor(tt*30)%2?shake:-shake):0;
+  M.drawImage(fb,sx/4,sy/4,sw/4,sh/4,ox,ox?-ox/2:0,W,H);
+  if(tt<11)recapText(tt);
+  if(tt>=11&&tt<25)titleText(tt);
+  if(tt>102&&tt<118)carvingText(tt);
+  if(tt>127&&tt<136)nameCard(tt);
+  if(tt>=213)choiceScreen(tt);
+  // impact frame: one white flash as the sword hits the floor
+  if(tt>=150.6&&tt<151){M.fillStyle='rgba(255,255,255,'+(tt<150.72?1:1-sm(150.72,151,tt))+')';M.fillRect(0,0,W,H)}
+  const b=blackAt(tt);if(b>0){M.fillStyle='rgba(0,0,0,'+b+')';M.fillRect(0,0,W,H)}
+  if(tt>242.4){const fl=Math.floor(tt*8)%3;M.fillStyle='#ff9a3c';M.fillRect(636,352,8,12);M.fillStyle='#ffd25a';M.fillRect(636+(fl===1?4:0),348,4,4);
+    const gr=M.createRadialGradient(640,356,0,640,356,60);gr.addColorStop(0,'rgba(255,160,70,.25)');gr.addColorStop(1,'rgba(0,0,0,0)');M.fillStyle=gr;M.fillRect(560,280,160,160)}
+  subtitle(tt);
+}
+
+/* ---------- audio, all synthesised ---------- */
+let VNOW=null;const now=()=>VNOW!=null?VNOW:AC.currentTime;
+let AC=null,master,nb,windG,windF,evi=0,lastT=0,nextNote=0,nextStep=0,nextChirp=0,nextBeat=0;
+function initAudio(off){
+  if(AC&&!off)return;const A=window.AudioContext||window.webkitAudioContext;if(!A&&!off)return;AC=off||new A();
+  master=AC.createGain();master.gain.value=.85;master.connect(AC.destination);
+  nb=AC.createBuffer(1,AC.sampleRate*2,AC.sampleRate);const d=nb.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
+  windG=AC.createGain();windG.gain.value=0;windF=AC.createBiquadFilter();windF.type='lowpass';windF.frequency.value=380;
+  const s=AC.createBufferSource();s.buffer=nb;s.loop=true;s.connect(windF);windF.connect(windG);windG.connect(master);s.start();
+  const lfo=AC.createOscillator(),lfg=AC.createGain();lfo.frequency.value=.13;lfg.gain.value=160;lfo.connect(lfg);lfg.connect(windF.frequency);lfo.start();
+}
+const at=d=>now()+Math.max(0,d||0);
+function tone(f,dur,vol,type,d,f2){const n=at(d),o=AC.createOscillator(),gn=AC.createGain();o.type=type||'triangle';o.frequency.setValueAtTime(f,n);if(f2)o.frequency.exponentialRampToValueAtTime(f2,n+dur);
+  gn.gain.setValueAtTime(0,n);gn.gain.linearRampToValueAtTime(vol,n+.012);gn.gain.exponentialRampToValueAtTime(.0001,n+dur);o.connect(gn);gn.connect(master);o.start(n);o.stop(n+dur+.05)}
+function hiss(fc,q,dur,vol,type,d,fc2,attack){const n=at(d),s=AC.createBufferSource();s.buffer=nb;const f=AC.createBiquadFilter();f.type=type||'bandpass';f.Q.value=q;f.frequency.setValueAtTime(fc,n);if(fc2)f.frequency.exponentialRampToValueAtTime(fc2,n+dur);
+  const gn=AC.createGain();gn.gain.setValueAtTime(0,n);gn.gain.linearRampToValueAtTime(vol,n+(attack||.02));gn.gain.exponentialRampToValueAtTime(.0001,n+dur);s.connect(f);f.connect(gn);gn.connect(master);s.start(n,Math.random());s.stop(n+dur+.05)}
+const NOTE=n=>440*Math.pow(2,(n-69)/12);
+const chime=()=>[76,79,83,88].forEach((n,i)=>tone(NOTE(n),1.2,.03,'sine',i*.1));
+const heart=v=>{tone(58,.35,.5*v,'sine',0,40);tone(NOTE(69),1.4,.05*v,'sine',.05);tone(NOTE(76),1.4,.04*v,'sine',.08)};
+const EVT=[
+  [1,()=>hiss(700,1,.5,.12,'bandpass',0,2200,.05)],
+  [4.3,()=>hiss(900,1,.35,.08,'bandpass',0,2400,.03)],
+  [7.6,()=>hiss(900,1,.35,.08,'bandpass',0,2400,.03)],
+  [8,()=>hiss(110,1,2.2,.4,'lowpass',0,70,.2)],
+  [11.5,()=>tone(NOTE(81),2.2,.07,'sine')],
+  [25.4,()=>hiss(160,1,2,.12,'lowpass',0,90,.4)],
+  [33.2,()=>{for(let i=0;i<6;i++)tone(NOTE(84+[0,3,7,10,7,3][i]),.5,.025,'sine',i*.14)}],
+  [36,()=>{tone(55,8,.07,'sawtooth',0,41);hiss(140,1,8,.1,'lowpass',0,60,2)}],
+  [44.6,()=>tone(NOTE(76),4,.04,'sine',0,NOTE(52))],
+  [48.7,()=>{tone(70,.6,.12,'sine',0,40);hiss(120,1,.8,.2,'lowpass')}],
+  [62,()=>heart(1)],
+  [68.4,chime],[78.4,chime],[96.6,chime],
+  [99.4,()=>tone(NOTE(76),1.6,.05,'sine')],
+  [102.4,()=>[64,68,71,76].forEach((n,i)=>tone(NOTE(n),2.4,.04,'sine',i*.09))],
+  [115,()=>heart(.8)],
+  [124,()=>{tone(NOTE(88),1.6,.05,'sine');tone(NOTE(95),1.2,.025,'sine',.06)}],
+  [124.8,()=>{hiss(140,1,2.8,.32,'lowpass',0,80,.3);for(let i=0;i<10;i++)tone(600+rnd(i)*900,.05,.04,'square',.2+i*.24)}],
+  [128,()=>tone(70,.8,.1,'sawtooth',0,55)],
+  [137,()=>hiss(260,1,1.8,.22,'lowpass',0,60,.4)],
+  [148.5,()=>hiss(3500,4,1.2,.07,'bandpass',0,6000,.4)],
+  [150.6,()=>{tone(52,.9,.6,'sine',0,30);hiss(220,.7,1.3,.6,'lowpass',0,60,.005);hiss(2600,1,.7,.22,'highpass',0,null,.005)}],
+  [151.6,()=>tone(NOTE(88),.4,.03,'sine')],[152.6,()=>tone(NOTE(87),.4,.03,'sine')],
+  [162,()=>[62,66,69,74].forEach((n,i)=>tone(NOTE(n),2.6,.035,'sine',i*.12))],
+  [182.5,()=>[57,64,69].forEach((n,i)=>tone(NOTE(n),2.2,.04,'sine',i*.15))],
+  [222.6,()=>[69,72,76].forEach((n,i)=>tone(NOTE(n),1.2,.06,'triangle',i*.12))],
+  [242.8,()=>tone(NOTE(81),2.5,.06,'sine')]
+];
+for(let i=0;i<7;i++)EVT.push([81.2+i*.54,()=>tone(NOTE(88+i),.15,.03,'sine')]);   // Wick counts the seven heroes
+EVT.sort((a,b)=>a[0]-b[0]);
+// one pattern per scene: [start, step seconds, MIDI notes, volume, wave]
+const MUSIC=[
+  [1,.5,[57,60,64,60],.025,'triangle'],
+  [11,1.6,[69,76,72,71],.035,'sine'],
+  [25,.9,[50,53,57,53],.028,'sine'],
+  [67,.6,[62,65,69,72,60,64,67,71],.028,'sine'],
+  [118,.34,[45,45,46,45,45,45,48,46],.05,'triangle'],
+  [165,.6,[57,60,64,65,57,60,64,62],.03,'sine'],
+  [181.5,1.4,[50,57],.03,'sine'],
+  [213,.38,[57,60,64,67,53,57,60,64],.035,'triangle'],
+  [240,99,[0],0,'sine']
+];
+function musicAt(tt){let m=null;for(const p of MUSIC)if(tt>=p[0])m=p;return m}
+function walkingAt(tt){return (tt>=35&&tt<44)||(tt>=67&&tt<80)||(tt>=93.8&&tt<99.2)||(tt>=118&&tt<124)||(tt>=137&&tt<139.5)||(tt>=146&&tt<148)}
+function audioUpdate(tt){
+  if(!AC)return;const n=now();
+  let wv=tt<11?.2:tt<25?.03:.05;if(tt>240.4)wv=0;windG.gain.setTargetAtTime(playing?wv:0,n,.3);
+  if(!playing){lastT=tt;return}
+  while(evi<EVT.length&&EVT[evi][0]<=tt){if(EVT[evi][0]>lastT-.05)EVT[evi][1]();evi++}
+  const m=musicAt(tt);
+  if(m&&tt>=nextNote){const i=Math.floor((tt-m[0])/m[1]+1e-6),speak=SUBS.some(s=>tt>=s[0]&&tt<s[1]);
+    if(m[3]>0)tone(NOTE(m[2][i%m[2].length]),m[1]*1.6,m[3]*(speak?.6:1),m[4]);nextNote=m[0]+(i+1)*m[1]}
+  if(walkingAt(tt)&&tt>=nextStep){if(tt<35)hiss(900,1,.06,.1,'lowpass');else hiss(1500,1.2,.05,.08,'bandpass');nextStep=tt+.34}
+  // water dripping somewhere in the crypt
+  if(tt>49.5&&tt<213&&tt>=nextChirp){tone(1500,.12,.02,'sine',0,900);nextChirp=tt+1.8+rnd(Math.floor(tt*3))*3}
+  // the heartbeat behind the door, in time with the lantern
+  if(tt>=184&&tt<213&&tt>=nextBeat){const k=Math.floor((tt-184)/1.4+1e-6),base=184+k*1.4;
+    if(tt-base<.1){tone(55,.25,.3,'sine',0,38);tone(55,.22,.18,'sine',.28,38)}nextBeat=base+1.4}
+  lastT=tt;
+}
+function resetAudioTrackers(){const o=story(t);evi=0;while(evi<EVT.length&&EVT[evi][0]<o)evi++;lastT=o;nextNote=nextStep=nextChirp=nextBeat=o}
+
+/* ---------- UI ---------- */
+const pp=document.getElementById('pp'),rs=document.getElementById('rs'),sc=document.getElementById('sc'),tm=document.getElementById('tm'),big=document.getElementById('big'),fs=document.getElementById('fs'),list=document.getElementById('scenes');
+const mmss=s=>Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0');
+SCENES.forEach((s,i)=>{const li=document.createElement('li'),b=document.createElement('button');b.id='scene'+(i+1);
+  b.innerHTML='<span class="tc">'+mmss(play2(s[0]))+'</span><span class="nm">Scene '+(i+1)+': '+s[1]+'</span><span class="ds">'+s[2]+'</span>';
+  b.onclick=()=>{t=play2(s[0])+.01;resetAudioTrackers();ui()};li.appendChild(b);list.appendChild(li)});
+const sceneBtns=[...list.querySelectorAll('button')];
+function ui(){pp.textContent=playing?'Pause':(t>=LEN?'Replay':'Play');sc.value=t;tm.textContent=mmss(t)+' / '+mmss(LEN);big.hidden=playing||t>0.01;
+  let cur=0;SCENES.forEach((s,i)=>{if(story(t)>=s[0])cur=i});sceneBtns.forEach((b,i)=>b.setAttribute('aria-current',i===cur?'true':'false'))}
+function play(){initAudio();if(AC&&AC.state==='suspended')AC.resume();if(t>=LEN)t=0;resetAudioTrackers();playing=true;ui()}
+function pause(){playing=false;ui()}
+pp.onclick=()=>{playing?pause():play()};
+big.onclick=play;
+rs.onclick=()=>{t=0;play()};
+sc.oninput=()=>{t=parseFloat(sc.value);resetAudioTrackers();ui()};
+fs.onclick=()=>{const el=cv.parentElement;try{const r=(el.requestFullscreen||el.webkitRequestFullscreen).call(el);if(r&&r.catch)r.catch(()=>{})}catch(e){}};
+document.addEventListener('keydown',e=>{if(e.code==='Space'&&e.target===document.body){e.preventDefault();playing?pause():play()}});
+let last=performance.now(),uiTick=0;
+function tick(now){const dt=Math.min(.1,(now-last)/1000);last=now;
+  if(playing){t+=dt;if(t>=LEN){t=LEN;playing=false}if(++uiTick%6===0||!playing)ui()}
+  render(story(t));audioUpdate(story(t));requestAnimationFrame(tick)}
+window.__seek=v=>{t=play2(v);render(story(t))};
+// Export hooks for the MP4 script: draw a playback time, and render the whole soundtrack offline.
+window.__drawAt=p=>{render(story(p));return cv.toDataURL('image/png')};
+window.__renderAudio=async sr=>{
+  const live=AC,off=new OfflineAudioContext(1,Math.ceil(sr*LEN),sr);AC=null;initAudio(off);playing=true;t=0;resetAudioTrackers();
+  for(let p=0;p<LEN;p+=.01){VNOW=p;t=p;audioUpdate(story(p))}
+  VNOW=null;playing=false;t=0;const buf=await off.startRendering();AC=live;
+  const d=buf.getChannelData(0),pcm=new Int16Array(d.length);for(let i=0;i<d.length;i++)pcm[i]=Math.max(-1,Math.min(1,d[i]))*32767;
+  window.__pcm=new Uint8Array(pcm.buffer);return window.__pcm.length};
+window.__pcmChunk=(i,n)=>{let s='';const a=window.__pcm.subarray(i,i+n);for(let k=0;k<a.length;k+=8192)s+=String.fromCharCode.apply(null,a.subarray(k,k+8192));return btoa(s)};
+ui();
+const fontsReady=document.fonts?Promise.all([document.fonts.load('700 40px "Atkinson Hyperlegible"'),document.fonts.load('400 34px "Atkinson Hyperlegible"')]).catch(()=>{}):Promise.resolve();
+fontsReady.then(()=>requestAnimationFrame(tick));
+})();
+</script>

@@ -17,7 +17,13 @@
   "r": "#4a5d78",
   "R": "#34435a",
   "k": "#0e0b16",
-  "K": "#5a4a90"
+  "K": "#5a4a90",
+  "a": "#6b6470",
+  "A": "#45404e",
+  "u": "#8a5434",
+  "o": "#d9d0b8",
+  "O": "#a39a84",
+  "x": "#1a1620"
  },
  "wick": {
   "size": [
@@ -145,5 +151,72 @@
    3
   ]
  },
- "notes": "Each frame is a list of rows. One character = one pixel; \".\" is transparent; letters map to palette colours. All sprites face right; flip for left. Wick is the big-head chibi design (14x16)."
+ "notes": "Each frame is a list of rows. One character = one pixel; \".\" is transparent; letters map to palette colours. All sprites face right except the Bone-Wight Sentry, which faces left; flip as needed. Wick is the big-head chibi design (14x16). The Sentry (16x24) has four states: pile (it rises out of this), idle, raise and slam (same body, the sword angle changes), and shaking (idle with a 1 pixel jitter).",
+ "sentry": {
+  "size": [
+   16,
+   24
+  ],
+  "faces": "left",
+  "swordHand": [
+   1,
+   13
+  ],
+  "eyes": [
+   [
+    3,
+    4
+   ],
+   [
+    6,
+    4
+   ]
+  ],
+  "frames": {
+   "idle": [
+    "....aaaaaa......",
+    "...aAaaaaaa.....",
+    "..aaaaaaaaaa....",
+    "..aoooooooaA....",
+    "..oxooxoooaA....",
+    "..ooooooooaA....",
+    "...oxoxoxoa.....",
+    "....oooooa......",
+    "...aaaaaaaa.....",
+    ".uaaaaaaaaaau...",
+    ".aaaaoaaaaaaa...",
+    ".aa.aaaoaaa.aa..",
+    ".oo.aauaaaa.aa..",
+    ".oo.aaaaaua.oo..",
+    ".o..aaoaaaa..o..",
+    "....AAAAAAA.....",
+    "....auaaaua.....",
+    "....aa...aa.....",
+    "....oo...oo.....",
+    "....oo...oo.....",
+    "....Oo...oO.....",
+    "....aa...au.....",
+    "...aaa...aaa....",
+    "...AAA...AAA...."
+   ],
+   "pile": [
+    "......aaaa......",
+    ".....aAaaaa.....",
+    "..u..aoxoxa..a..",
+    ".aaa.aooooa.aAa.",
+    "aaAaaaaaaaaaaaaa",
+    "AAAAAAuAAAAAAAuA"
+   ]
+  },
+  "sword": {
+   "length": 15,
+   "angles": {
+    "rest": 2.18,
+    "raised": 4.54,
+    "slam": 2.53
+   },
+   "slamHandDrop": 3,
+   "note": "The sword is drawn as a line from the hand at the given angle in radians (0 points right, PI/2 points down). The sentry-idle/raise/slam PNGs bake it in on a 30x44 canvas, body at (14,16)."
+  }
+ }
 }

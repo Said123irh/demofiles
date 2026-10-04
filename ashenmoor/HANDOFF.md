@@ -2,11 +2,11 @@
 
 Paste this to start a new chat:
 
-> Continue my YouTube series "The Lamplighter of Ashenmoor". Read `ashenmoor/HANDOFF.md` on branch `claude/new-session-0096cy` of `Said123irh/demofiles` first. Then build Episode 2 from the script I paste, reusing the Episode 1 page and assets.
+> Continue my YouTube series "The Lamplighter of Ashenmoor". Read `ashenmoor/HANDOFF.md`, `ashenmoor/ashenmoor-master-project-file.md` and `ashenmoor/ashenmoor-lore-and-easter-eggs.md` on branch `claude/dreamy-brown-1pd2wv` of `Said123irh/demofiles` first. Episodes 1 and 2 are finished. Build Episode 3 from the script I paste, reusing the Episode 2 page, sprites and export tools. Episode 2 vote winner: [A or B].
 
 ## Where things are
 
-Repo `Said123irh/demofiles`, branch `claude/new-session-0096cy`, folder `ashenmoor/`.
+Repo `Said123irh/demofiles`, branch `claude/dreamy-brown-1pd2wv` (Episode 1 alone is also on `claude/new-session-0096cy`), folder `ashenmoor/`.
 
 | File | What it is |
 |---|---|
@@ -14,8 +14,12 @@ Repo `Said123irh/demofiles`, branch `claude/new-session-0096cy`, folder `ashenmo
 | `ashenmoor-episode-1.md` | Episode 1 script, matching the finished video. |
 | `ashenmoor-episode-1.html` | Episode 1 as one self-contained page: pixel animation, subtitles, synthesised sound, player. Artifact: https://claude.ai/artifact/8VYib5wGsEeVo9tznYvE9j |
 | `ashenmoor-episode-1.mp4` | Episode 1 exported, 1280x720, 30 fps, H.264 + AAC, 3:49. |
+| `ashenmoor-episode-2.md` | Episode 2 script, matching the finished video, plus the Episode 3 plan for both choices. |
+| `ashenmoor-episode-2.html` | Episode 2 page, built on the Episode 1 page. Artifact: https://claude.ai/artifact/K3fp2YPWgkcHz72XJrPhCz |
+| `ashenmoor-episode-2.mp4` | Episode 2 exported, 1280x720, 30 fps, H.264 + AAC, 4:06. |
+| `ashenmoor-lore-and-easter-eggs.md` | Crypt lore lock and the easter egg tracker, with where each Episode 2 egg appears. |
 | `wick-sprite-options.html` | The sprite options the creator chose from (option 3, big-head chibi, won). Artifact: https://claude.ai/artifact/92uYeMRbDTrBPF4wa5dtpb |
-| `assets/sprites/sprites.json` | Pixel data and palette for Wick (idle, walk1, walk2), Elder Bram and the Gloomhound. |
+| `assets/sprites/sprites.json` | Pixel data and palette for Wick (idle, walk1, walk2), Elder Bram, the Gloomhound and the Bone-Wight Sentry (pile, idle; sword angles for raise and slam). |
 | `assets/sprites/*.png` | The same sprites as PNG, at 1x and 8x. |
 | `tools/export-mp4.js` | Turns an episode page into an MP4. |
 
@@ -25,15 +29,16 @@ Repo `Said123irh/demofiles`, branch `claude/new-session-0096cy`, folder `ashenmo
 - **Normal font**, not a pixel font: Atkinson Hyperlegible for subtitles, titles and the choice screen.
 - **Call to action is "Comment A or B" only.** Never mention the Community tab.
 - **Not the False Awakening style.** Ashenmoor has its own look: pixel art, warm lantern glow against dark blue night.
-- Voices are **subtitles** (NARRATOR purple, WICK orange, ELDER BRAM teal) timed to the script, so a recorded voice track can be laid over them.
+- Voices are **subtitles** (NARRATOR purple, WICK orange, ELDER BRAM teal, SENTRY ice blue) timed to the script, so a recorded voice track can be laid over them.
 - Long form 16:9 only, no 9:16 short.
 - The creator writes the scripts and sends them; do not write episodes ahead.
 
-## Episode 1 state
+## Episode state
 
-- Choice offered: **A: Go down into the crypt** (Dangerous. But might find answers.) / **B: Wake Elder Bram and show him the key** (Safe. But Bram has been hiding something.)
-- Winner: not known yet. Ask the creator which option won before building Episode 2.
-- Facts on screen: Emberfall has 8 lamps (lamps 1 to 4, 6 and 7 lit by the end), Wick has the glowing crypt key, a half collapsed stair is open under the chapel floor, something breathes down there. Bram has not seen the key yet.
+- **Episode 1** choice: A: Go down into the crypt / B: Wake Elder Bram and show him the key. **Winner: A.**
+- **Episode 2** choice: **A: Blast it with a Flare** (Big burst of light. Might scare it off. Might shake the door loose.) / **B: Talk to it** (Safe for now. But Wick would have to tell it who he is, and he does not know yet.)
+- Episode 2 winner: not known yet. Ask the creator which option won before building Episode 3.
+- Facts on screen at the end of Episode 2: Wick is in the crypt with the key and the lantern. The stair behind him is gone, a wall of black. Murals: the Sunwell, the Lantern Seven (one face scratched out), Queen Isolde with a lantern like Wick's, carving "Queen Isolde, last Lamplighter of Eldmere". The Bone-Wight Sentry stands between Wick and the iron door (flame symbol), shaking, sword down; its slam cracked the floor in front of the door. A golden light under the door pulses with the lantern. Bram still has not seen the key.
 
 ## How an episode page is built (`ashenmoor-episode-1.html`)
 
@@ -54,18 +59,29 @@ Everything is drawn into a 320 x 180 pixel frame, lit, then scaled x4 to 1280 x 
 
 The timeline is written in "story time" (0 to 240, matching the script draft). Playback skips story time 159 to 170 (`story()` / `play2()`), which makes the video 3:49. For a new episode, write timings directly and set `story=x=>x`, `play2=x=>x`, `LEN` = episode length.
 
-### Making Episode 2 cheaply
+### How Episode 2 is built (`ashenmoor-episode-2.html`)
 
-Copy `ashenmoor-episode-1.html` to `ashenmoor-episode-2.html`, keep sections 2 to 6, 8 to 12, and replace: `SCENES`, the scene functions, `SUBS`, `EVT`, `MUSIC`, the choice options, the title text, and the 10 second "Last time" recap (reuse an Episode 1 scene function as the recap image). Add only one new thing per episode (a character or a location), as the master file says.
+Same engine as Episode 1, timings written directly (`story=x=>x`, `LEN=246`). Added on top:
+
+- `sentry(x, groundY, t, {rise, sw, drop, eyes, shake, talk})` and `sword()`: the Bone-Wight Sentry. `rise` 0 is the armour heap, 1 is standing. `sw` is the sword angle.
+- `wick()` gained `hop` (jump back) and `kg` (key glow); the lantern stick stretches when `lift` is above 1.
+- The crypt hall: `HALL` (stone wall, floor, pillars), `MUR` (the three murals, a dim copy and a gold copy that fades in), `FIG` (the seven heroes), `door({sym, gap})`, `hall()`, and `voidDark()` (the black that ate the stair, drawn after the light).
+- `beat(t)`: one double heartbeat every 1.4 s, shared by the lantern, the key, the door light and the thump on the soundtrack.
+- The recap reuses `sceneForest` and `sceneChapel` from Episode 1 as short clips; `NOTALK` stops mouths moving in them.
+- Overlays: `recapText` (LAST TIME and YOU CHOSE A), `nameCard` (one new character with its tag), `carvingText`, and the white impact flash in `render()`.
+
+### Making the next episode cheaply
+
+Copy the latest episode page (now `ashenmoor-episode-2.html`) to the new episode, keep the engine sections, and replace: `SCENES`, the scene functions, `SUBS`, `EVT`, `MUSIC`, the choice options, the title text, and the 10 second "Last time" recap (reuse an Episode 1 scene function as the recap image). Add only one new thing per episode (a character or a location), as the master file says.
 
 ## Export to MP4
 
 ```
 npm i playwright            # once; Chromium is preinstalled in Claude cloud sessions
-node ashenmoor/tools/export-mp4.js ashenmoor/ashenmoor-episode-2.html ashenmoor/ashenmoor-episode-2.mp4
+node ashenmoor/tools/export-mp4.js ashenmoor/ashenmoor-episode-3.html ashenmoor/ashenmoor-episode-3.mp4
 ```
 
-It renders the soundtrack offline, draws every frame at 30 fps and encodes with ffmpeg. Episode 1 took a few minutes.
+It renders the soundtrack offline, draws every frame at 30 fps and encodes with ffmpeg. Each episode takes a few minutes. In a Claude cloud session Playwright is installed globally, so run it with `NODE_PATH=$(npm root -g)` in front.
 
 ## Thumbnails
 
