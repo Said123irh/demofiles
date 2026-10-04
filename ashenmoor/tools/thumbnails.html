@@ -88,7 +88,6 @@ function thumb2(){
   for(const [x,gy] of hounds)glow(m,(x+4)*K,(gy-8)*K+8,70,'255,40,40',.55);m.globalCompositeOperation='source-over';
   const v=m.createRadialGradient(W*.35,H*.6,H*.3,W/2,H/2,H*.95);v.addColorStop(0,'rgba(0,0,0,0)');v.addColorStop(1,'rgba(0,0,0,.55)');m.fillStyle=v;m.fillRect(0,0,W,H);
   headline(m,[[["THEY HATE",'#ffffff']],[["LIGHT.",'#ffb347']]],1236,36,160,'right');
-  badge(m,'...MOSTLY',930,380,58,'#e8343a','#ffffff');
 }
 const go=()=>{thumb1();thumb2();window.__done=true};
 (document.fonts?document.fonts.load('150px Anton').then(go,go):go());

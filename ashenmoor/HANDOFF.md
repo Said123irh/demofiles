@@ -69,4 +69,4 @@ It renders the soundtrack offline, draws every frame at 30 fps and encodes with 
 
 ## Thumbnails
 
-`thumbnails/episode-1-thumbnail-A.png` ("What's down there?") and `-B.png` ("They hate light. ...Mostly") are new pixel scenes drawn for the thumbnail, not frames from the video. They are drawn in `tools/thumbnails.html` (bigger pixels, x16) with the Anton font in `assets/fonts/`. Edit the scenes or text there, then run `node ashenmoor/tools/render-thumbnails.js`.
+`thumbnails/episode-1-thumbnail-A.png` ("What's down there?") and `-B.png` ("They hate light.") are new pixel scenes drawn for the thumbnail, not frames from the video. They are drawn in `tools/thumbnails.html` (bigger pixels, x16) with the Anton font in `assets/fonts/`. Edit the scenes or text there, then run `node ashenmoor/tools/render-thumbnails.js`.
