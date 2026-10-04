@@ -1,0 +1,106 @@
+<title>Wick Sprite Options</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+/* Layout: a casting sheet. One card per design, the big sprite on top and the same sprite at video size below. */
+:root{
+  --night:#0b1024; --dusk:#151c3a; --fog:#2a3360; --ash:#b4b9d6; --parchment:#f1e6cf; --lamp:#ffb347;
+  --body:'Atkinson Hyperlegible','Segoe UI',system-ui,sans-serif;
+  color-scheme:dark;
+}
+body{background:var(--night);color:var(--parchment);font-family:var(--body);font-size:16px;line-height:1.55}
+.wrap{max-width:1120px;margin:0 auto;padding-inline:16px;padding-block:24px 40px;display:flex;flex-direction:column;gap:20px}
+h1{font-size:clamp(26px,4.5vw,38px);line-height:1.1;margin:0;text-wrap:balance}
+.sub{margin:6px 0 0;color:var(--ash);max-width:64ch}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,196px),1fr));gap:14px}
+.card{background:var(--dusk);border:2px solid var(--fog);border-radius:6px;padding:14px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.card.current{border-style:dashed}
+.tag{font-weight:700;color:var(--lamp);letter-spacing:.06em;text-transform:uppercase;font-size:13px}
+.card h2{margin:0;font-size:20px}
+.card p{margin:0;color:var(--ash);font-size:15px}
+canvas{display:block;width:100%;height:auto;image-rendering:pixelated;border-radius:4px;max-width:100%}
+.big{aspect-ratio:1/1}
+.scene{aspect-ratio:16/9}
+.label{font-size:13px;color:var(--ash)}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Wick sprite options</h1>
+    <p class="sub">Four new designs for Wick, plus the current one for comparison. Each card shows the sprite up close, then at the size it appears in the video, holding his lantern at night. Tell me the number you like.</p>
+  </header>
+  <div class="grid" id="grid"></div>
+</div>
+
+<script>
+(function(){
+const PAL={h:'#2b2233',H:'#4a3b55',s:'#e9b48c',S:'#c48a6a',e:'#1b1422',w:'#f4efe6',c:'#6d7180',d:'#4b4e5a',D:'#30323c',p:'#9a7650',
+  l:'#3a3442',b:'#6a4428',B:'#432a18',f:'#b8442e',F:'#8a3020',g:'#5a3a22',y:'#d8b04a',k:'#6a5034',K:'#4a3824',t:'#3f5a7a',T:'#2e4560'};
+const DESIGNS=[
+ {n:'Current',name:'The first draft',desc:'What is in the video now.',current:true,hand:[10,8],rows:[
+  "...hhhhh....","..hhhhhhhh..",".hhhhhhhhhh.",".hhhhsssss..",".hhhssssess.","..hhssssss..","...hssss....",
+  "..cccccccc..",".ccccccccc..",".cdccccccc..",".cdccpcccc..",".cdccpcccc..",".cddcccccc..","..dddcccc...",
+  "...ll..ll...","...ll..ll...","..bbb..bbb..","..BBBB.BBBB."]},
+ {n:1,name:'Hooded Lamplighter',desc:'Grey hood up, face in shadow, long patched cloak. Quiet and mysterious.',hand:[11,10],rows:[
+  ".....ddddd....","...ddcccccdd..","..dcccccccccd.",".dccccccDDDDd.",".dcccccDsssss.",".dcccccDssess.",".dcccccDsssss.",
+  "..dccccDDsss..","..dccccccDD...",".dcccccccccd..",".dccpcccccc...",".dccpccccccd..",".dccccccccccd.",".dcccccccccdd.",
+  ".ddccccccccd..","..dddddddddd..","...ll...ll....","...ll...ll....","..bbbb..bbbb..","..BBBB..BBBB.."]},
+ {n:2,name:'Scarf and messy hair',desc:'Taller, spiky dark hair and a red scarf that trails behind him. The most "hero" look.',hand:[11,11],rows:[
+  "....h.h.h.....","...hhhhhhh....","..hhHhhhhhh...","..hhhhhhhhhh..","..hhhhsssss...","..hhhsssesss..","...hhsssss....",
+  "....SSsss.....","..fffffff.....","FffffffFf.....",".F.cccccccc...","...cccccccc...","...cdcccpcc...","...cdcccpcc...",
+  "...cggyggcc...","...cdcccccc...","...ddccccdd...","....l...l.....","....l...l.....","...ll...ll....","..bbbb.bbbb...","..BBBB.BBBB..."]},
+ {n:3,name:'Big-head chibi',desc:'Round head, big eyes, small body. Cute and easy to read on a phone screen.',hand:[10,10],rows:[
+  "...hhhhhhh....","..hhHhhhhhh...",".hhhhhhhhhhh..",".hhhhhhhhhhh..",".hhhsssssssh..",".hhsswesswes..",".hhsswesswes..",
+  "..hssssssSs...","...sssssss....","..cccccccc....",".cccccccccc...",".cdccccpcc....",".cdccccpcc....","..ddcccccc....",
+  "...bb..bb.....","..BBB..BBB...."]},
+ {n:4,name:'Cap and long coat',desc:'Flat cap, blue lamplighter coat with brass buttons. Looks like it is his job.',hand:[10,9],rows:[
+  "...kkkkkk.....","..kkkkkkkk....","..KKKKKKKKKKK.","..hhsssssss...","..hhsssesss...","..hhssssss....","...hsssSs.....",
+  "...fffff......","..ttttttttt...",".ttttttttt....",".tTttytttt....",".tTttttttt....",".tTttytttt....",".tTTtttttt....",
+  ".tTTttttttt...",".TTTTTTTTT....","...ll..ll.....","...ll..ll.....","..bbbb.bbbb...","..BBBB.BBBB..."]}
+];
+function mk(rows){const c=document.createElement('canvas');c.width=Math.max(...rows.map(r=>r.length));c.height=rows.length;const x=c.getContext('2d');
+  rows.forEach((r,j)=>{for(let i=0;i<r.length;i++){const col=PAL[r[i]];if(col){x.fillStyle=col;x.fillRect(i,j,1,1)}}});return c}
+// sprite plus lantern on a stick, drawn in sprite pixels at (ox,oy)
+function figure(g,d,spr,ox,oy,tt){
+  g.drawImage(spr,ox,oy);
+  const [hx,hy]=d.hand,P=(x,y,w,h,c)=>{g.fillStyle=c;g.fillRect(ox+x,oy+y,w,h)};
+  P(hx,hy,1,1,PAL.s);const tipY=hy-3;
+  for(let k=1;k<=3;k++)P(hx+k,Math.round(hy+(tipY-hy)*k/3),1,1,'#7a5530');
+  P(hx+3,tipY+1,3,1,'#2e2218');P(hx+3,tipY+2,1,3,'#2e2218');P(hx+5,tipY+2,1,3,'#2e2218');P(hx+3,tipY+5,3,1,'#2e2218');
+  const fl=Math.floor(tt*9)%3;P(hx+4,tipY+3,1,2,'#ffd25a');P(hx+4,tipY+2+(fl?1:0),1,1,'#fff6c8');
+  return [ox+hx+4.5,oy+tipY+3.5];
+}
+function glow(g,x,y,r,a){const gr=g.createRadialGradient(x,y,0,x,y,r);gr.addColorStop(0,'rgba(255,170,80,'+a+')');gr.addColorStop(1,'rgba(255,170,80,0)');g.fillStyle=gr;g.fillRect(x-r,y-r,r*2,r*2)}
+const cards=[];
+DESIGNS.forEach(d=>{
+  const spr=mk(d.rows),card=document.createElement('article');card.className='card'+(d.current?' current':'');
+  card.innerHTML='<span class="tag">'+(d.current?'For comparison':'Option '+d.n)+'</span><h2>'+d.name+'</h2>';
+  const big=document.createElement('canvas');big.className='big';big.width=big.height=32;big.setAttribute('aria-label',d.name+', close up');
+  const lab=document.createElement('span');lab.className='label';lab.textContent='At video size, by a street lamp';
+  const sc=document.createElement('canvas');sc.className='scene';sc.width=96;sc.height=54;sc.setAttribute('aria-label',d.name+', at the size used in the video');
+  const p=document.createElement('p');p.textContent=d.desc;
+  card.append(big,lab,sc,p);document.getElementById('grid').appendChild(card);
+  cards.push({d,spr,big,sc});
+});
+function draw(tt){
+  for(const {d,spr,big,sc} of cards){
+    let g=big.getContext('2d');g.imageSmoothingEnabled=false;g.fillStyle='#10162e';g.fillRect(0,0,32,32);g.fillStyle='#1a2140';g.fillRect(0,28,32,4);
+    const ox=Math.floor((32-spr.width-4)/2),oy=28-spr.height;const [lx,ly]=figure(g,d,spr,ox,oy,tt);
+    g.globalCompositeOperation='lighter';glow(g,lx,ly,12,.18+.04*Math.sin(tt*6));g.globalCompositeOperation='source-over';
+    g=sc.getContext('2d');g.imageSmoothingEnabled=false;
+    const gr=g.createLinearGradient(0,0,0,54);gr.addColorStop(0,'#070a1a');gr.addColorStop(1,'#1f2c4f');g.fillStyle=gr;g.fillRect(0,0,96,54);
+    g.fillStyle='#e6ebff';[[8,6],[30,12],[52,4],[70,15],[88,8],[18,20]].forEach(([x,y])=>g.fillRect(x,y,1,1));
+    g.fillStyle='#4e4a5a';g.fillRect(4,18,30,26);g.fillStyle='#2e2a38';for(let j=0;j<14;j++)g.fillRect(2+j,17-j,34-j*2,1);
+    g.fillStyle='#26331f';g.fillRect(0,44,96,10);g.fillStyle='#3a4d2e';g.fillRect(0,44,96,1);
+    g.fillStyle='#2a2530';g.fillRect(74,22,2,22);g.fillRect(72,15,6,1);g.fillRect(72,16,1,6);g.fillRect(77,16,1,6);g.fillRect(72,21,6,1);
+    g.fillStyle='#ff9a3c';g.fillRect(74,18,2,3);g.fillStyle='#ffd25a';g.fillRect(74,17,1,1);
+    const [l2x,l2y]=figure(g,d,spr,46,44-spr.height,tt);
+    g.fillStyle='rgba(5,7,22,.35)';g.fillRect(0,0,96,54);
+    g.globalCompositeOperation='lighter';glow(g,l2x,l2y,16,.22);glow(g,75,19,18,.2);g.globalCompositeOperation='source-over';
+  }
+}
+function loop(now){draw(now/1000);requestAnimationFrame(loop)}
+requestAnimationFrame(loop);
+})();
+</script>
