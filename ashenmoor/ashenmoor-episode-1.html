@@ -54,8 +54,8 @@ h2{font-family:var(--body);font-weight:700;font-size:20px;margin:6px 0 0;color:v
   <div class="bar">
     <button id="pp">Play</button>
     <button id="rs">Restart</button>
-    <input type="range" id="sc" min="0" max="240" step="0.01" value="0" aria-label="Timeline">
-    <span class="time" id="tm">0:00 / 4:00</span>
+    <input type="range" id="sc" min="0" max="229" step="0.01" value="0" aria-label="Timeline">
+    <span class="time" id="tm">0:00 / 3:49</span>
     <button id="fs">Full screen</button>
   </div>
   <h2>Scenes</h2>
@@ -65,7 +65,9 @@ h2{font-family:var(--body);font-weight:700;font-size:20px;margin:6px 0 0;color:v
 
 <script>
 (function(){
-const cv=document.getElementById('c'),M=cv.getContext('2d'),W=1280,H=720,LEN=240;
+const cv=document.getElementById('c'),M=cv.getContext('2d'),W=1280,H=720,STORY=240,LEN=229;
+// The story timeline runs 0 to 240. Playback skips 159 to 170, so the last hound leaves right after "Mostly."
+const story=x=>x<159?x:x+11,play2=x=>x>=170?x-11:x;
 const LW=320,LH=180;                     // the pixel frame, scaled x4 to the screen
 const fb=document.createElement('canvas');fb.width=LW;fb.height=LH;const g=fb.getContext('2d');
 const lb=document.createElement('canvas');lb.width=LW;lb.height=LH;const lg=lb.getContext('2d');
@@ -358,9 +360,8 @@ const SUBS=[
   [130.0,134.0,'W','Don\'t look scared. Don\'t look scared.'],
   [134.4,140.0,'W','They can smell it. Do they smell it? I smell like soup.'],
   [155.0,158.6,'N','The hounds are afraid of the light. Mostly.'],
-  [159.0,165.0,'N','Wick has a choice. And it is not his alone to make.'],
   [192.0,197.0,'W','A key... to the crypt?! Nobody has opened that in sixty years!'],
-  [197.3,202.0,'W','Elder Bram says it\'s cursed. He also says carrots are cursed, though.'],
+  [197.3,202.0,'W','Elder Bram says it\'s cursed. But he also says carrots are cursed, though.'],
   [211.0,215.0,'N','The night is getting darker. The lamps are failing.'],
   [215.3,219.4,'N','The key is in Wick\'s hand. What does he do?'],
   [228.0,231.2,'N','You decide. Comment A or B.'],
@@ -410,7 +411,7 @@ function blackAt(tt){let a=0;
   dip(15,.5);dip(30,.25);dip(60,.5);dip(110,.4);dip(188,.3);
   if(tt>234.6)a=Math.max(a,sm(234.6,236.6,tt));return a}
 function render(tt){
-  tt=clamp(tt,0,LEN);
+  tt=clamp(tt,0,STORY);
   let shake=0;
   if(tt<15)sceneTitle(tt);
   else if(tt<60)sceneDusk(tt);
@@ -462,7 +463,6 @@ const EVT=[
   [118.4,growl],[123.6,growl],[141,growl],
   [146,()=>{hiss(300,1.5,.7,.28,'bandpass',0,3500,.1);[69,73,76,81].forEach((n,i)=>tone(NOTE(n),1.6,.05,'sine',i*.04))}],
   [148.6,()=>tone(900,.35,.06,'sine',0,480)],[149.3,()=>tone(820,.4,.05,'sine',0,420)],
-  [166,growl],
   [171.6,()=>{tone(1800,.4,.05,'sine');tone(2600,.3,.03,'sine',.05)}],
   [181.4,()=>{tone(NOTE(84),1.2,.05,'sine');tone(NOTE(88),1.2,.03,'sine',.1)}],
   [184,()=>{for(let i=0;i<8;i++)tone(NOTE(84+[0,3,7,10,12,7,3,15][i]),.5,.025,'sine',i*.15)}],
@@ -496,17 +496,17 @@ function audioUpdate(tt){
   if(tt>15&&tt<110&&tt>=nextChirp){[0,.07,.14].forEach(d=>tone(4300,.04,.012,'sine',d));nextChirp=tt+1.4+rnd(Math.floor(tt))*2.2}
   lastT=tt;
 }
-function resetAudioTrackers(){evi=0;while(evi<EVT.length&&EVT[evi][0]<t)evi++;lastT=t;nextNote=nextStep=nextChirp=t}
+function resetAudioTrackers(){const o=story(t);evi=0;while(evi<EVT.length&&EVT[evi][0]<o)evi++;lastT=o;nextNote=nextStep=nextChirp=o}
 
 /* ---------- UI ---------- */
 const pp=document.getElementById('pp'),rs=document.getElementById('rs'),sc=document.getElementById('sc'),tm=document.getElementById('tm'),big=document.getElementById('big'),fs=document.getElementById('fs'),list=document.getElementById('scenes');
 const mmss=s=>Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0');
 SCENES.forEach((s,i)=>{const li=document.createElement('li'),b=document.createElement('button');b.id='scene'+(i+1);
-  b.innerHTML='<span class="tc">'+mmss(s[0])+'</span><span class="nm">Scene '+(i+1)+': '+s[1]+'</span><span class="ds">'+s[2]+'</span>';
-  b.onclick=()=>{t=s[0]+.01;resetAudioTrackers();ui()};li.appendChild(b);list.appendChild(li)});
+  b.innerHTML='<span class="tc">'+mmss(play2(s[0]))+'</span><span class="nm">Scene '+(i+1)+': '+s[1]+'</span><span class="ds">'+s[2]+'</span>';
+  b.onclick=()=>{t=play2(s[0])+.01;resetAudioTrackers();ui()};li.appendChild(b);list.appendChild(li)});
 const sceneBtns=[...list.querySelectorAll('button')];
 function ui(){pp.textContent=playing?'Pause':(t>=LEN?'Replay':'Play');sc.value=t;tm.textContent=mmss(t)+' / '+mmss(LEN);big.hidden=playing||t>0.01;
-  let cur=0;SCENES.forEach((s,i)=>{if(t>=s[0])cur=i});sceneBtns.forEach((b,i)=>b.setAttribute('aria-current',i===cur?'true':'false'))}
+  let cur=0;SCENES.forEach((s,i)=>{if(story(t)>=s[0])cur=i});sceneBtns.forEach((b,i)=>b.setAttribute('aria-current',i===cur?'true':'false'))}
 function play(){initAudio();if(AC&&AC.state==='suspended')AC.resume();if(t>=LEN)t=0;resetAudioTrackers();playing=true;ui()}
 function pause(){playing=false;ui()}
 pp.onclick=()=>{playing?pause():play()};
@@ -518,8 +518,8 @@ document.addEventListener('keydown',e=>{if(e.code==='Space'&&e.target===document
 let last=performance.now(),uiTick=0;
 function tick(now){const dt=Math.min(.1,(now-last)/1000);last=now;
   if(playing){t+=dt;if(t>=LEN){t=LEN;playing=false}if(++uiTick%6===0||!playing)ui()}
-  render(t);audioUpdate(t);requestAnimationFrame(tick)}
-window.__seek=v=>{t=v;render(t)};
+  render(story(t));audioUpdate(story(t));requestAnimationFrame(tick)}
+window.__seek=v=>{t=play2(v);render(story(t))};
 ui();
 const fontsReady=document.fonts?Promise.all([document.fonts.load('700 40px "Atkinson Hyperlegible"'),document.fonts.load('400 34px "Atkinson Hyperlegible"')]).catch(()=>{}):Promise.resolve();
 fontsReady.then(()=>requestAnimationFrame(tick));
