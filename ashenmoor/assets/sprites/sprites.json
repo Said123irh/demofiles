@@ -1,0 +1,149 @@
+{
+ "palette": {
+  "h": "#2b2233",
+  "H": "#4a3b55",
+  "S": "#c48a6a",
+  "s": "#e9b48c",
+  "e": "#1b1422",
+  "m": "#9a5a48",
+  "c": "#6d7180",
+  "d": "#4b4e5a",
+  "p": "#9a7650",
+  "l": "#3a3442",
+  "b": "#6a4428",
+  "B": "#432a18",
+  "w": "#e6e2da",
+  "W": "#b9b3aa",
+  "r": "#4a5d78",
+  "R": "#34435a",
+  "k": "#0e0b16",
+  "K": "#5a4a90"
+ },
+ "wick": {
+  "size": [
+   14,
+   16
+  ],
+  "lanternHand": [
+   10,
+   10
+  ],
+  "frames": {
+   "idle": [
+    "...hhhhhhh....",
+    "..hhHhhhhhh...",
+    ".hhhhhhhhhhh..",
+    ".hhhhhhhhhhh..",
+    ".hhhsssssssh..",
+    ".hhsswesswes..",
+    ".hhsswesswes..",
+    "..hssssssSs...",
+    "...sssssss....",
+    "..cccccccc....",
+    ".cccccccccc...",
+    ".cdccccpcc....",
+    ".cdccccpcc....",
+    "..ddcccccc....",
+    "...bb..bb.....",
+    "..BBB..BBB...."
+   ],
+   "walk1": [
+    "...hhhhhhh....",
+    "..hhHhhhhhh...",
+    ".hhhhhhhhhhh..",
+    ".hhhhhhhhhhh..",
+    ".hhhsssssssh..",
+    ".hhsswesswes..",
+    ".hhsswesswes..",
+    "..hssssssSs...",
+    "...sssssss....",
+    "..cccccccc....",
+    ".cccccccccc...",
+    ".cdccccpcc....",
+    ".cdccccpcc....",
+    "..ddcccccc....",
+    "..bb....bb....",
+    ".BBB....BBB..."
+   ],
+   "walk2": [
+    "...hhhhhhh....",
+    "..hhHhhhhhh...",
+    ".hhhhhhhhhhh..",
+    ".hhhhhhhhhhh..",
+    ".hhhsssssssh..",
+    ".hhsswesswes..",
+    ".hhsswesswes..",
+    "..hssssssSs...",
+    "...sssssss....",
+    "..cccccccc....",
+    ".cccccccccc...",
+    ".cdccccpcc....",
+    ".cdccccpcc....",
+    "..ddcccccc....",
+    "....bbbb......",
+    "...BBBBBB....."
+   ]
+  }
+ },
+ "bram": {
+  "frames": {
+   "idle": [
+    "...wwwww....",
+    "..wwwwwww...",
+    "..wwwsssw...",
+    "..wwsssess..",
+    "..wwsssss...",
+    "...wwwwww...",
+    "...wWwwWw...",
+    "....wwww....",
+    "..rrrrrrr...",
+    ".rrrrrrrrs..",
+    ".rRrrrrrr...",
+    ".rRrrrrrr...",
+    ".rRrrrrrr...",
+    ".rRrrrrrr...",
+    ".rRRrrrrr...",
+    ".rRRrrrrr...",
+    ".rRRrrrrr...",
+    ".RRRRRRRR...",
+    "..BB..BB....",
+    "..BB..BB...."
+   ]
+  }
+ },
+ "gloomhound": {
+  "frames": {
+   "walk1": [
+    "................K.K...",
+    "...............KkKk...",
+    "..............Kkkkkk..",
+    "K.............kkkkkkkK",
+    ".Kkkkkkkkkkkkkkkkkkkkk",
+    "..kkkkkkkkkkkkkkkkkK..",
+    "..kkkkkkkkkkkkkkkk....",
+    "..kkkkkkkkkkkkkkkk....",
+    "..kk.kk......kk.kk....",
+    "..k...k......k...k....",
+    ".kk..kk.....kk..kk...."
+   ],
+   "walk2": [
+    "................K.K...",
+    "...............KkKk...",
+    "..............Kkkkkk..",
+    "K.............kkkkkkkK",
+    ".Kkkkkkkkkkkkkkkkkkkkk",
+    "..kkkkkkkkkkkkkkkkkK..",
+    "..kkkkkkkkkkkkkkkk....",
+    "..kkkkkkkkkkkkkkkk....",
+    "...kk.kk....kk.kk.....",
+    "...k..k......k..k.....",
+    "..kk.kk.....kk.kk....."
+   ]
+  },
+  "eyeFacingRight": [
+   17,
+   3
+  ]
+ },
+ "notes": "Each frame is a list of rows. One character = one pixel; \".\" is transparent; letters map to palette colours. All sprites face right; flip for left. Wick is the big-head chibi design (14x16)."
+}

@@ -434,16 +434,17 @@ function render(tt){
 }
 
 /* ---------- audio, all synthesised ---------- */
+let VNOW=null;const now=()=>VNOW!=null?VNOW:AC.currentTime;
 let AC=null,master,nb,windG,windF,evi=0,lastT=0,nextNote=0,nextStep=0,nextChirp=0;
-function initAudio(){
-  if(AC)return;const A=window.AudioContext||window.webkitAudioContext;if(!A)return;AC=new A();
+function initAudio(off){
+  if(AC&&!off)return;const A=window.AudioContext||window.webkitAudioContext;if(!A&&!off)return;AC=off||new A();
   master=AC.createGain();master.gain.value=.85;master.connect(AC.destination);
   nb=AC.createBuffer(1,AC.sampleRate*2,AC.sampleRate);const d=nb.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
   windG=AC.createGain();windG.gain.value=0;windF=AC.createBiquadFilter();windF.type='lowpass';windF.frequency.value=380;
   const s=AC.createBufferSource();s.buffer=nb;s.loop=true;s.connect(windF);windF.connect(windG);windG.connect(master);s.start();
   const lfo=AC.createOscillator(),lfg=AC.createGain();lfo.frequency.value=.13;lfg.gain.value=160;lfo.connect(lfg);lfg.connect(windF.frequency);lfo.start();
 }
-const at=d=>AC.currentTime+Math.max(0,d||0);
+const at=d=>now()+Math.max(0,d||0);
 function tone(f,dur,vol,type,d,f2){const n=at(d),o=AC.createOscillator(),gn=AC.createGain();o.type=type||'triangle';o.frequency.setValueAtTime(f,n);if(f2)o.frequency.exponentialRampToValueAtTime(f2,n+dur);
   gn.gain.setValueAtTime(0,n);gn.gain.linearRampToValueAtTime(vol,n+.012);gn.gain.exponentialRampToValueAtTime(.0001,n+dur);o.connect(gn);gn.connect(master);o.start(n);o.stop(n+dur+.05)}
 function hiss(fc,q,dur,vol,type,d,fc2,attack){const n=at(d),s=AC.createBufferSource();s.buffer=nb;const f=AC.createBiquadFilter();f.type=type||'bandpass';f.Q.value=q;f.frequency.setValueAtTime(fc,n);if(fc2)f.frequency.exponentialRampToValueAtTime(fc2,n+dur);
@@ -485,7 +486,7 @@ const MUSIC=[
 function musicAt(tt){let m=null;for(const p of MUSIC)if(tt>=p[0])m=p;return m}
 function walkingAt(tt){return (tt>=60&&tt<76)||(tt>=98&&tt<106)||(tt>=176&&tt<180)}
 function audioUpdate(tt){
-  if(!AC)return;const n=AC.currentTime;
+  if(!AC)return;const n=now();
   let wv=tt<15?.03:tt<60?.12:tt<110?.18:tt<188?.24:tt<210?.08:.06;if(tt>234.6)wv=0;windG.gain.setTargetAtTime(playing?wv:0,n,.3);
   if(!playing){lastT=tt;return}
   while(evi<EVT.length&&EVT[evi][0]<=tt){if(EVT[evi][0]>lastT-.05)EVT[evi][1]();evi++}
@@ -520,6 +521,15 @@ function tick(now){const dt=Math.min(.1,(now-last)/1000);last=now;
   if(playing){t+=dt;if(t>=LEN){t=LEN;playing=false}if(++uiTick%6===0||!playing)ui()}
   render(story(t));audioUpdate(story(t));requestAnimationFrame(tick)}
 window.__seek=v=>{t=play2(v);render(story(t))};
+// Export hooks for the MP4 script: draw a playback time, and render the whole soundtrack offline.
+window.__drawAt=p=>{render(story(p));return cv.toDataURL('image/png')};
+window.__renderAudio=async sr=>{
+  const live=AC,off=new OfflineAudioContext(1,Math.ceil(sr*LEN),sr);AC=null;initAudio(off);playing=true;t=0;resetAudioTrackers();
+  for(let p=0;p<LEN;p+=.01){VNOW=p;t=p;audioUpdate(story(p))}
+  VNOW=null;playing=false;t=0;const buf=await off.startRendering();AC=live;
+  const d=buf.getChannelData(0),pcm=new Int16Array(d.length);for(let i=0;i<d.length;i++)pcm[i]=Math.max(-1,Math.min(1,d[i]))*32767;
+  window.__pcm=new Uint8Array(pcm.buffer);return window.__pcm.length};
+window.__pcmChunk=(i,n)=>{let s='';const a=window.__pcm.subarray(i,i+n);for(let k=0;k<a.length;k+=8192)s+=String.fromCharCode.apply(null,a.subarray(k,k+8192));return btoa(s)};
 ui();
 const fontsReady=document.fonts?Promise.all([document.fonts.load('700 40px "Atkinson Hyperlegible"'),document.fonts.load('400 34px "Atkinson Hyperlegible"')]).catch(()=>{}):Promise.resolve();
 fontsReady.then(()=>requestAnimationFrame(tick));

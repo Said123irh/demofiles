@@ -5,7 +5,7 @@ Series: The Lamplighter of Ashenmoor (English narration)
 
 Note: every later episode opens with a 10 second recap. Episode 1 has none because it is the start.
 
-**Length:** about 4 minutes | **Style:** pixel art, warm lantern glow vs dark blue night
+**Length:** 3:49 | **Style:** pixel art, warm lantern glow vs dark blue night
 **Narrator:** calm, a bit mysterious, a bit funny
 
 ### SCENE 1: Title card (0:00 to 0:15)
@@ -47,7 +47,7 @@ Note: every later episode opens with a 10 second recap. Episode 1 has none becau
 
 **WICK:** Okay. That's weird. I'm choosing to not think about that.
 
-### SCENE 4: The first danger (1:50 to 2:50)
+### SCENE 4: The first danger (1:50 to 2:39)
 *Dark forest edge. Red pixel eyes appear in the fog. Three GLOOMHOUNDS slink out, shadows shaped like wolves. They are creeping toward the village.*
 
 **NARRATOR:** Gloomhounds. They hate light. They love an unlit lamp.
@@ -58,26 +58,28 @@ Note: every later episode opens with a 10 second recap. Episode 1 has none becau
 
 *The hounds step closer. Wick lifts the lantern. The glow hits them. They whimper and back away, but one hound does not move.*
 
-**NARRATOR:** The hounds are afraid of the light. Mostly. Wick has a choice. And it is not his alone to make.
+**NARRATOR:** The hounds are afraid of the light. Mostly.
 
-### SCENE 5: The discovery (2:50 to 3:30)
+*The last hound turns and runs.*
+
+### SCENE 5: The discovery (2:39 to 3:19)
 *The hounds retreat. As they flee, one drops something: a rusted iron key with a flame symbol on it, glowing faintly.*
 
 *Wick picks it up. The key points toward the chapel. Under the chapel floor, a hidden stair reveals itself, half collapsed.*
 
-**WICK:** A key... to the crypt?! Nobody has opened that in sixty years! Elder Bram says it's cursed. He also says carrots are cursed, though.
+**WICK:** A key... to the crypt?! Nobody has opened that in sixty years! Elder Bram says it's cursed. But he also says carrots are cursed, though.
 
 *From deep underground, a low sound. Like breathing. Like something very old, waking up.*
 
-### SCENE 6: The first choice (3:30 to 4:00)
+### SCENE 6: The first choice (3:19 to 3:49)
 *Freeze frame. Big pixel buttons.*
 
 **NARRATOR:** The night is getting darker. The lamps are failing. The key is in Wick's hand. What does he do?
 
-> **OPTION A: Go down into the crypt.** (Dangerous. Might find answers. Might find worse.)
+> **OPTION A: Go down into the crypt.** (Dangerous. But might find answers.)
 >
 > **OPTION B: Wake Elder Bram and show him the key.** (Safe. But Bram has been hiding something.)
 
-**NARRATOR:** You decide. Vote in the Community tab, or comment A or B. See you tomorrow.
+**NARRATOR:** You decide. Comment A or B. See you tomorrow.
 
 *Fade to black. One pixel flame flickers.*
