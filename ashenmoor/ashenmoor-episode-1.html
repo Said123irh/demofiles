@@ -97,18 +97,17 @@ function R(x,y,w,h,c){g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),w,h)}
 let LS=[],EM=[],EMS=[];
 function light(x,y,r,s,cool){LS.push([x,y,r,s,cool])}
 
-const PAL={h:'#2b2233',s:'#e9b48c',e:'#1b1422',m:'#9a5a48',c:'#6d7180',d:'#4b4e5a',p:'#9a7650',l:'#3a3442',b:'#6a4428',B:'#432a18',
+const PAL={h:'#2b2233',H:'#4a3b55',S:'#c48a6a',s:'#e9b48c',e:'#1b1422',m:'#9a5a48',c:'#6d7180',d:'#4b4e5a',p:'#9a7650',l:'#3a3442',b:'#6a4428',B:'#432a18',
   w:'#e6e2da',W:'#b9b3aa',r:'#4a5d78',R:'#34435a',k:'#0e0b16',K:'#5a4a90'};
 function mk(rows){const c=document.createElement('canvas');c.width=rows[0].length;c.height=rows.length;const x=c.getContext('2d');
   rows.forEach((r,j)=>{for(let i=0;i<r.length;i++){const col=PAL[r[i]];if(col){x.fillStyle=col;x.fillRect(i,j,1,1)}}});return c}
 function spr(c,x,y,flip){x=Math.round(x);y=Math.round(y);if(flip){g.save();g.translate(x+c.width,y);g.scale(-1,1);g.drawImage(c,0,0);g.restore()}else g.drawImage(c,x,y)}
 
-const WTOP=["...hhhhh....","..hhhhhhhh..",".hhhhhhhhhh.",".hhhhsssss..",".hhhssssess.","..hhssssss..","...hssss....",
-  "..cccccccc..",".ccccccccc..",".cdccccccc..",".cdccpcccc..",".cdccpcccc..",".cddcccccc..","..dddcccc..."];
-const WLEG=[["...ll..ll...","...ll..ll...","..bbb..bbb..","..BBBB.BBBB."],
-  ["..ll....ll..",".ll......ll.",".bbb....bbb.",".BBBB...BBBB"],
-  ["....llll....","....llll....","...bbbbbb...","...BBBBBBB.."]];
-const WICK=WLEG.map(l=>mk(WTOP.concat(l)));
+// Wick, big-head chibi design (14 x 16). Hand that holds the lantern stick is at (10,10).
+const WTOP=["...hhhhhhh....","..hhHhhhhhh...",".hhhhhhhhhhh..",".hhhhhhhhhhh..",".hhhsssssssh..",".hhsswesswes..",".hhsswesswes..",
+  "..hssssssSs...","...sssssss....","..cccccccc....",".cccccccccc...",".cdccccpcc....",".cdccccpcc....","..ddcccccc...."];
+const WLEG=[["...bb..bb.....","..BBB..BBB...."],["..bb....bb....",".BBB....BBB..."],["....bbbb......","...BBBBBB....."]];
+const WICK=WLEG.map(l=>mk(WTOP.concat(l))),WW=14,WH=16,HX=10,HY=10;
 const BRAM=mk(["...wwwww....","..wwwwwww...","..wwwsssw...","..wwsssess..","..wwsssss...","...wwwwww...","...wWwwWw...","....wwww....",
   "..rrrrrrr...",".rrrrrrrrs..",".rRrrrrrr...",".rRrrrrrr...",".rRrrrrrr...",".rRrrrrrr...",".rRRrrrrr...",".rRRrrrrr...",".rRRrrrrr...",".RRRRRRRR...","..BB..BB....","..BB..BB...."]);
 const HTOP=["................K.K...","...............KkKk...","..............Kkkkkk..","K.............kkkkkkkK",".Kkkkkkkkkkkkkkkkkkkkk","..kkkkkkkkkkkkkkkkkK..","..kkkkkkkkkkkkkkkk....","..kkkkkkkkkkkkkkkk...."];
@@ -118,20 +117,20 @@ const HOUND=[mk(HTOP.concat(["..kk.kk......kk.kk....","..k...k......k...k....","
 /* ---------- characters ---------- */
 // o: {flip, walk, lift, talk, shake, crouch, bright, key}; gy = ground under the feet
 function wick(x,gy,tt,o){
-  o=o||{};const crouch=o.crouch?2:0,y=gy-18+crouch,sx=x+(o.shake?(Math.floor(tt*14)%2?1:-1):0);
+  o=o||{};const crouch=o.crouch?2:0,y=gy-WH+crouch,sx=x+(o.shake?(Math.floor(tt*14)%2?1:-1):0);
   const fr=o.walk?1+(Math.floor(tt*6)%2):0;
   spr(WICK[fr],sx,y,o.flip);
-  const px=(rx,w)=>o.flip?sx+12-rx-(w||1):sx+rx;
-  if(o.talk&&Math.floor(tt*8)%2)R(px(9),y+5,1,1,PAL.m);
+  const px=(rx,w)=>o.flip?sx+WW-rx-(w||1):sx+rx;
+  if(o.talk&&Math.floor(tt*8)%2)R(px(8),y+8,1,1,PAL.m);
   // lantern on a stick
-  const lift=o.lift||0,tipY=Math.round(lerp(5,0,lift)),hy=Math.round(lerp(8,6,lift));
-  R(px(10),y+hy,1,1,PAL.s);
-  for(let k=1;k<=3;k++)R(px(10+k),y+Math.round(lerp(hy,tipY,k/3)),1,1,'#7a5530');
-  R(px(13,3),y+tipY+1,3,1,'#2e2218');R(px(13),y+tipY+2,1,3,'#2e2218');R(px(15),y+tipY+2,1,3,'#2e2218');R(px(13,3),y+tipY+5,3,1,'#2e2218');
-  const fx=px(14),fy=y+tipY+2,b=o.bright==null?1:o.bright,fl=Math.floor(tt*9)%3;
+  const lift=o.lift||0,tipY=Math.round(lerp(HY-3,HY-8,lift)),hy=Math.round(lerp(HY,HY-2,lift));
+  R(px(HX),y+hy,1,1,PAL.s);
+  for(let k=1;k<=3;k++)R(px(HX+k),y+Math.round(lerp(hy,tipY,k/3)),1,1,'#7a5530');
+  R(px(HX+3,3),y+tipY+1,3,1,'#2e2218');R(px(HX+3),y+tipY+2,1,3,'#2e2218');R(px(HX+5),y+tipY+2,1,3,'#2e2218');R(px(HX+3,3),y+tipY+5,3,1,'#2e2218');
+  const fx=px(HX+4),fy=y+tipY+2,b=o.bright==null?1:o.bright,fl=Math.floor(tt*9)%3;
   EM.push(()=>{R(fx,fy+1,1,2,'#ffd25a');R(fx,fy+(fl?1:0),1,1,'#fff6c8');if(b>1.4)R(fx,fy,1,1,'#ffffff')});
   light(fx+.5,fy+2,20*b,1);
-  if(o.key){const kx=px(3,3),ky=y+10;R(kx,ky,3,1,'#8a5a32');EM.push(()=>R(o.flip?kx+2:kx,ky,1,1,'#ff9a3c'));light(kx+1,ky,6,.6)}
+  if(o.key){const kx=px(2,3),ky=y+12;R(kx,ky,3,1,'#8a5a32');EM.push(()=>R(o.flip?kx+2:kx,ky,1,1,'#ff9a3c'));light(kx+1,ky,6,.6)}
   return [fx,fy];
 }
 function bram(x,gy,tt,talk){spr(BRAM,x,gy-20,false);if(talk&&Math.floor(tt*7)%2)R(x+7,gy-15,1,1,'#3a2a24')}
@@ -394,7 +393,7 @@ function choiceScreen(tt){
   const dim=sm(210,212,tt);M.fillStyle='rgba(6,8,22,'+.8*dim+')';M.fillRect(0,0,W,H);
   M.save();M.textBaseline='top';M.textAlign='center';
   const ta=sm(211,212.5,tt);M.globalAlpha=ta;M.font='700 54px '+PIX;M.fillStyle='#3a1c06';M.fillText('WHAT DOES WICK DO?',W/2+4,58);M.fillStyle='#ffb347';M.fillText('WHAT DOES WICK DO?',W/2,54);
-  const opts=[['A','Go down into the crypt.','Dangerous. Might find answers. Might find worse.',219.6],['B','Wake Elder Bram and show him the key.','Safe. But Bram has been hiding something.',220.3]];
+  const opts=[['A','Go down into the crypt.','Dangerous. But might find answers.',219.6],['B','Wake Elder Bram and show him the key.','Safe. But Bram has been hiding something.',220.3]];
   opts.forEach((o,i)=>{const k=sm(o[3],o[3]+.35,tt);if(k<=0)return;const bx=70+i*580,by=160+Math.round((1-k)*30),bw=560,bh=260;
     M.globalAlpha=k;const pulse=tt>222?(Math.floor(tt*2+i)%2?'#ffb347':'#c9822a'):'#ffb347';
     pixelBox(bx,by,bw,bh,pulse,'#151c3a');
