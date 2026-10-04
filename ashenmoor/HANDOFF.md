@@ -66,3 +66,7 @@ node ashenmoor/tools/export-mp4.js ashenmoor/ashenmoor-episode-2.html ashenmoor/
 ```
 
 It renders the soundtrack offline, draws every frame at 30 fps and encodes with ffmpeg. Episode 1 took a few minutes.
+
+## Thumbnails
+
+`thumbnails/episode-1-thumbnail-A.png` ("What's down there?") and `-B.png` ("They hate light. ...Mostly") are new pixel scenes drawn for the thumbnail, not frames from the video. They are drawn in `tools/thumbnails.html` (bigger pixels, x16) with the Anton font in `assets/fonts/`. Edit the scenes or text there, then run `node ashenmoor/tools/render-thumbnails.js`.

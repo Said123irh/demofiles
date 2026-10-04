@@ -1,0 +1,96 @@
+<title>Ashenmoor Thumbnails</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&display=swap">
+<style>
+:root{color-scheme:dark;--bg:#0b1024}
+body{background:var(--bg);margin:0;padding-block:16px;padding-inline:16px;display:flex;flex-direction:column;gap:16px}
+canvas{display:block;width:100%;max-width:1280px;height:auto;aspect-ratio:16/9}
+</style>
+<canvas id="t1" width="1280" height="720"></canvas>
+<canvas id="t2" width="1280" height="720"></canvas>
+<script>
+// Sprite data is pasted from assets/sprites/sprites.json by the build step (window.SPRITES).
+(function(){
+const S=window.SPRITES,PAL=S.palette,W=1280,H=720,BW=80,BH=45,K=16;
+const rnd=s=>{const v=Math.sin(s*127.1+311.7)*43758.5453;return v-Math.floor(v)};
+function mk(rows){const c=document.createElement('canvas');c.width=Math.max(...rows.map(r=>r.length));c.height=rows.length;const x=c.getContext('2d');
+  rows.forEach((r,j)=>{for(let i=0;i<r.length;i++){const col=PAL[r[i]];if(col){x.fillStyle=col;x.fillRect(i,j,1,1)}}});return c}
+const WICK=mk(S.wick.frames.idle),HOUND=mk(S.gloomhound.frames.walk1);
+function buffer(){const c=document.createElement('canvas');c.width=BW;c.height=BH;const g=c.getContext('2d');g.imageSmoothingEnabled=false;return [c,g]}
+const R=(g,x,y,w,h,c)=>{g.fillStyle=c;g.fillRect(x,y,w,h)};
+function spr(g,c,x,y,flip){if(flip){g.save();g.translate(x+c.width,y);g.scale(-1,1);g.drawImage(c,0,0);g.restore()}else g.drawImage(c,x,y)}
+// Wick with his lantern raised; returns the flame position in buffer pixels
+function wick(g,x,gy,flip){
+  const y=gy-16,px=(rx,w)=>flip?x+14-rx-(w||1):x+rx;spr(g,WICK,x,y,flip);
+  R(g,px(10),y+8,1,1,PAL.s);[[11,6],[12,4],[13,2]].forEach(([a,b])=>R(g,px(a),y+b,1,1,'#7a5530'));
+  R(g,px(13,3),y+3,3,1,'#2e2218');R(g,px(13),y+4,1,3,'#2e2218');R(g,px(15),y+4,1,3,'#2e2218');R(g,px(13,3),y+7,3,1,'#2e2218');
+  return [px(14),y+4];
+}
+// darkness with soft stepped holes for lights, then additive glow
+function lightUp(g,dark,lights){
+  const [lc,lg]=buffer();lg.fillStyle='rgba(4,6,20,'+dark+')';lg.fillRect(0,0,BW,BH);lg.globalCompositeOperation='destination-out';
+  for(const [x,y,r,s] of lights){const gr=lg.createRadialGradient(x,y,0,x,y,r);gr.addColorStop(0,'rgba(0,0,0,'+s+')');gr.addColorStop(.5,'rgba(0,0,0,'+s*.55+')');gr.addColorStop(1,'rgba(0,0,0,0)');lg.fillStyle=gr;lg.fillRect(x-r,y-r,r*2,r*2)}
+  const id=lg.getImageData(0,0,BW,BH),d=id.data;for(let i=3;i<d.length;i+=4)d[i]=Math.round(d[i]/42)*42;lg.putImageData(id,0,0);
+  g.drawImage(lc,0,0);
+}
+function glow(m,x,y,r,col,a){const gr=m.createRadialGradient(x,y,0,x,y,r);gr.addColorStop(0,'rgba('+col+','+a+')');gr.addColorStop(1,'rgba('+col+',0)');m.fillStyle=gr;m.fillRect(x-r,y-r,r*2,r*2)}
+function flame(g,x,y){R(g,x,y+1,1,2,'#ffd25a');R(g,x,y,1,1,'#fff6c8')}
+// big outlined headline text
+function headline(m,lines,x,y,size,align){
+  m.save();m.textAlign=align||'left';m.textBaseline='top';m.lineJoin='round';
+  lines.forEach((ln,i)=>{let cx=x;const yy=y+i*size*1.02;m.font=size+'px Anton, Impact, sans-serif';
+    const total=ln.reduce((a,[t])=>a+m.measureText(t).width,0);if(align==='right')cx=x-total;m.textAlign='left';
+    for(const [t,col] of ln){m.lineWidth=size*.16;m.strokeStyle='#05060f';m.strokeText(t,cx,yy);m.fillStyle=col;m.fillText(t,cx,yy);cx+=m.measureText(t).width}});
+  m.restore();
+}
+function badge(m,text,x,y,size,bg,fg){m.save();m.font=size+'px Anton, Impact, sans-serif';const w=m.measureText(text).width+size*.9,h=size*1.35;
+  m.translate(x,y);m.rotate(-.05);m.fillStyle='#05060f';m.fillRect(6,8,w,h);m.fillStyle=bg;m.fillRect(0,0,w,h);m.fillStyle=fg;m.textBaseline='middle';m.fillText(text,size*.45,h/2+2);m.restore()}
+
+/* Thumbnail 1: Wick at the top of the crypt stair, something with eyes below */
+function thumb1(){
+  const [c,g]=buffer();
+  R(g,0,0,BW,BH,'#2a1e18');for(let x=0;x<BW;x+=4)R(g,x,0,1,26,'#211710');
+  R(g,0,26,BW,2,'#5a5662');R(g,0,28,BW,17,'#231c28');for(let i=0;i<40;i++)R(g,Math.floor(rnd(i)*BW),28+Math.floor(rnd(i+.5)*17),1,1,'#30263a');
+  R(g,30,26,50,19,'#050409');R(g,24,26,6,2,'#6a6672');                 // the open hole and a moved slab
+  for(let s=0;s<6;s++){if(s===3)continue;R(g,30+s*6,28+s*3,7,2,'#6c6878');R(g,30+s*6,28+s*3,7,1,'#8a8696')}
+  const [fx,fy]=wick(g,8,26,false);
+  R(g,6,18,3,1,'#8a5a32');                                              // key in the other hand
+  // the thing below: a huge shape, only its eyes and outline lit
+  g.fillStyle='rgba(120,210,255,.10)';for(let i=0;i<26;i++){const a=i/26*Math.PI;g.fillRect(Math.round(60+Math.cos(a)*14),Math.round(46-Math.sin(a)*12),1,1)}
+  lightUp(g,.8,[[fx+.5,fy+2,32,1],[60,38,16,.6]]);
+  g.fillStyle='rgba(120,210,255,.35)';for(let i=0;i<=30;i++){const a=i/30*Math.PI;g.fillRect(Math.round(60+Math.cos(a)*13),Math.round(45-Math.sin(a)*11),1,1)}
+  for(const sx of [49,71])for(let j=0;j<4;j++)R(g,sx+(sx<60?-j:j),40-j*2,1,1,'rgba(120,210,255,.3)');
+  flame(g,fx,fy);R(g,6,18,1,1,'#ff9a3c');
+  R(g,55,36,2,1,'#bff0ff');R(g,63,36,2,1,'#bff0ff');R(g,56,36,1,1,'#ffffff');R(g,64,36,1,1,'#ffffff');
+  const m=document.getElementById('t1').getContext('2d');m.imageSmoothingEnabled=false;m.drawImage(c,0,0,W,H);
+  m.globalCompositeOperation='lighter';glow(m,(fx+.5)*K,(fy+2)*K,330,'255,160,70',.35);glow(m,60*K,36*K,180,'110,200,255',.45);m.globalCompositeOperation='source-over';
+  const v=m.createRadialGradient(W/2,H/2,H*.3,W/2,H/2,H*.95);v.addColorStop(0,'rgba(0,0,0,0)');v.addColorStop(1,'rgba(0,0,0,.6)');m.fillStyle=v;m.fillRect(0,0,W,H);
+  headline(m,[[["WHAT'S",'#ffffff']],[["DOWN ",'#ffffff'],["THERE?",'#ffb347']]],1236,40,150,'right');
+  badge(m,'YOU DECIDE',820,370,54,'#ffb347','#2a1806');
+}
+
+/* Thumbnail 2: three Gloomhounds closing in on Wick's single light */
+function thumb2(){
+  const [c,g]=buffer();
+  const gr=g.createLinearGradient(0,0,0,BH);gr.addColorStop(0,'#05081a');gr.addColorStop(.75,'#16204a');gr.addColorStop(1,'#1f2c4f');g.fillStyle=gr;g.fillRect(0,0,BW,BH);
+  for(let i=0;i<30;i++)R(g,Math.floor(rnd(i*3)*BW),Math.floor(rnd(i*7)*22),1,1,'rgba(230,235,255,.8)');
+  for(let i=0;i<9;i++){const x=4+i*9+Math.floor(rnd(i)*4),h=16+Math.floor(rnd(i+3)*10);for(let j=0;j<h;j++){const w=1+Math.floor(j*.45)*2;R(g,x-Math.floor(w/2),40-h+j,w,1,'#0c1820')}}
+  R(g,0,40,BW,5,'#1c2618');R(g,0,40,BW,1,'#2c3a24');
+  const [fx,fy]=wick(g,9,41,false);
+  const hounds=[[46,40],[58,42],[34,43]];
+  lightUp(g,.72,[[fx+.5,fy+2,26,1]]);
+  const fg=g.createLinearGradient(0,22,0,42);fg.addColorStop(0,'rgba(70,90,150,0)');fg.addColorStop(1,'rgba(70,90,150,.55)');g.fillStyle=fg;g.fillRect(28,22,52,20);
+  for(const [x,gy] of hounds)spr(g,HOUND,x,gy-11,true);
+  g.fillStyle='rgba(170,185,225,.12)';for(let i=0;i<14;i++)g.fillRect(Math.floor(rnd(i+20)*BW)-6,38+Math.floor(rnd(i+30)*5),14,2);
+  flame(g,fx,fy);
+  for(const [x,gy] of hounds){R(g,x+4,gy-8,1,1,'#ff3434');R(g,x+3,gy-8,1,1,'#ff7a5a')}
+  const m=document.getElementById('t2').getContext('2d');m.imageSmoothingEnabled=false;m.drawImage(c,0,0,W,H);
+  m.globalCompositeOperation='lighter';glow(m,(fx+.5)*K,(fy+2)*K,340,'255,160,70',.4);
+  for(const [x,gy] of hounds)glow(m,(x+4)*K,(gy-8)*K+8,70,'255,40,40',.55);m.globalCompositeOperation='source-over';
+  const v=m.createRadialGradient(W*.35,H*.6,H*.3,W/2,H/2,H*.95);v.addColorStop(0,'rgba(0,0,0,0)');v.addColorStop(1,'rgba(0,0,0,.55)');m.fillStyle=v;m.fillRect(0,0,W,H);
+  headline(m,[[["THEY HATE",'#ffffff']],[["LIGHT.",'#ffb347']]],1236,36,160,'right');
+  badge(m,'...MOSTLY',930,380,58,'#e8343a','#ffffff');
+}
+const go=()=>{thumb1();thumb2();window.__done=true};
+(document.fonts?document.fonts.load('150px Anton').then(go,go):go());
+})();
+</script>
