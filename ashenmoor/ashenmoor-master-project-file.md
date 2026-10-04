@@ -5,7 +5,7 @@ Share this file with Claude Code as the single source of truth for the series.
 - **Series:** Audience-choice fantasy adventure, D&D inspired, original world (no official D&D IP).
 - **Channel language:** English narration.
 - **Format:** Long form YouTube videos. Pixel art animation (16x16 or 32x32 style sprites), about 4 minutes per standard episode, one episode per day. Follow PART 4 (Animation Cost Saving Guide) so episodes stay cheap to animate.
-- **Core mechanic:** Every episode ends with exactly 2 choices on screen. Audience votes (YouTube Community poll plus pinned comment, reply A or B). The winner is animated next.
+- **Core mechanic:** Every episode ends with exactly 2 choices on screen. Audience votes in the comments (pinned comment, reply A or B). The winner is animated next.
 - **No dice, no meters, no stats.** Keep it simple for new viewers.
 - **Every episode starts with a 10 second recap** ("Last time...") and ends with 2 choices.
 - **Introduce only 1 new character per episode**, with a one line tag.
@@ -13,7 +13,9 @@ Share this file with Claude Code as the single source of truth for the series.
 - **Writing style:** simple plain English, no em dashes, kid friendly language.
 - **Hero:** Wick Marrow, 17, Lamplighter.
 - **Episode 1 script:** see ashenmoor-episode-1.md.
-- **Next job:** write Episodes 2 to 5 as branching scripts (both A and B outcomes of each choice).
+- **Episode 1 status:** finished as a pixel animation (`ashenmoor-episode-1.html`, `ashenmoor-episode-1.mp4`, 3:49) with two thumbnails. See `HANDOFF.md` for how it is built.
+- **Next job:** the creator sends the Episode 2 script (and which option won the Episode 1 vote); build it the same way as Episode 1.
+- **Look decided so far:** Wick is the big-head chibi sprite, normal font (Atkinson Hyperlegible) for subtitles and choice screens, voices shown as subtitles, call to action is "Comment A or B" only.
 
 ---
 
@@ -147,9 +149,9 @@ The audience steers the middle. These beats stay fixed so the story never loses 
 
 As far as I know, YouTube comments do not have a built in poll. Here is the best setup:
 
-1. **Community tab poll:** post a 2 option poll right when the video goes live. This gives you a real vote count.
+1. **No Community tab poll.** The creator decided voting happens in the comments only.
 2. **Pinned comment backup:** pin a comment saying "Reply A or B". Easy and people love replying.
-3. **End of video:** show both choices on screen with big pixel buttons: "A: ... B: ...". Say "Vote in the Community tab or comment A or B."
+3. **End of video:** show both choices on screen with big pixel buttons: "A: ... B: ...". Say "Comment A or B."
 4. **Timing idea:** upload at the same time daily (for example 6 PM IST). Poll closes about 20 hours later, and the winning choice gets animated for the next day.
 5. **Next video opens** with a quick "You chose B!" recap so new viewers get it.
 6. Keep a **Canon Tracker** (simple sheet) with: episode, choice offered, winner, vote %, party members, key story facts. This stops mistakes and saves tokens too.
@@ -491,4 +493,4 @@ Goal: keep 4 minute daily episodes cheap to animate. Cost depends on how many di
 # PART 5: CANON TRACKER (fill in as episodes go live)
 | Ep | Choice offered | Winner | Vote % | Party members | Key story facts |
 |---|---|---|---|---|---|
-| 1 | A: Go down into the crypt / B: Show Elder Bram the key | TBD | TBD | Wick | Wick found the crypt key. Lantern glows strangely. |
+| 1 | A: Go down into the crypt (Dangerous. But might find answers.) / B: Wake Elder Bram and show him the key (Safe. But Bram has been hiding something.) | TBD | TBD | Wick | Wick found the crypt key. Lantern glows strangely. Lamps lean toward Wick. Gloomhounds fear the lantern, one stood its ground. Hidden half-collapsed stair under the chapel floor; something breathes below. Bram has not seen the key. |
