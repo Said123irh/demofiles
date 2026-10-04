@@ -1,0 +1,529 @@
+<title>The Last Lamp in Emberfall</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;700&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+/* Layout: a lantern-lit screening card. Player first, then the scene list as a script index. One night look. */
+:root{
+  --night:#0b1024;      /* page ground, Ashenmoor night */
+  --dusk:#151c3a;       /* raised surfaces */
+  --fog:#2a3360;        /* lines and borders */
+  --ash:#aab0cf;        /* muted text */
+  --parchment:#f1e6cf;  /* main text */
+  --lamp:#ffb347;       /* the one accent: lantern flame */
+  --ember:#2a1806;      /* text on the accent */
+  --pixel:'Pixelify Sans','Courier New',monospace;
+  --body:'Atkinson Hyperlegible','Segoe UI',system-ui,sans-serif;
+  color-scheme:dark;
+}
+body{background:var(--night);color:var(--parchment);font-family:var(--body);font-size:16px;line-height:1.55}
+.wrap{max-width:1120px;margin:0 auto;padding-inline:16px;padding-block:24px 40px;display:flex;flex-direction:column;gap:18px}
+.eyebrow{font-family:var(--pixel);font-size:14px;letter-spacing:.12em;text-transform:uppercase;color:var(--lamp);margin:0}
+h1{font-family:var(--pixel);font-weight:700;font-size:clamp(28px,5vw,46px);line-height:1.05;margin:4px 0 0;text-wrap:balance}
+.sub{margin:8px 0 0;color:var(--ash);max-width:64ch}
+.frame{position:relative;background:#000;box-shadow:0 0 0 4px var(--fog),0 0 0 8px var(--night),0 0 0 12px var(--dusk);margin:12px}
+canvas{display:block;width:100%;height:auto;aspect-ratio:16/9;max-width:100%;image-rendering:pixelated}
+.big{position:absolute;inset:0;width:100%;display:flex;align-items:center;justify-content:center;background:rgba(5,8,20,.45);border:0;cursor:pointer;font:inherit;color:inherit}
+.big span{font-family:var(--pixel);font-weight:700;font-size:clamp(16px,3vw,24px);background:var(--lamp);color:var(--ember);padding:12px 24px;box-shadow:0 0 0 4px var(--ember),0 0 0 8px var(--lamp)}
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;background:var(--dusk);padding:10px 12px;box-shadow:0 0 0 3px var(--fog)}
+.bar button,.scenes button{font-family:var(--pixel);font-weight:500;font-size:15px;color:var(--parchment);background:var(--night);border:0;box-shadow:inset 0 0 0 2px var(--fog);padding:6px 14px;cursor:pointer}
+.bar button:hover,.scenes button:hover{box-shadow:inset 0 0 0 2px var(--lamp)}
+.bar #pp{background:var(--lamp);color:var(--ember);box-shadow:none;min-width:7ch}
+.bar input[type=range]{flex:1 1 220px;min-width:0;accent-color:var(--lamp)}
+.time{font-family:var(--pixel);font-variant-numeric:tabular-nums;color:var(--ash);min-width:11ch;text-align:right}
+button:focus-visible,input:focus-visible{outline:3px solid var(--lamp);outline-offset:2px}
+h2{font-family:var(--pixel);font-weight:700;font-size:20px;margin:6px 0 0;color:var(--parchment)}
+.scenes{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,320px),1fr));gap:10px}
+.scenes button{width:100%;text-align:left;display:grid;grid-template-columns:auto 1fr;gap:4px 12px;padding:10px 12px;font-family:var(--body);font-weight:400}
+.scenes .tc{font-family:var(--pixel);color:var(--lamp);font-variant-numeric:tabular-nums;grid-row:span 2}
+.scenes .nm{font-weight:700}
+.scenes .ds{color:var(--ash);font-size:14px}
+.scenes button[aria-current="true"]{box-shadow:inset 0 0 0 2px var(--lamp);background:var(--dusk)}
+.note{color:var(--ash);font-size:14px;max-width:80ch;margin:0}
+</style>
+
+<div class="wrap">
+  <header>
+    <p class="eyebrow">The Lamplighter of Ashenmoor &middot; Episode 1</p>
+    <h1>The Last Lamp in Emberfall</h1>
+    <p class="sub">About 4 minutes of pixel animation, with subtitles in place of the voices. Turn the sound on and press play.</p>
+  </header>
+  <div class="frame">
+    <canvas id="c" width="1280" height="720" aria-label="Pixel animation of Episode 1: Wick the Lamplighter, the failing lamps of Emberfall, the Gloomhounds and the crypt key"></canvas>
+    <button class="big" id="big" aria-label="Play with sound"><span>&#9654; Play with sound</span></button>
+  </div>
+  <div class="bar">
+    <button id="pp">Play</button>
+    <button id="rs">Restart</button>
+    <input type="range" id="sc" min="0" max="240" step="0.01" value="0" aria-label="Timeline">
+    <span class="time" id="tm">0:00 / 4:00</span>
+    <button id="fs">Full screen</button>
+  </div>
+  <h2>Scenes</h2>
+  <ul class="scenes" id="scenes"></ul>
+  <p class="note">The timings follow the script. The narrator and the voices of Wick and Elder Bram are shown as subtitles, so a recorded voice track can be laid over the same timings.</p>
+</div>
+
+<script>
+(function(){
+const cv=document.getElementById('c'),M=cv.getContext('2d'),W=1280,H=720,LEN=240;
+const LW=320,LH=180;                     // the pixel frame, scaled x4 to the screen
+const fb=document.createElement('canvas');fb.width=LW;fb.height=LH;const g=fb.getContext('2d');
+const lb=document.createElement('canvas');lb.width=LW;lb.height=LH;const lg=lb.getContext('2d');
+g.imageSmoothingEnabled=false;M.imageSmoothingEnabled=false;
+const PIX='"Pixelify Sans","Courier New",monospace';
+let t=0,playing=false;
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x)),lerp=(a,b,k)=>a+(b-a)*k;
+const sm=(a,b,x)=>{const k=clamp((x-a)/(b-a),0,1);return k*k*(3-2*k)};
+const rnd=s=>{const v=Math.sin(s*127.1+311.7)*43758.5453;return v-Math.floor(v)};
+const hex=(c,k)=>{const n=parseInt(c.slice(1),16);return 'rgb('+((n>>16&255)*k|0)+','+((n>>8&255)*k|0)+','+((n&255)*k|0)+')'};
+const mixc=(a,b,k)=>{const A=parseInt(a.slice(1),16),B=parseInt(b.slice(1),16);const ch=s=>Math.round(lerp(A>>s&255,B>>s&255,k));return 'rgb('+ch(16)+','+ch(8)+','+ch(0)+')'};
+
+/* ---------- scene list (from the script) ---------- */
+const SCENES=[
+  [0,'Title card','A single flame. The sun was stolen.'],
+  [15,'Emberfall at dusk','Eight lamps, four dark. Wick on his ladder.'],
+  [60,'The strange thing','The lamps lean toward Wick\'s lantern.'],
+  [110,'The first danger','Gloomhounds come out of the fog.'],
+  [170,'The discovery','A key, and a stair under the chapel.'],
+  [210,'The first choice','A: the crypt. B: Elder Bram.']
+];
+
+/* ---------- camera and pixel helpers ---------- */
+let CX=0,CY=0,Z=1;
+function cam(x,y,z){Z=z;CX=Math.round(x*z)/z;CY=Math.round(y*z)/z;applyCam()}
+function applyCam(){g.setTransform(Z,0,0,Z,-CX*Z,-CY*Z)}
+function screen(){g.setTransform(1,0,0,1,0,0)}
+function R(x,y,w,h,c){g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),w,h)}
+let LS=[],EM=[],EMS=[];
+function light(x,y,r,s,cool){LS.push([x,y,r,s,cool])}
+
+const PAL={h:'#2b2233',s:'#e9b48c',e:'#1b1422',m:'#9a5a48',c:'#6d7180',d:'#4b4e5a',p:'#9a7650',l:'#3a3442',b:'#6a4428',B:'#432a18',
+  w:'#e6e2da',W:'#b9b3aa',r:'#4a5d78',R:'#34435a',k:'#0e0b16',K:'#5a4a90'};
+function mk(rows){const c=document.createElement('canvas');c.width=rows[0].length;c.height=rows.length;const x=c.getContext('2d');
+  rows.forEach((r,j)=>{for(let i=0;i<r.length;i++){const col=PAL[r[i]];if(col){x.fillStyle=col;x.fillRect(i,j,1,1)}}});return c}
+function spr(c,x,y,flip){x=Math.round(x);y=Math.round(y);if(flip){g.save();g.translate(x+c.width,y);g.scale(-1,1);g.drawImage(c,0,0);g.restore()}else g.drawImage(c,x,y)}
+
+const WTOP=["...hhhhh....","..hhhhhhhh..",".hhhhhhhhhh.",".hhhhsssss..",".hhhssssess.","..hhssssss..","...hssss....",
+  "..cccccccc..",".ccccccccc..",".cdccccccc..",".cdccpcccc..",".cdccpcccc..",".cddcccccc..","..dddcccc..."];
+const WLEG=[["...ll..ll...","...ll..ll...","..bbb..bbb..","..BBBB.BBBB."],
+  ["..ll....ll..",".ll......ll.",".bbb....bbb.",".BBBB...BBBB"],
+  ["....llll....","....llll....","...bbbbbb...","...BBBBBBB.."]];
+const WICK=WLEG.map(l=>mk(WTOP.concat(l)));
+const BRAM=mk(["...wwwww....","..wwwwwww...","..wwwsssw...","..wwsssess..","..wwsssss...","...wwwwww...","...wWwwWw...","....wwww....",
+  "..rrrrrrr...",".rrrrrrrrs..",".rRrrrrrr...",".rRrrrrrr...",".rRrrrrrr...",".rRrrrrrr...",".rRRrrrrr...",".rRRrrrrr...",".rRRrrrrr...",".RRRRRRRR...","..BB..BB....","..BB..BB...."]);
+const HTOP=["................K.K...","...............KkKk...","..............Kkkkkk..","K.............kkkkkkkK",".Kkkkkkkkkkkkkkkkkkkkk","..kkkkkkkkkkkkkkkkkK..","..kkkkkkkkkkkkkkkk....","..kkkkkkkkkkkkkkkk...."];
+const HOUND=[mk(HTOP.concat(["..kk.kk......kk.kk....","..k...k......k...k....",".kk..kk.....kk..kk...."])),
+  mk(HTOP.concat(["...kk.kk....kk.kk.....","...k..k......k..k.....","..kk.kk.....kk.kk....."]))];
+
+/* ---------- characters ---------- */
+// o: {flip, walk, lift, talk, shake, crouch, bright, key}; gy = ground under the feet
+function wick(x,gy,tt,o){
+  o=o||{};const crouch=o.crouch?2:0,y=gy-18+crouch,sx=x+(o.shake?(Math.floor(tt*14)%2?1:-1):0);
+  const fr=o.walk?1+(Math.floor(tt*6)%2):0;
+  spr(WICK[fr],sx,y,o.flip);
+  const px=(rx,w)=>o.flip?sx+12-rx-(w||1):sx+rx;
+  if(o.talk&&Math.floor(tt*8)%2)R(px(9),y+5,1,1,PAL.m);
+  // lantern on a stick
+  const lift=o.lift||0,tipY=Math.round(lerp(5,0,lift)),hy=Math.round(lerp(8,6,lift));
+  R(px(10),y+hy,1,1,PAL.s);
+  for(let k=1;k<=3;k++)R(px(10+k),y+Math.round(lerp(hy,tipY,k/3)),1,1,'#7a5530');
+  R(px(13,3),y+tipY+1,3,1,'#2e2218');R(px(13),y+tipY+2,1,3,'#2e2218');R(px(15),y+tipY+2,1,3,'#2e2218');R(px(13,3),y+tipY+5,3,1,'#2e2218');
+  const fx=px(14),fy=y+tipY+2,b=o.bright==null?1:o.bright,fl=Math.floor(tt*9)%3;
+  EM.push(()=>{R(fx,fy+1,1,2,'#ffd25a');R(fx,fy+(fl?1:0),1,1,'#fff6c8');if(b>1.4)R(fx,fy,1,1,'#ffffff')});
+  light(fx+.5,fy+2,20*b,1);
+  if(o.key){const kx=px(3,3),ky=y+10;R(kx,ky,3,1,'#8a5a32');EM.push(()=>R(o.flip?kx+2:kx,ky,1,1,'#ff9a3c'));light(kx+1,ky,6,.6)}
+  return [fx,fy];
+}
+function bram(x,gy,tt,talk){spr(BRAM,x,gy-20,false);if(talk&&Math.floor(tt*7)%2)R(x+7,gy-15,1,1,'#3a2a24')}
+function hound(x,gy,tt,o){
+  const fr=o.walk?Math.floor(tt*(o.run?10:5))%2:0,y=gy-11;
+  const ga=g.globalAlpha;EM.push(()=>{g.globalAlpha=ga;spr(HOUND[fr],x,y,o.flip);
+    for(let i=0;i<5;i++){const s=Math.floor(tt*6)+i*13+o.id*7;if(rnd(s)<.6){const wx=x+3+Math.floor(rnd(s+1)*15),wy=y+3-Math.floor(rnd(s+2)*3);R(wx,wy,1,1,'#3a2c66')}}g.globalAlpha=1});
+  const ex=o.flip?x+4:x+17,ey=y+3+(o.cower?1:0);
+  EM.push(()=>{R(ex,ey,1,1,'#ff3434');if(o.glare)R(ex+(o.flip?-1:1),ey,1,1,'#ff7a5a')});
+}
+function key(x,y,glow){R(x,y,2,3,'#7a4a2a');R(x+2,y+1,5,1,'#7a4a2a');R(x+5,y+2,1,1,'#7a4a2a');R(x+6,y+2,1,1,'#7a4a2a');
+  EM.push(()=>{R(x,y+1,1,1,'#ff9a3c');if(glow>.5)R(x+1,y+1,1,1,'#ffd27a')});light(x+1,y+1,6+10*glow,.5+.5*glow)}
+
+/* ---------- the village of Emberfall (world is 480 x 180, ground at 148) ---------- */
+const GY=148,LX=[18,48,80,104,142,206,236,302];
+const FOG=document.createElement('canvas');FOG.width=640;FOG.height=48;
+(function(){const x=FOG.getContext('2d');for(let i=0;i<260;i++){const cx=rnd(i)*640,cy=10+rnd(i+.5)*30,w=10+rnd(i+.7)*40,h=2+rnd(i+.9)*5;x.fillStyle='rgba(170,185,225,'+(.035+rnd(i+.3)*.05)+')';x.fillRect(Math.round(cx),Math.round(cy),Math.round(w),Math.round(h));if(cx+w>640)x.fillRect(Math.round(cx-640),Math.round(cy),Math.round(w),Math.round(h))}})();
+const STARS=[...Array(70)].map((_,i)=>[Math.floor(rnd(i*3.1)*LW),Math.floor(rnd(i*5.7)*90),rnd(i*1.3)]);
+
+function sky(nk){
+  screen();
+  const top=mixc('#25305a','#070a1a',nk),mid=mixc('#5a4270','#111a38',nk),bot=mixc('#d9824c','#1f2c4f',nk);
+  const gr=g.createLinearGradient(0,0,0,LH);gr.addColorStop(0,top);gr.addColorStop(.55,mid);gr.addColorStop(.85,bot);g.fillStyle=gr;g.fillRect(0,0,LW,LH);
+  if(nk>.2)EMS.push(tt=>{for(const s of STARS){const a=(nk-.2)*(.5+.5*Math.sin(tt*2+s[2]*20));if(a>.15){g.fillStyle='rgba(230,235,255,'+Math.min(1,a)+')';g.fillRect(s[0],s[1],1,1)}}});
+}
+function hills(){
+  g.setTransform(Z,0,0,Z,-Math.round(CX*.5*Z),-CY*Z);
+  g.fillStyle='#1a2140';for(let x=-40;x<420;x+=2){const h=14+8*Math.sin(x*.035)+5*Math.sin(x*.11);g.fillRect(x,GY-6-h,2,h+6)}
+  applyCam();
+}
+function roof(x,w,top,c1,c2){for(let j=0;;j++){const ins=Math.floor(j*1.25),ww=w+4-ins*2;if(ww<=2)break;R(x-2+ins,top-j,ww,1,j%4===0?c2:c1)}}
+function house(x,w,wh,o){
+  const top=GY-wh;R(x,top,w,wh,o.wall);for(let j=top+3;j<GY;j+=4)R(x,j,w,1,o.wall2);
+  roof(x,w,top-1,o.roof,o.roof2);
+  for(const [wx,wy] of o.win){R(x+wx,top+wy,5,5,'#1c1622');if(o.lit){EM.push(()=>{R(x+wx+1,top+wy+1,3,3,'#ffb85c');R(x+wx+1,top+wy+1,1,1,'#ffe0a0')});light(x+wx+2.5,top+wy+2.5,9,.55)}}
+  if(o.door!=null){R(x+o.door,GY-12,8,12,o.open?'#ffb85c':'#3a2618');if(!o.open)R(x+o.door+6,GY-6,1,1,'#c9a050');else light(x+o.door+4,GY-6,18,.8)}
+}
+function chapel(){
+  const x=250,w=46,top=GY-34;
+  R(x,top,w,34,'#4e4a5a');for(let j=top+3;j<GY;j+=5)R(x,j,w,1,'#433f4e');
+  roof(x,w,top-1,'#2e2a38','#252230');
+  R(266,top-34,14,20,'#4e4a5a');R(270,top-30,6,7,'#1c1622');R(272,top-29,2,4,'#7a6a4a');
+  for(let j=0;j<9;j++)R(266+Math.floor(j*.8),top-35-j,14-Math.floor(j*.8)*2,1,'#2e2a38');R(272,top-48,2,4,'#6a6070');R(271,top-46,4,1,'#6a6070');
+  R(270,top+6,6,6,'#1c1622');R(271,top+7,4,4,'#2c3a66');
+  R(268,GY-14,10,14,'#2a1a12');R(268,GY-15,10,1,'#3a2a20');R(273,GY-14,1,14,'#1c120c');
+}
+function well(){R(116,GY-8,12,8,'#5a5a66');R(116,GY-8,12,1,'#6c6c78');R(117,GY-20,1,12,'#4a3424');R(126,GY-20,1,12,'#4a3424');R(114,GY-22,16,2,'#3a2a20')}
+function pine(x,h,c){for(let j=0;j<h;j++){const w=1+Math.floor(j*.45)*2-(j%5===4?2:0);R(x-Math.floor(w/2),GY-h-3+j,Math.max(1,w),1,c)}R(x,GY-3,1,3,'#1a1410')}
+function forest(){for(let i=0;i<14;i++){const x=318+i*12+Math.floor(rnd(i)*6);pine(x,34+Math.floor(rnd(i+9)*16),'#0f1d22')}
+  for(let i=0;i<12;i++){const x=324+i*13+Math.floor(rnd(i+3)*5);pine(x,24+Math.floor(rnd(i+5)*12),'#16282a')}}
+function ground(){R(-60,GY,620,40,'#26331f');R(-60,GY,620,1,'#3a4d2e');R(-60,GY+5,620,5,'#3e342c');for(let x=-60;x<560;x+=7)R(x+Math.floor(rnd(x)*4),GY+5,2,1,'#4a3f34')}
+function lamp(i,lit,lean,tt){
+  const x=LX[i];R(x,GY-22,2,22,'#2a2530');R(x-1,GY-2,4,2,'#2a2530');
+  R(x-2,GY-30,6,1,'#2a2530');R(x-2,GY-29,1,6,'#2a2530');R(x+3,GY-29,1,6,'#2a2530');R(x-2,GY-23,6,1,'#2a2530');R(x-1,GY-29,4,6,'#15131c');R(x,GY-31,2,1,'#2a2530');
+  const on=lit>=1||(lit>0&&rnd(Math.floor(tt*14)+i)<lit);
+  if(on){const L=Math.round(lean||0);
+    EM.push(()=>{R(x,GY-26,2,3,'#ff9a3c');R(x+(L>0?1:0),GY-27,1,1,'#ffd25a');if(L)R(x+(L>0?2:-1),GY-28,1,1,'#ffd25a');else R(x,GY-28,1,1,'#ffd25a');R(x,GY-25,1,1,'#fff2b8')});
+    light(x+1,GY-26,24,1)}
+}
+function fog(tt,a,y){screen();g.globalAlpha=a;const ox=-Math.round(((tt*3+CX*.8)%640+640)%640);g.drawImage(FOG,ox,y);g.drawImage(FOG,ox+640,y);
+  const ox2=-Math.round(((tt*5+CX*1.2+300)%640+640)%640);g.drawImage(FOG,ox2,y+14);g.drawImage(FOG,ox2+640,y+14);g.globalAlpha=1;applyCam()}
+function village(tt,o){
+  sky(o.nk);applyCam();hills();forest();
+  house(4,40,26,{wall:'#6a4a36',wall2:'#5e4230',roof:'#7a3a2a',roof2:'#5e2c20',win:[[8,8],[26,8]],lit:true});
+  house(56,40,24,{wall:'#5e5040',wall2:'#544636',roof:'#4a3a5a',roof2:'#3a2c48',win:[[6,7],[28,7]],lit:true,door:16});
+  well();
+  house(150,46,28,{wall:'#6e5642',wall2:'#634c3a',roof:'#6a3428',roof2:'#52281e',win:[[4,8],[33,8]],lit:true,door:16,open:o.bramDoor});
+  chapel();ground();
+  for(let i=0;i<8;i++)lamp(i,o.lit(i),o.lean?o.lean(i):0,tt);
+}
+
+/* ---------- lighting pass ---------- */
+function lightPass(dark,tt){
+  screen();lg.setTransform(1,0,0,1,0,0);lg.globalCompositeOperation='source-over';lg.clearRect(0,0,LW,LH);
+  lg.fillStyle='rgba(5,7,22,'+dark+')';lg.fillRect(0,0,LW,LH);lg.globalCompositeOperation='destination-out';
+  for(const [x,y,r,s] of LS){const sx=(x-CX)*Z,sy=(y-CY)*Z,sr=r*Z,f=s*(.94+.06*Math.sin(tt*17+x));const gr=lg.createRadialGradient(sx,sy,0,sx,sy,sr);
+    gr.addColorStop(0,'rgba(0,0,0,'+f+')');gr.addColorStop(.45,'rgba(0,0,0,'+f*.6+')');gr.addColorStop(1,'rgba(0,0,0,0)');lg.fillStyle=gr;lg.fillRect(sx-sr,sy-sr,sr*2,sr*2)}
+  // band the light into steps so it reads as pixel art
+  const id=lg.getImageData(0,0,LW,LH),d=id.data;for(let i=3;i<d.length;i+=4)d[i]=Math.round(d[i]/51)*51;lg.putImageData(id,0,0);
+  g.drawImage(lb,0,0);
+  for(const f of EMS)f(tt);
+  applyCam();for(const f of EM)f();
+  screen();g.globalCompositeOperation='lighter';
+  for(const [x,y,r,s,cool] of LS){const sx=(x-CX)*Z,sy=(y-CY)*Z,sr=r*Z*.8,gr=g.createRadialGradient(sx,sy,0,sx,sy,sr);
+    gr.addColorStop(0,cool?'rgba(90,140,220,'+.16*s+')':'rgba(255,160,70,'+.2*s+')');gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.fillRect(sx-sr,sy-sr,sr*2,sr*2)}
+  g.globalCompositeOperation='source-over';
+}
+function begin(){LS=[];EM=[];EMS=[];screen();g.fillStyle='#000';g.fillRect(0,0,LW,LH)}
+
+/* ---------- Scene 1: title card (0 to 15) ---------- */
+function sceneTitle(tt){
+  begin();cam(0,0,1);
+  if(tt>1.5){const a=sm(1.5,2.5,tt),fl=Math.floor(tt*8)%3;
+    EM.push(()=>{g.globalAlpha=a;R(159,88,2,3,'#ff9a3c');R(159+(fl===1?1:0),87,1,1,'#ffd25a');R(159,90,1,1,'#fff2b8');g.globalAlpha=1});light(160,89,30*a,a)}
+  lightPass(1,tt);
+}
+
+/* ---------- Scene 2: Emberfall at dusk (15 to 60) ---------- */
+function lit2(tt){return i=>{if(i<4)return 1;if(tt<30)return 0;if(i===4)return tt<39.8?1:tt<41?.5:0;if(i===5)return tt>=39.8?1:0;return 0}}
+function sceneDusk(tt){
+  begin();
+  if(tt<30){cam(Math.round(lerp(0,10,sm(15,30,tt))),0,1);
+    village(tt,{nk:lerp(.1,.3,sm(15,30,tt)),lit:lit2(tt)});
+    if(tt>20&&tt<28){const blink=Math.floor(tt*3)%2;for(let i=4;i<8;i++)if(blink&&tt>24)EM.push(()=>R(LX[i]-1,GY-33,4,1,'#6a7090'))}
+    fog(tt,.6,GY-26);lightPass(.42,tt);return}
+  cam(120,70,2);
+  village(tt,{nk:.45,lit:lit2(tt),bramDoor:tt>46.4});
+  // ladder against lamp six
+  R(199,GY-28,1,28,'#6a4a2a');R(204,GY-28,1,28,'#6a4a2a');for(let j=GY-26;j<GY;j+=4)R(200,j,4,1,'#5a3e22');
+  if(tt>46.4)bram(164,GY,tt,talking('BRAM',tt));
+  const climb=sm(30,32,tt),feet=Math.round(lerp(GY-4,GY-12,climb));
+  const face=tt>46.8&&tt<54.2;
+  const reach=tt>38.6&&tt<40.4?1:0;
+  wick(face?189:193,feet,tt,{flip:face,talk:talking('WICK',tt),lift:reach*.5});
+  fog(tt,.5,GY-30);lightPass(.55,tt);
+}
+
+/* ---------- Scene 3: the strange thing (60 to 110) ---------- */
+const lit3=i=>(i<4||i===5||i===6)?1:0;
+function wickX3(tt){if(tt<76)return lerp(214,262,(tt-60)/16);if(tt<98)return 262;if(tt<106)return lerp(262,290,(tt-98)/8);return 290}
+function sceneStrange(tt){
+  begin();const wx=Math.round(wickX3(tt)),walking=(tt<76)||(tt>=98&&tt<106);
+  const close=tt>=76.5&&tt<97.5;
+  if(close)cam(wx+6-40,GY-30,4);else cam(clamp(wx-70,120,320),70,2);
+  const lean=i=>{const d=wx+6-LX[i];return Math.abs(d)<90&&tt>62?(d>0?1:-1):0};
+  village(tt,{nk:1,lit:lit3,lean});
+  let b=1.25;if(tt>86.8&&tt<87.6)b=1.25+1.1*Math.sin((tt-86.8)/.8*Math.PI);
+  wick(wx,GY,tt,{walk:walking,talk:talking('WICK',tt),bright:b,lift:close&&tt>78&&tt<96?.6:0});
+  fog(tt,lerp(.7,1,sm(60,110,tt)),GY-24);
+  lightPass(.78,tt);
+}
+
+/* ---------- Scenes 4 and 5: the forest edge (110 to 188) ---------- */
+const lit4=i=>(i<4||i===5||i===6)?1:0;
+function houndState(i,tt){
+  const T0=[330,344,358][i],T1=[318,334,348][i];
+  if(tt<118)return null;
+  let x,flip=true,walk=false,run=false,a=1;
+  if(tt<128){const k=clamp((tt-118-i*.8)/8,0,1);x=lerp(390+i*14,T0,k);walk=k>0&&k<1;a=sm(118,121,tt)}
+  else if(tt<140)x=T0;
+  else if(tt<146){const k=sm(140,146,tt);x=lerp(T0,T1,k);walk=k>0&&k<1}
+  else x=T1;
+  if(i>0&&tt>=148.4){const k=clamp((tt-148.4-i*.3)/4,0,1);x=lerp(T1,430,k);flip=false;run=walk=k<1;if(k>=1)return null}
+  if(i===0&&tt>=170){const k=clamp((tt-170)/4,0,1);x=lerp(T1,440,k);flip=false;run=walk=k<1;if(k>=1)return null}
+  return {x,flip,walk,run,a,cower:tt>146&&tt<148.4,glare:i===0&&tt>150&&tt<170,id:i};
+}
+function sceneForest(tt){
+  begin();
+  let cx=256;if(tt>183)cx=Math.round(lerp(256,214,sm(183,187,tt)));
+  cam(cx,70,2);
+  village(tt,{nk:1,lit:lit4});
+  // red eyes in the trees before the hounds step out
+  if(tt>112&&tt<121){for(let i=0;i<3;i++){const on=tt>112.5+i*1.2&&rnd(Math.floor(tt*3)+i*5)>.15;const ex=392+i*14,ey=GY-8-(i%2)*2;if(on)EM.push(()=>{R(ex,ey,1,1,'#ff3434');R(ex+3,ey,1,1,'#ff3434')})}}
+  for(let i=0;i<3;i++){const h=houndState(i,tt);if(h){g.globalAlpha=h.a;hound(Math.round(h.x),GY,tt,h);g.globalAlpha=1}}
+  // the key
+  const dropped=tt>=171.6,picked=tt>=181.2;
+  if(dropped&&!picked)key(326,GY-3,.4+.3*Math.sin(tt*4));
+  // Wick
+  let wx=292,walk=false,crouch=false;
+  if(tt>=176&&tt<180){wx=Math.round(lerp(292,316,(tt-176)/4));walk=true}else if(tt>=180)wx=316;
+  if(tt>=180.4&&tt<181.8)crouch=true;
+  let lift=0;if(tt>146&&tt<154)lift=sm(146,146.4,tt);else if(tt>=154&&tt<170)lift=.5;
+  let b=1;if(tt>146&&tt<154)b=lerp(1,2.2,sm(146,146.5,tt))-lerp(0,.9,sm(150,154,tt));else if(tt>=154&&tt<170)b=1.35;
+  const shake=tt>128&&tt<146;
+  wick(wx,GY,tt,{flip:false,walk,crouch,lift,bright:b,shake,talk:talking('WICK',tt),key:picked});
+  // sparks drift from the key to the chapel door
+  if(tt>183&&tt<188.2){for(let i=0;i<14;i++){const k=((tt-183)*.45+i/14)%1,sx=lerp(wx+4,273,k),sy=lerp(GY-8,GY-8,k)-Math.sin(k*Math.PI)*14+Math.sin(tt*5+i)*1.5;
+    if(rnd(i+Math.floor(tt*10))>.25)EM.push(()=>R(Math.round(sx),Math.round(sy),1,1,i%3?'#ff9a3c':'#ffe0a0'));if(i%4===0)light(sx,sy,5,.5)}}
+  fog(tt,1,GY-24);
+  lightPass(.78,tt);
+}
+
+/* ---------- Scene 5b: under the chapel floor (188 to 210) ---------- */
+function sceneChapel(tt){
+  begin();cam(0,20,2);
+  // back wall of planks
+  R(0,0,160,60,'#2e2119');for(let x=0;x<160;x+=6)R(x,0,1,60,'#241912');for(let x=3;x<160;x+=12)R(x,18+((x*7)%20),1,2,'#3a2a20');
+  // tall arched window with moonlight
+  R(70,12,20,28,'#1a1620');R(72,14,16,26,'#2c4270');R(74,12,12,2,'#1a1620');R(79,14,2,26,'#1a1620');R(72,26,16,1,'#1a1620');
+  light(80,26,30,.45,true);
+  // pews and altar
+  for(const px of [4,120]){R(px,48,30,4,'#4a3322');R(px+2,52,2,8,'#3a2618');R(px+26,52,2,8,'#3a2618');R(px,40,2,12,'#3a2618')}
+  R(110,44,18,16,'#5a5262');R(108,42,22,3,'#6a6272');R(118,38,2,4,'#d8d0c0');R(118,37,2,1,'#3a3a3a');
+  // floor and the cutaway earth below it
+  R(0,60,160,4,'#4a4652');for(let x=0;x<160;x+=10)R(x,60,1,4,'#3a3642');R(0,64,160,50,'#2a2230');for(let i=0;i<60;i++)R(Math.floor(rnd(i)*160),64+Math.floor(rnd(i+.4)*48),1,1,'#3a3042');R(56,64,48,48,'#08070c');
+  // the hidden stair, half collapsed
+  const k=sm(188.3,190.8,tt);
+  for(let s=0;s<9;s++){const sx=58+s*5,sy=64+s*3;if(s===4){R(sx,sy+1,3,2,'#3c3a44');continue}if(s===6)continue;R(sx,sy,6,3,'#5c5866');R(sx,sy,6,1,'#7a7686')}
+  R(78,80,3,2,'#3c3a44');R(86,84,2,1,'#3c3a44');
+  // dust falling while the slabs move
+  if(tt>188.3&&tt<192)for(let i=0;i<10;i++){const dy=((tt-188.3)*30+i*9)%30;R(60+i*4,60+dy,1,1,'#8a8090')}
+  R(56-Math.round(k*22),60,24,4,'#5a5662');R(80+Math.round(k*22),60,24,4,'#5a5662');R(56-Math.round(k*22),60,24,1,'#6a6672');R(80+Math.round(k*22),60,24,1,'#6a6672');
+  // something breathing down there
+  const br=tt>202?.5+.5*Math.sin((tt-202)*1.8-1.5):0;
+  if(k>.6)light(84,84,lerp(16,30,br),.45+.35*br,true);
+  if(tt>203.5&&tt<209.5&&br>.7)EM.push(()=>{R(98,86,1,1,'#7ad0ff');R(102,86,1,1,'#7ad0ff')});
+  wick(32,60,tt,{talk:talking('WICK',tt),bright:1.6,key:true,lift:tt>193?.4:0});
+  lightPass(.86,tt);
+}
+
+/* ---------- subtitles ---------- */
+const VOICE={N:['NARRATOR','#c9b7ff'],W:['WICK','#ffb347'],B:['ELDER BRAM','#9fd3c7']};
+const SUBS=[
+  [2.0,6.0,'N','A hundred years ago, the sun was stolen from the sky.'],
+  [6.2,9.3,'N','People say the world has been getting darker ever since.'],
+  [9.5,11.3,'N','People say a lot of things.'],
+  [11.5,14.8,'N','But tonight, in one small village, a boy is about to find out they were right.'],
+  [16.0,19.6,'N','This is Emberfall. Eight lamps keep it safe.'],
+  [20.0,23.4,'N','Last year, all eight were lit.'],
+  [24.0,27.6,'N','Tonight... four.'],
+  [31.0,35.4,'W','One lamp, two lamp, three lamp...'],
+  [35.6,39.0,'W','Why do they keep going out? Is it me? It\'s probably me.'],
+  [41.4,46.4,'W','Okay, it\'s definitely not me. That one was already out! ...Right?'],
+  [47.4,50.6,'B','Wick. Come inside. It is nearly night.'],
+  [51.0,53.6,'W','Just two more, Elder.'],
+  [54.4,59.4,'B','You said that yesterday. And the lamp by the chapel went out while you said it.'],
+  [62.0,66.4,'N','Here is something Wick has never noticed.'],
+  [66.8,71.4,'N','Wherever he walks, the other lamps lean toward him.'],
+  [71.8,75.6,'N','As if they want to say something.'],
+  [80.0,83.0,'W','...Huh. You\'ve been warm all day.'],
+  [83.3,86.2,'W','Warmer than usual.'],
+  [90.0,93.0,'W','Okay. That\'s weird.'],
+  [93.3,97.2,'W','I\'m choosing to not think about that.'],
+  [119.0,126.0,'N','Gloomhounds. They hate light. They love an unlit lamp.'],
+  [130.0,134.0,'W','Don\'t look scared. Don\'t look scared.'],
+  [134.4,140.0,'W','They can smell it. Do they smell it? I smell like soup.'],
+  [155.0,158.6,'N','The hounds are afraid of the light. Mostly.'],
+  [159.0,165.0,'N','Wick has a choice. And it is not his alone to make.'],
+  [192.0,197.0,'W','A key... to the crypt?! Nobody has opened that in sixty years!'],
+  [197.3,202.0,'W','Elder Bram says it\'s cursed. He also says carrots are cursed, though.'],
+  [211.0,215.0,'N','The night is getting darker. The lamps are failing.'],
+  [215.3,219.4,'N','The key is in Wick\'s hand. What does he do?'],
+  [228.0,231.2,'N','You decide. Vote in the Community tab, or comment A or B.'],
+  [231.4,234.2,'N','See you tomorrow.']
+];
+function talking(who,tt){const c=who==='WICK'?'W':'B';for(const s of SUBS)if(s[2]===c&&tt>=s[0]&&tt<s[1]-.2)return true;return false}
+function wrap(text,maxW){const out=[];let cur='';for(const w of text.split(' ')){const t2=cur?cur+' '+w:w;if(M.measureText(t2).width>maxW&&cur){out.push(cur);cur=w}else cur=t2}out.push(cur);return out}
+function subtitle(tt){
+  for(const s of SUBS){if(tt<s[0]||tt>=s[1])continue;
+    const [name,col]=VOICE[s[2]],a=Math.min(sm(s[0],s[0]+.15,tt),1-sm(s[1]-.15,s[1],tt));
+    M.save();M.globalAlpha=a;M.font='500 34px '+PIX;const lines=wrap(s[3],1000),lh=42;
+    const bw=Math.min(1100,Math.max(...lines.map(l=>M.measureText(l).width))+64),bh=lines.length*lh+58,bx=(W-bw)/2,by=H-bh-26;
+    M.fillStyle='rgba(6,8,20,.82)';M.fillRect(bx,by,bw,bh);M.fillStyle=col;M.fillRect(bx,by,bw,4);M.fillRect(bx,by+bh-4,bw,4);M.fillRect(bx,by,4,bh);M.fillRect(bx+bw-4,by,4,bh);
+    M.font='700 22px '+PIX;M.textBaseline='top';M.textAlign='left';M.fillText(name,bx+24,by+14);
+    M.font='500 34px '+PIX;M.fillStyle='#f1e6cf';lines.forEach((l,i)=>M.fillText(l,bx+24,by+42+i*lh));
+    M.restore();break}
+}
+
+/* ---------- overlays drawn at full size ---------- */
+function titleText(tt){
+  const a=Math.min(sm(3,4.5,tt),1-sm(13.6,14.6,tt));if(a<=0)return;
+  M.save();M.globalAlpha=a;M.textAlign='center';M.textBaseline='middle';
+  M.font='500 30px '+PIX;M.fillStyle='#aab0cf';M.fillText('THE LAMPLIGHTER',W/2,150);
+  M.font='700 92px '+PIX;M.fillStyle='#3a1c06';M.fillText('OF ASHENMOOR',W/2+6,226);M.fillStyle='#ffb347';M.fillText('OF ASHENMOOR',W/2,220);
+  M.font='500 26px '+PIX;M.fillStyle='#f1e6cf';M.fillText('Episode 1: The Last Lamp in Emberfall',W/2,470);
+  M.restore();
+}
+function pixelBox(x,y,w,h,edge,fill){M.fillStyle=fill;M.fillRect(x+6,y,w-12,h);M.fillRect(x,y+6,w,h-12);M.fillStyle=edge;M.fillRect(x+6,y,w-12,6);M.fillRect(x+6,y+h-6,w-12,6);M.fillRect(x,y+6,6,h-12);M.fillRect(x+w-6,y+6,6,h-12)}
+function choiceScreen(tt){
+  const dim=sm(210,212,tt);M.fillStyle='rgba(6,8,22,'+.62*dim+')';M.fillRect(0,0,W,H);
+  M.save();M.textBaseline='top';M.textAlign='center';
+  const ta=sm(211,212.5,tt);M.globalAlpha=ta;M.font='700 54px '+PIX;M.fillStyle='#3a1c06';M.fillText('WHAT DOES WICK DO?',W/2+4,58);M.fillStyle='#ffb347';M.fillText('WHAT DOES WICK DO?',W/2,54);
+  const opts=[['A','Go down into the crypt.','Dangerous. Might find answers. Might find worse.',219.6],['B','Wake Elder Bram and show him the key.','Safe. But Bram has been hiding something.',220.3]];
+  opts.forEach((o,i)=>{const k=sm(o[3],o[3]+.35,tt);if(k<=0)return;const bx=90+i*560,by=170+Math.round((1-k)*30),bw=540,bh=250;
+    M.globalAlpha=k;const pulse=tt>222?(Math.floor(tt*2+i)%2?'#ffb347':'#c9822a'):'#ffb347';
+    pixelBox(bx,by,bw,bh,pulse,'#151c3a');
+    M.fillStyle='#ffb347';M.fillRect(bx+28,by+28,72,72);M.fillStyle='#2a1806';M.font='700 56px '+PIX;M.fillText(o[0],bx+64,by+34);
+    M.textAlign='left';M.fillStyle='#f1e6cf';M.font='700 32px '+PIX;wrap(o[1],bw-150).forEach((l,j)=>M.fillText(l,bx+124,by+30+j*38));
+    M.font='400 24px '+PIX;M.fillStyle='#aab0cf';wrap('('+o[2]+')',bw-60).forEach((l,j)=>M.fillText(l,bx+28,by+140+j*30));M.textAlign='center'});
+  const fa=sm(227.6,228.4,tt);if(fa>0){M.globalAlpha=fa;M.font='500 28px '+PIX;M.fillStyle='#f1e6cf';M.fillText('Vote in the Community tab, or comment A or B',W/2,448)}
+  M.restore();
+}
+
+/* ---------- master render ---------- */
+function blackAt(tt){let a=0;
+  const dip=(c,w)=>{a=Math.max(a,1-clamp(Math.abs(tt-c)/w,0,1))};
+  dip(15,.5);dip(30,.25);dip(60,.5);dip(110,.4);dip(188,.3);
+  if(tt>234.6)a=Math.max(a,sm(234.6,236.6,tt));return a}
+function render(tt){
+  tt=clamp(tt,0,LEN);
+  let shake=0;
+  if(tt<15)sceneTitle(tt);
+  else if(tt<60)sceneDusk(tt);
+  else if(tt<110)sceneStrange(tt);
+  else if(tt<188)sceneForest(tt);
+  else if(tt<210)sceneChapel(tt);
+  else sceneChapel(209.4);
+  if(tt>188.3&&tt<191)shake=4;if(tt>146&&tt<146.5)shake=3;
+  M.setTransform(1,0,0,1,0,0);M.fillStyle='#000';M.fillRect(0,0,W,H);
+  // slow push into the dark stair while it breathes
+  let z=1,fx=0,fy=0;if(tt>202){z=lerp(1,1.35,sm(202,210,tt));fx=W*.5;fy=H*.62}
+  const sw=W/z,sh=H/z,sx=fx-(fx)/z,sy=fy-(fy)/z,ox=shake?(Math.floor(tt*30)%2?shake:-shake):0;
+  M.drawImage(fb,sx/4,sy/4,sw/4,sh/4,ox,ox?-ox/2:0,W,H);
+  if(tt<15)titleText(tt);
+  if(tt>=210)choiceScreen(tt);
+  const b=blackAt(tt);if(b>0){M.fillStyle='rgba(0,0,0,'+b+')';M.fillRect(0,0,W,H)}
+  if(tt>236.6){const fl=Math.floor(tt*8)%3;M.fillStyle='#ff9a3c';M.fillRect(636,352,8,12);M.fillStyle='#ffd25a';M.fillRect(636+(fl===1?4:0),348,4,4);
+    const gr=M.createRadialGradient(640,356,0,640,356,60);gr.addColorStop(0,'rgba(255,160,70,.25)');gr.addColorStop(1,'rgba(0,0,0,0)');M.fillStyle=gr;M.fillRect(560,280,160,160)}
+  subtitle(tt);
+}
+
+/* ---------- audio, all synthesised ---------- */
+let AC=null,master,nb,windG,windF,evi=0,lastT=0,nextNote=0,nextStep=0,nextChirp=0;
+function initAudio(){
+  if(AC)return;const A=window.AudioContext||window.webkitAudioContext;if(!A)return;AC=new A();
+  master=AC.createGain();master.gain.value=.85;master.connect(AC.destination);
+  nb=AC.createBuffer(1,AC.sampleRate*2,AC.sampleRate);const d=nb.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
+  windG=AC.createGain();windG.gain.value=0;windF=AC.createBiquadFilter();windF.type='lowpass';windF.frequency.value=380;
+  const s=AC.createBufferSource();s.buffer=nb;s.loop=true;s.connect(windF);windF.connect(windG);windG.connect(master);s.start();
+  const lfo=AC.createOscillator(),lfg=AC.createGain();lfo.frequency.value=.13;lfg.gain.value=160;lfo.connect(lfg);lfg.connect(windF.frequency);lfo.start();
+}
+const at=d=>AC.currentTime+Math.max(0,d||0);
+function tone(f,dur,vol,type,d,f2){const n=at(d),o=AC.createOscillator(),gn=AC.createGain();o.type=type||'triangle';o.frequency.setValueAtTime(f,n);if(f2)o.frequency.exponentialRampToValueAtTime(f2,n+dur);
+  gn.gain.setValueAtTime(0,n);gn.gain.linearRampToValueAtTime(vol,n+.012);gn.gain.exponentialRampToValueAtTime(.0001,n+dur);o.connect(gn);gn.connect(master);o.start(n);o.stop(n+dur+.05)}
+function hiss(fc,q,dur,vol,type,d,fc2,attack){const n=at(d),s=AC.createBufferSource();s.buffer=nb;const f=AC.createBiquadFilter();f.type=type||'bandpass';f.Q.value=q;f.frequency.setValueAtTime(fc,n);if(fc2)f.frequency.exponentialRampToValueAtTime(fc2,n+dur);
+  const gn=AC.createGain();gn.gain.setValueAtTime(0,n);gn.gain.linearRampToValueAtTime(vol,n+(attack||.02));gn.gain.exponentialRampToValueAtTime(.0001,n+dur);s.connect(f);f.connect(gn);gn.connect(master);s.start(n,Math.random());s.stop(n+dur+.05)}
+const NOTE=n=>440*Math.pow(2,(n-69)/12);
+function hum(d){[67,68,66,70,64,67].forEach((n,i)=>tone(NOTE(n),.26,.035,'square',d+i*.17))}
+function growl(){hiss(160,1.5,1.4,.35,'lowpass',0,120,.25);tone(62,1.3,.08,'sawtooth',0,55)}
+function breath(){hiss(320,1.2,1.6,.22,'bandpass',0,600,.9);hiss(500,1.2,1.7,.16,'bandpass',1.7,260,.6)}
+const EVT=[
+  [1.5,()=>tone(NOTE(81),2.2,.07,'sine')],
+  [29.9,()=>hum(0)],[38.9,()=>hum(0)],
+  [39.8,()=>{hiss(400,2,.45,.22,'bandpass',0,2400,.08);tone(NOTE(76),.6,.05,'sine')}],
+  [40.7,()=>hiss(2200,1,.18,.16,'highpass')],
+  [46.4,()=>tone(240,.6,.04,'sawtooth',0,170)],
+  [86.8,()=>{tone(58,.35,.5,'sine',0,40);tone(NOTE(69),1.4,.05,'sine',.05);tone(NOTE(76),1.4,.04,'sine',.08)}],
+  [112.6,()=>tone(110,2,.07,'sawtooth',0,98)],
+  [118.4,growl],[123.6,growl],[141,growl],
+  [146,()=>{hiss(300,1.5,.7,.28,'bandpass',0,3500,.1);[69,73,76,81].forEach((n,i)=>tone(NOTE(n),1.6,.05,'sine',i*.04))}],
+  [148.6,()=>tone(900,.35,.06,'sine',0,480)],[149.3,()=>tone(820,.4,.05,'sine',0,420)],
+  [166,growl],
+  [171.6,()=>{tone(1800,.4,.05,'sine');tone(2600,.3,.03,'sine',.05)}],
+  [181.4,()=>{tone(NOTE(84),1.2,.05,'sine');tone(NOTE(88),1.2,.03,'sine',.1)}],
+  [184,()=>{for(let i=0;i<8;i++)tone(NOTE(84+[0,3,7,10,12,7,3,15][i]),.5,.025,'sine',i*.15)}],
+  [188.3,()=>{hiss(110,1,3,.5,'lowpass',0,70,.3);hiss(420,3,2.6,.18,'bandpass',0,300,.2)}],
+  [203,breath],[206.5,breath],
+  [219.6,()=>[69,72,76].forEach((n,i)=>tone(NOTE(n),1.2,.06,'triangle',i*.12))],
+  [237,()=>tone(NOTE(81),2.5,.06,'sine')]
+];
+// one pattern per scene: [start, step seconds, MIDI notes, volume, wave]
+const MUSIC=[
+  [3,1.6,[69,76,72,71],.035,'sine'],
+  [15,.42,[57,60,64,69,53,57,60,65,48,52,55,60,55,59,62,67],.03,'triangle'],
+  [60,.6,[50,53,57,58,50,53,57,62],.03,'triangle'],
+  [110,.32,[45,45,46,45,45,45,46,44],.05,'triangle'],
+  [170,.5,[64,67,71,74,60,64,67,71],.028,'sine'],
+  [188,.9,[52,55,58,55],.03,'sine'],
+  [211,.38,[57,60,64,67,53,57,60,64],.035,'triangle'],
+  [235,99,[0],0,'sine']
+];
+function musicAt(tt){let m=null;for(const p of MUSIC)if(tt>=p[0])m=p;return m}
+function walkingAt(tt){return (tt>=60&&tt<76)||(tt>=98&&tt<106)||(tt>=176&&tt<180)}
+function audioUpdate(tt){
+  if(!AC)return;const n=AC.currentTime;
+  let wv=tt<15?.03:tt<60?.12:tt<110?.18:tt<188?.24:tt<210?.08:.06;if(tt>234.6)wv=0;windG.gain.setTargetAtTime(playing?wv:0,n,.3);
+  if(!playing){lastT=tt;return}
+  while(evi<EVT.length&&EVT[evi][0]<=tt){if(EVT[evi][0]>lastT-.05)EVT[evi][1]();evi++}
+  const m=musicAt(tt);
+  if(m&&tt>=nextNote){const i=Math.floor((tt-m[0])/m[1]+1e-6),speak=SUBS.some(s=>tt>=s[0]&&tt<s[1]);
+    if(m[3]>0)tone(NOTE(m[2][i%m[2].length]),m[1]*1.6,m[3]*(speak?.6:1),m[4]);nextNote=m[0]+(i+1)*m[1]}
+  if(walkingAt(tt)&&tt>=nextStep){hiss(900,1,.06,.1,'lowpass');nextStep=tt+.34}
+  if(tt>15&&tt<110&&tt>=nextChirp){[0,.07,.14].forEach(d=>tone(4300,.04,.012,'sine',d));nextChirp=tt+1.4+rnd(Math.floor(tt))*2.2}
+  lastT=tt;
+}
+function resetAudioTrackers(){evi=0;while(evi<EVT.length&&EVT[evi][0]<t)evi++;lastT=t;nextNote=nextStep=nextChirp=t}
+
+/* ---------- UI ---------- */
+const pp=document.getElementById('pp'),rs=document.getElementById('rs'),sc=document.getElementById('sc'),tm=document.getElementById('tm'),big=document.getElementById('big'),fs=document.getElementById('fs'),list=document.getElementById('scenes');
+const mmss=s=>Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0');
+SCENES.forEach((s,i)=>{const li=document.createElement('li'),b=document.createElement('button');b.id='scene'+(i+1);
+  b.innerHTML='<span class="tc">'+mmss(s[0])+'</span><span class="nm">Scene '+(i+1)+': '+s[1]+'</span><span class="ds">'+s[2]+'</span>';
+  b.onclick=()=>{t=s[0]+.01;resetAudioTrackers();ui()};li.appendChild(b);list.appendChild(li)});
+const sceneBtns=[...list.querySelectorAll('button')];
+function ui(){pp.textContent=playing?'Pause':(t>=LEN?'Replay':'Play');sc.value=t;tm.textContent=mmss(t)+' / '+mmss(LEN);big.hidden=playing||t>0.01;
+  let cur=0;SCENES.forEach((s,i)=>{if(t>=s[0])cur=i});sceneBtns.forEach((b,i)=>b.setAttribute('aria-current',i===cur?'true':'false'))}
+function play(){initAudio();if(AC&&AC.state==='suspended')AC.resume();if(t>=LEN)t=0;resetAudioTrackers();playing=true;ui()}
+function pause(){playing=false;ui()}
+pp.onclick=()=>{playing?pause():play()};
+big.onclick=play;
+rs.onclick=()=>{t=0;play()};
+sc.oninput=()=>{t=parseFloat(sc.value);resetAudioTrackers();ui()};
+fs.onclick=()=>{const el=cv.parentElement;try{const r=(el.requestFullscreen||el.webkitRequestFullscreen).call(el);if(r&&r.catch)r.catch(()=>{})}catch(e){}};
+document.addEventListener('keydown',e=>{if(e.code==='Space'&&e.target===document.body){e.preventDefault();playing?pause():play()}});
+let last=performance.now(),uiTick=0;
+function tick(now){const dt=Math.min(.1,(now-last)/1000);last=now;
+  if(playing){t+=dt;if(t>=LEN){t=LEN;playing=false}if(++uiTick%6===0||!playing)ui()}
+  render(t);audioUpdate(t);requestAnimationFrame(tick)}
+window.__seek=v=>{t=v;render(t)};
+ui();
+const fontsReady=document.fonts?Promise.all([document.fonts.load('700 40px "Pixelify Sans"'),document.fonts.load('500 34px "Pixelify Sans"')]).catch(()=>{}):Promise.resolve();
+fontsReady.then(()=>requestAnimationFrame(tick));
+})();
+</script>
