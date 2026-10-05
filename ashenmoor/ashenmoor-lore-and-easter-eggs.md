@@ -28,9 +28,20 @@ Add this next to the master project file. Rule for every episode and every branc
 
 Where the Episode 2 eggs are in the finished video: the dark closes behind Wick on the stair 0:20 to 0:29 and the hall is swallowed at 1:34; scratched out face 0:53 to 1:00; Queen Isolde's name 1:08; flame symbol on the door 1:19 on, glowing from 2:11; "It is... hers." 1:54; golden light pulsing with the lantern 2:12 to 2:36.
 
+### Episode 3
+| Ep | Egg | Possible payoff |
+|---|---|---|
+| 3 | Gloomhound that did not run: "The key went home. Something wanted it to." (paid off, 1:14) | Who sent the hound is still open. |
+| 3 | The heartbeat is now in the door and in the gold ring at Oswin's hands, speeding up as the lantern comes close (2:18) | The light, the door and Oswin are all tied to the Queen. |
+| 3 | White moth in the sealed room, slips into a crack (1:51 to 2:13) | The Pale Warden's Moth. Something sad is coming. |
+| 3 | "She said to wait for the warm one." (2:55) | The Queen planned for Wick's lantern to come back. |
+| 3 | Oswin's oath chain of pale light (3:06 on) | Freeing him has a cost. |
+| 3 | The Sentry's unfinished secret (3:24) | Episode 4 branch B. |
+| 3 | The Eldmere flame in gold on Oswin's chest | Same symbol as the key, the door and Bram's ring. |
+
 ## 3. EGGS TO PLANT NEXT (ideas)
 - Quillon Fenn the peddler walking by in the background of a village shot (he is secretly Tobias Quickfingers, one of the Seven).
-- A white moth on a windowsill (the Pale Warden's Moth) when something sad is about to happen.
+- A white moth on a windowsill (the Pale Warden's Moth) when something sad is about to happen. (First seen in Episode 3, in the sealed room.)
 - A small snuffed-flame mark chalked on a chimney or lamp post (the cult).
 - Old Marl saying "I saw it first" about something that turns out true.
 - Tilda's terrible bread as a weapon or a clue.

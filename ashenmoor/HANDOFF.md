@@ -2,7 +2,7 @@
 
 Paste this to start a new chat:
 
-> Continue my YouTube series "The Lamplighter of Ashenmoor". Read `ashenmoor/HANDOFF.md`, `ashenmoor/ashenmoor-master-project-file.md` and `ashenmoor/ashenmoor-lore-and-easter-eggs.md` on branch `claude/dreamy-brown-1pd2wv` of `Said123irh/demofiles` first. Episodes 1 and 2 are finished. Build Episode 3 from the script I paste, reusing the Episode 2 page, sprites and export tools. Episode 2 vote winner: [A or B].
+> Continue my YouTube series "The Lamplighter of Ashenmoor". Read `ashenmoor/HANDOFF.md`, `ashenmoor/ashenmoor-master-project-file.md` and `ashenmoor/ashenmoor-lore-and-easter-eggs.md` on branch `claude/dreamy-brown-1pd2wv` of `Said123irh/demofiles` first. Episodes 1 to 3 are finished. Build Episode 4 from the script I paste, reusing the Episode 3 page, sprites and export tools. Episode 3 vote winner: [A or B].
 
 ## Where things are
 
@@ -17,6 +17,10 @@ Repo `Said123irh/demofiles`, branch `claude/dreamy-brown-1pd2wv` (Episode 1 alon
 | `ashenmoor-episode-2.md` | Episode 2 script, matching the finished video, plus the Episode 3 plan for both choices. |
 | `ashenmoor-episode-2.html` | Episode 2 page, built on the Episode 1 page. Artifact: https://claude.ai/artifact/K3fp2YPWgkcHz72XJrPhCz |
 | `ashenmoor-episode-2.mp4` | Episode 2 exported, 1280x720, 30 fps, H.264 + AAC, 3:02. |
+| `ashenmoor-episode-3.md` | Episode 3 script, matching the finished video, plus the Episode 4 plan for both choices. |
+| `ashenmoor-episode-3.html` | Episode 3 page, the first on the fine-grid engine with the hand-drawn sprites. Artifact: https://claude.ai/artifact/G9VpKFuybTeu7jXJZ2MzoU |
+| `ashenmoor-episode-3.mp4` | Episode 3 exported, 1280x720, 30 fps, H.264 + AAC, 3:51. |
+| `assets/sprites/sprites-hd.json` | The hand-drawn fine-grid cast: Wick, Bram, Gloomhound, Sentry (and heap), Sir Oswin (awake and asleep). |
 | `ashenmoor-lore-and-easter-eggs.md` | Crypt lore lock and the easter egg tracker, with where each Episode 2 egg appears. |
 | `wick-sprite-options.html` | The sprite options the creator chose from (option 3, big-head chibi, won). Artifact: https://claude.ai/artifact/92uYeMRbDTrBPF4wa5dtpb |
 | `assets/sprites/sprites.json` | Pixel data and palette for Wick (idle, walk1, walk2), Elder Bram, the Gloomhound and the Bone-Wight Sentry (pile, idle; sword angles for raise and slam). |
@@ -40,10 +44,9 @@ Repo `Said123irh/demofiles`, branch `claude/dreamy-brown-1pd2wv` (Episode 1 alon
 
 ## Episode state
 
-- **Episode 1** choice: A: Go down into the crypt / B: Wake Elder Bram and show him the key. **Winner: A.**
-- **Episode 2** choice: **A: Blast it with a Flare** (Big burst of light. Might scare it off. Might shake the door loose.) / **B: Talk to it** (Safe for now. But Wick would have to tell it who he is, and he does not know yet.)
-- Episode 2 winner: not known yet. Ask the creator which option won before building Episode 3.
-- Facts on screen at the end of Episode 2: Wick is in the crypt with the key and the lantern. The stair behind him is gone, a wall of black. Murals: the Sunwell, the Lantern Seven (one face scratched out), Queen Isolde with a lantern like Wick's, carving "Queen Isolde, last Lamplighter of Eldmere". The Bone-Wight Sentry stands between Wick and the iron door (flame symbol), shaking, sword down; its slam cracked the floor in front of the door. A golden light under the door pulses with the lantern. Bram still has not seen the key.
+- Episode 1 winner: A (crypt). Episode 2 winner: B (talk to it).
+- **Episode 3** choice: **A: Free Oswin.** / **B: Hear the Sentry first.** Winner: not known yet. Ask the creator before building Episode 4.
+- Facts on screen at the end of Episode 3: Wick, the Sentry (sword sheathed, helmet slipped over one eye) and Sir Oswin are in the small round room behind the Queen's door. Oswin sits on his stone bier, awake, held by an oath chain of pale light at his ankle. Wick holds the lantern out toward the chain. The Sentry has stepped forward: there is something he has not told Wick. The white moth went into a crack in the wall. The stair is still gone.
 
 ## How an episode page is built (`ashenmoor-episode-1.html`)
 
@@ -75,9 +78,22 @@ Same engine as Episode 1, timings written directly (`story=x=>x`, `LEN=182`). Ad
 - The recap reuses `sceneForest` and `sceneChapel` from Episode 1 as short clips; `NOTALK` stops mouths moving in them.
 - Overlays: `recapText` (LAST TIME and YOU CHOSE A), `nameCard` (one new character with its tag), `carvingText`, and the white impact flash in `render()`.
 
+### How Episode 3 is built (`ashenmoor-episode-3.html`)
+
+Same engine, but the pixel frame is 640 x 360 (`LW`, `LH`) and `cam()` doubles the zoom internally, so one world pixel is still the same size on screen while the sprites can use half pixels. Backgrounds are unchanged. New pieces:
+
+- `HDS` is `sprites-hd.json` pasted in. `sprH()` draws a sprite at half scale, `RH()` draws a half-pixel rectangle, `PH()` draws in sprite pixels relative to a sprite (and mirrors it).
+- `wick()` on the new sprite. The lantern hangs at his side or chest only: `lift` -0.8 to 1, never above his head. Also `keyUp` (key held up), `swing`, `hop`.
+- `sentry()` adds `flip`, `tilt`, `slip` (helmet over one eye), `noSword`. `swordH()` draws the sword in half pixels and stops at the floor.
+- `oswin(x, groundY, t, {pose: 'lie'|'sit'|'stand', eyes, shake})`: drawn after the dark, slightly see-through. `chain()` is the oath chain. `moth()` is the Pale Warden's moth.
+- `openDoor()` (the Queen's door swinging in, gold light kept low) and `room()` (the round room and the bier).
+- `beatOf`/`beatP`/`ringPhase`: the lantern heartbeat, and the ring that speeds up smoothly.
+- The recap reuses Episode 2's scene functions, which are kept in the file.
+- Exporting takes longer than before (4x the pixels per frame).
+
 ### Making the next episode cheaply
 
-Copy the latest episode page (now `ashenmoor-episode-2.html`) to the new episode, keep the engine sections, and replace: `SCENES`, the scene functions, `SUBS`, `EVT`, `MUSIC`, the choice options, the title text, and the 10 second "Last time" recap (reuse an Episode 1 scene function as the recap image). Add only one new thing per episode (a character or a location), as the master file says.
+Copy the latest episode page (now `ashenmoor-episode-3.html`) to the new episode, keep the engine sections, and replace: `SCENES`, the scene functions, `SUBS`, `EVT`, `MUSIC`, the choice options, the title text, and the 10 second "Last time" recap (reuse an Episode 1 scene function as the recap image). Add only one new thing per episode (a character or a location), as the master file says.
 
 ## Export to MP4
 

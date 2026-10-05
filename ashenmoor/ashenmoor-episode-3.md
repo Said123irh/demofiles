@@ -2,6 +2,8 @@
 ## Episode 3: WHO GOES THERE
 *Branch: B won ("Talk to it"). New thing this episode: Sir Oswin Hale (new character, no new location).*
 
+**Length:** 3:51. Timings below match the finished video (`ashenmoor-episode-3.html`, `ashenmoor-episode-3.mp4`). First episode drawn with the hand-drawn fine-grid sprites (`assets/sprites/sprites-hd.json`).
+
 **FRAMING NOTES FOR ANIMATION**
 - Keep all characters in the upper area of every shot so subtitles never cover them.
 - Wick holds the lantern out to his side or in front of his chest. Nothing glows above his head.
@@ -10,15 +12,15 @@
 
 ---
 
-### SCENE 1: RECAP (0:00 to 0:10)
+### SCENE 1: RECAP (0:00 to 0:10), then a short title card (0:10 to 0:13)
 
-*Old stills from Episode 2, fast cuts: the stair vanishing, the iron door with the flame symbol, the Sentry blocking the way.*
+*Old stills from Episode 2, fast cuts: the stair vanishing, the iron door with the flame symbol, the Sentry blocking the way. A "YOU CHOSE B: Talk to it." banner. Then the title card: "EPISODE 3: WHO GOES THERE".*
 
 **NARRATOR:** Last time, Wick walked into the crypt. The stair vanished. A skeleton guard blocked the door, then saw the lantern. And you voted: talk to it.
 
 ---
 
-### SCENE 2: HELLO, SKELETON (0:10 to 0:55)
+### SCENE 2: HELLO, SKELETON (0:13 to 1:24)
 
 *The end of the hall. Wick is small in the upper half of the frame, the Sentry stands in front of the iron door. Wick slowly lowers the lantern to his side. The lantern pulses. The door pulses. Same rhythm.*
 
@@ -66,7 +68,7 @@
 
 ---
 
-### SCENE 3: THE DOOR OPENS (0:55 to 1:25)
+### SCENE 3: THE DOOR OPENS (1:24 to 1:51)
 
 *The Sentry steps aside, one stiff step. His knees creak very loudly (funny sound). Quick cut: Wick looks down at the knees.*
 
@@ -90,13 +92,15 @@
 
 ---
 
-### SCENE 4: THE KNIGHT WHO SLEEPS (1:25 to 2:10)
+### SCENE 4: THE KNIGHT WHO SLEEPS (1:51 to 2:22)
 
 *A small round stone room. Bare walls. In the middle, a stone bier. On it lies a ghost knight in old Eldmere armor, pale blue and a little see-through, very still, hands folded over a sword. Around the hands is a faint ring of gold light, pulsing in the exact lantern rhythm. In the far background of the shot, tiny and easy to miss: a white moth.*
 
 **WICK:** *(whispering)* He glows at my speed too. Everything down here has my heartbeat.
 
 **NARRATOR:** This was Sir Oswin Hale. The knight who still guards a door.
+
+*Name card: "SIR OSWIN HALE. The knight who still guards a door."*
 
 **SENTRY:** *(almost proud)* The finest sword in all of Eldmere.
 
@@ -112,7 +116,7 @@
 
 ---
 
-### SCENE 5: GOOD MORNING (2:10 to 3:10)
+### SCENE 5: GOOD MORNING (2:22 to 3:36)
 
 *Oswin's eyes snap open, pale blue. He sits straight up. His armor CLANKS loudly. Wick yelps, jumps back, the lantern swings, and he catches it.*
 
@@ -170,7 +174,7 @@
 
 ---
 
-### SCENE 6: THE CHOICE (3:10 to 3:25)
+### SCENE 6: THE CHOICE (3:36 to 3:51)
 
 *Freeze frame: Wick in the middle, Oswin on the bier to one side, the Sentry on the other. Two options appear on screen.*
 
