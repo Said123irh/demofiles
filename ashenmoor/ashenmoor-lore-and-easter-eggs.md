@@ -26,7 +26,7 @@ Add this next to the master project file. Rule for every episode and every branc
 | 2 | Wick says the stair behind him vanished | The crypt only lets in someone carrying the Queen's light. |
 | 2 | Golden light under the Queen's door pulses with the lantern (double heartbeat, every 1.4 s) | Something inside reacts to the last spark. Mysterious first, then a good surprise. |
 
-Where the Episode 2 eggs are in the finished video: the dark closes behind Wick on the stair 0:36 to 0:49 and the hall is swallowed at 2:17; scratched out face 1:21 to 1:34; Queen Isolde's name 1:43; flame symbol on the door 2:00 on, glowing from 3:02; "It is... hers." 2:42; golden light pulsing with the lantern 3:04 to 3:33.
+Where the Episode 2 eggs are in the finished video: the dark closes behind Wick on the stair 0:20 to 0:29 and the hall is swallowed at 1:34; scratched out face 0:53 to 1:00; Queen Isolde's name 1:08; flame symbol on the door 1:19 on, glowing from 2:11; "It is... hers." 1:54; golden light pulsing with the lantern 2:12 to 2:36.
 
 ## 3. EGGS TO PLANT NEXT (ideas)
 - Quillon Fenn the peddler walking by in the background of a village shot (he is secretly Tobias Quickfingers, one of the Seven).

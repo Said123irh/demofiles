@@ -54,8 +54,8 @@ h2{font-family:var(--body);font-weight:700;font-size:20px;margin:6px 0 0;color:v
   <div class="bar">
     <button id="pp">Play</button>
     <button id="rs">Restart</button>
-    <input type="range" id="sc" min="0" max="246" step="0.01" value="0" aria-label="Timeline">
-    <span class="time" id="tm">0:00 / 4:06</span>
+    <input type="range" id="sc" min="0" max="182" step="0.01" value="0" aria-label="Timeline">
+    <span class="time" id="tm">0:00 / 3:02</span>
     <button id="fs">Full screen</button>
   </div>
   <h2>Scenes</h2>
@@ -65,7 +65,7 @@ h2{font-family:var(--body);font-weight:700;font-size:20px;margin:6px 0 0;color:v
 
 <script>
 (function(){
-const cv=document.getElementById('c'),M=cv.getContext('2d'),W=1280,H=720,STORY=246,LEN=246;
+const cv=document.getElementById('c'),M=cv.getContext('2d'),W=1280,H=720,STORY=182,LEN=182;
 // Episode 2 timings are written directly, so story time and playback time are the same.
 const story=x=>x,play2=x=>x;
 const LW=320,LH=180;                     // the pixel frame, scaled x4 to the screen
@@ -82,17 +82,17 @@ const mixc=(a,b,k)=>{const A=parseInt(a.slice(1),16),B=parseInt(b.slice(1),16);c
 /* ---------- scene list (from the script) ---------- */
 const SCENES=[
   [0,'Last time','The key, the stair, and your vote: A.'],
-  [11,'Title card','Episode 2: Down the Stair.'],
-  [25,'The stair','Wick goes down. The dark closes behind him.'],
-  [67,'The murals','The Sunwell, seven heroes, and a queen with Wick\'s lantern.'],
-  [118,'The Sentry','A Bone-Wight guards the Queen\'s door.'],
-  [181.5,'The door','A golden light pulses with Wick\'s lantern.'],
-  [213,'The choice','A: blast it with a Flare. B: talk to it.']
+  [8,'Title card','Episode 2: Down the Stair.'],
+  [13,'The stair','Wick goes down. The dark closes behind him.'],
+  [43,'The murals','The Sunwell, seven heroes, and a queen with Wick\'s lantern.'],
+  [79,'The Sentry','A Bone-Wight guards the Queen\'s door.'],
+  [131,'The door','A golden light pulses with Wick\'s lantern.'],
+  [156.4,'The choice','A: blast it with a Flare. B: talk to it.']
 ];
 
 /* ---------- camera and pixel helpers ---------- */
-let CX=0,CY=0,Z=1;
-function cam(x,y,z){Z=z;CX=Math.round(x*z)/z;CY=Math.round(y*z)/z;applyCam()}
+let CX=0,CY=0,Z=1,YOFF=0;   // YOFF lifts reused Episode 1 shots clear of the subtitles
+function cam(x,y,z){y+=YOFF;Z=z;CX=Math.round(x*z)/z;CY=Math.round(y*z)/z;applyCam()}
 function applyCam(){g.setTransform(Z,0,0,Z,-CX*Z,-CY*Z)}
 function screen(){g.setTransform(1,0,0,1,0,0)}
 function R(x,y,w,h,c){g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),w,h)}
@@ -235,7 +235,7 @@ function village(tt,o){
 }
 
 /* ---------- the crypt hall (world x -40 to 400, wall 50 to 148, floor from 148) ---------- */
-const MX=[36,92,148],MYS=[92,92,104],VX=214;   // mural left edges and tops, edge of the dark that ate the stair
+const MX=[36,92,148],MY=92,VX=214;   // mural left edges, mural top, edge of the dark that ate the stair
 const HALL=document.createElement('canvas');HALL.width=440;HALL.height=130;
 (function(){const x=HALL.getContext('2d'),P=(a,b,w,h,c)=>{x.fillStyle=c;x.fillRect(a,b,w,h)};
   P(0,0,440,98,'#1c2238');
@@ -299,14 +299,15 @@ function door(o){
 function hall(tt,o){
   screen();R(0,0,LW,LH,'#05060c');applyCam();
   g.drawImage(HALL,-40,50);
-  MX.forEach((mx,i)=>{const my=MYS[i];R(mx-1,my-1,50,34,'#2a2434');g.drawImage(MUR[i].dull,mx,my);const k=o.m?o.m[i]:0;
+  MX.forEach((mx,i)=>{const my=MY;R(mx-1,my-1,50,34,'#2a2434');g.drawImage(MUR[i].dull,mx,my);const k=o.m?o.m[i]:0;
     if(k>0){EM.push(()=>{g.globalAlpha=k;g.drawImage(MUR[i].lit,mx,my);g.globalAlpha=1});light(mx+24,my+16,26*k,.35*k)}});
-  if(o.count>=0&&o.count<7){const [fx,fy]=FIG[o.count];EM.push(()=>R(MX[1]+fx,MYS[1]+fy+7,2,1,'#fff6c8'));light(MX[1]+fx+1,MYS[1]+fy+7,5,.6)}
+  if(o.count>=0&&o.count<7){const [fx,fy]=FIG[o.count];EM.push(()=>R(MX[1]+fx,MY+fy+7,2,1,'#fff6c8'));light(MX[1]+fx+1,MY+fy+7,5,.6)}
   // the carved plate under the queen
-  R(156,138,40,6,'#3a3646');R(156,138,40,1,'#4a4658');
-  const marks=[];for(let i=0;i<13;i++)if(i!==5)marks.push([164+i*2,140]);for(let i=0;i<18;i++)if(i!==4&&i!==15)marks.push([158+i*2,142]);
+  // (the murals hang above Wick's head, so their glow never draws over him)
+  R(166,126,30,6,'#3a3646');R(166,126,30,1,'#4a4658');
+  const marks=[];for(let i=0;i<9;i++)if(i!==4)marks.push([172+i*2,128]);for(let i=0;i<13;i++)if(i!==3&&i!==10)marks.push([168+i*2,130]);
   for(const [a,b] of marks)R(a,b,1,1,'#24202e');
-  const pk=o.plate||0;if(pk>0){EM.push(()=>{g.globalAlpha=pk;for(const [a,b] of marks)R(a,b,1,1,'#ffcc66');g.globalAlpha=1});light(176,141,18*pk,.4*pk)}
+  const pk=o.plate||0;if(pk>0){EM.push(()=>{g.globalAlpha=pk;for(const [a,b] of marks)R(a,b,1,1,'#ffcc66');g.globalAlpha=1});light(181,129,16*pk,.4*pk)}
   door(o.door||{});
   // the hall ends at the Queen's door; a faint cold light shows its shape
   light(316,118,48,.28,true);
@@ -394,19 +395,19 @@ function sceneChapel(tt){
   lightPass(.86,tt);
 }
 
-/* ---------- Scene 1: last time (1 to 11), then the title card (11 to 25) ---------- */
+/* ---------- Scene 1: last time (0 to 8), then the title card (8 to 13) ---------- */
 let NOTALK=false;
 function sceneRecap(tt){
   NOTALK=true;
-  if(tt<4.3)sceneForest(148.6+Math.max(0,tt-1)*.9);       // the Gloomhounds run away
-  else if(tt<7.6)sceneForest(183.4+(tt-4.3)*.6);           // the glowing key points to the chapel
-  else sceneChapel(189.4+(tt-7.6)*1.1);                    // the hidden stair opens
-  NOTALK=false;
+  if(tt<3){YOFF=12;sceneForest(148.6+Math.max(0,tt-.3)*1.1)}   // the Gloomhounds run away
+  else if(tt<5.5){YOFF=12;sceneForest(183.6+(tt-3)*.8)}          // the glowing key points to the chapel
+  else sceneChapel(189.2+(tt-5.5)*1.3);                          // the hidden stair opens
+  YOFF=0;NOTALK=false;
 }
 
-/* ---------- Scene 2: the stair (25 to 67) ---------- */
+/* ---------- Scene 2: the stair (13 to 43) ---------- */
 function stairWick(tt){
-  const wx=lerp(42,128,clamp((tt-35)/9,0,1)),idx=Math.floor((wx+7-58)/5);
+  const wx=lerp(42,128,clamp((tt-19.6)/6.4,0,1)),idx=Math.floor((wx+7-58)/5);
   return [Math.round(wx),idx<0?60:64+Math.min(idx,15)*3];
 }
 function chapelStair(moon){
@@ -420,86 +421,87 @@ function chapelStair(moon){
 }
 function lookUp(tt){
   begin();cam(0,0,1);
-  const k=sm(44.6,48.6,tt),s=Math.round(lerp(34,2,k)),cx=160,cy=34;
-  for(let j=0;j<10;j++){const f=j/10,w=Math.round(lerp(150,s+6,f)),y=Math.round(lerp(176,cy+s/2+2,Math.pow(f,.7)));R(cx-w/2,y,w,2,'#3c3a48');R(cx-w/2,y,w,1,'#5c5866')}
-  if(tt<48.8){EM.push(()=>{R(cx-s/2,cy-s/2,s,s,'#6a7290');if(s>4)R(cx-s/2+1,cy-s/2+1,s-2,s-2,'#8a92b0')});light(cx,cy,s*1.6+4,.8,true)}
-  wick(146,176,tt,{bright:1.1,key:true,lift:.2,shake:true});
+  const k=sm(26.3,28.8,tt),s=Math.round(lerp(34,2,k)),cx=160,cy=30;
+  for(let j=0;j<10;j++){const f=j/10,w=Math.round(lerp(150,s+6,f)),y=Math.round(lerp(146,cy+s/2+2,Math.pow(f,.7)));R(cx-w/2,y,w,2,'#3c3a48');R(cx-w/2,y,w,1,'#5c5866')}
+  if(tt<29){EM.push(()=>{R(cx-s/2,cy-s/2,s,s,'#6a7290');if(s>4)R(cx-s/2+1,cy-s/2+1,s-2,s-2,'#8a92b0')});light(cx,cy,s*1.6+4,.8,true)}
+  wick(146,146,tt,{bright:1.1,key:true,lift:.2,shake:true});
   lightPass(.95,tt);
 }
 function sceneStair(tt){
-  if(tt>=44&&tt<49.5){lookUp(tt);return}
+  if(tt>=26&&tt<29.4){lookUp(tt);return}
   begin();
-  if(tt<44){
-    const [wx,gy]=stairWick(tt),k=sm(35,44,tt);
+  if(tt<26){
+    const [wx,gy]=stairWick(tt),k=sm(19.6,26,tt);
     cam(Math.round(lerp(0,60,k)),Math.round(lerp(20,62,k)),2);
     chapelStair(1-k);
-    wick(wx,gy,tt,{key:true,kg:tt>33&&tt<37?1:0,shake:tt<35,walk:tt>=35,bright:1.3,talk:talking('W',tt),lift:.3});
+    wick(wx,gy,tt,{key:true,kg:tt>18.5&&tt<21.5?1:0,shake:tt<19.6,walk:tt>=19.6,bright:1.3,talk:talking('W',tt),lift:.3});
     // the key tugs toward the dark like a compass
-    if(tt>33&&tt<37.5){for(let i=0;i<10;i++){const q=((tt-33)*.5+i/10)%1,sx=lerp(wx+3,128,q),sy=lerp(gy-4,110,q)+Math.sin(tt*5+i);
+    if(tt>18.5&&tt<21.5){for(let i=0;i<10;i++){const q=((tt-18.5)*.6+i/10)%1,sx=lerp(wx+3,128,q),sy=lerp(gy-4,110,q)+Math.sin(tt*5+i);
       if(rnd(i+Math.floor(tt*10))>.25)EM.push(()=>R(Math.round(sx),Math.round(sy),1,1,i%3?'#ff9a3c':'#ffe0a0'));if(i%4===0)light(sx,sy,5,.5)}}
     lightPass(lerp(.86,.95,k),tt);
     // each step he takes, the dark closes behind him
-    if(tt>36){applyCam();const edge=wx-3;for(let y=Math.floor(CY);y<CY+LH/Z;y+=2){const e=edge+Math.round(2*Math.sin(y*.4+tt*3));R(CX-2,y,e-(CX-2),2,'#000')}}
+    if(tt>20.2){applyCam();const edge=wx-3;for(let y=Math.floor(CY);y<CY+LH/Z;y+=2){const e=edge+Math.round(2*Math.sin(y*.4+tt*3));R(CX-2,y,e-(CX-2),2,'#000')}}
     return}
-  // alone at the bottom, the only light is in his hand
-  cam(117,GY-34,4);
+  // alone at the bottom, close up and above the subtitles; the only light is in his hand
+  cam(117,GY-26,4);
   R(60,GY,240,30,'#1a1822');R(60,GY,240,1,'#24222e');
-  let b=1;if(tt>62&&tt<62.8)b=1+1.1*Math.sin((tt-62)/.8*Math.PI);else if(tt>=62.8)b=lerp(1,1.35,sm(62.8,64,tt));
-  wick(150,GY,tt,{talk:talking('W',tt),bright:b,lift:tt>51?.6:0,key:true,shake:tt<62});
+  let b=1;if(tt>38.8&&tt<39.6)b=1+1.1*Math.sin((tt-38.8)/.8*Math.PI);else if(tt>=39.6)b=lerp(1,1.35,sm(39.6,40.6,tt));
+  wick(150,GY,tt,{talk:talking('W',tt),bright:b,lift:tt>30.6?.6:0,key:true,shake:tt<38.8});
   lightPass(.97,tt);
 }
 
-/* ---------- Scene 3: the murals (67 to 118) ---------- */
-function wickX3(tt){if(tt<72)return lerp(0,30,(tt-67)/5);if(tt<80)return lerp(30,86,(tt-72)/8);if(tt<93.8)return 86;if(tt<99.2)return lerp(86,142,(tt-93.8)/5.4);return 142}
+/* ---------- Scene 3: the murals (43 to 79) ---------- */
+function wickX3(tt){if(tt<47)return lerp(0,30,(tt-43)/4);if(tt<49)return 30;if(tt<53.4)return lerp(30,86,(tt-49)/4.4);if(tt<60.6)return 86;if(tt<65)return lerp(86,148,(tt-60.6)/4.4);return 148}
 function sceneHall(tt){
-  begin();const wx=Math.round(wickX3(tt)),walk=tt<80||(tt>=93.8&&tt<99.2);
-  if(tt>=80.5&&tt<94)cam(76,92,4);else if(tt>=99.2)cam(132,lerp(101,112,sm(102.2,103.2,tt)),4);else cam(clamp(wx-50,-20,200),70,2);
-  hall(tt,{m:[sm(68.4,70.4,tt),sm(78.4,80.4,tt),sm(96.6,98.6,tt)],count:tt>=81.2&&tt<85?Math.floor((tt-81.2)/.54):-1,plate:sm(102.4,103.6,tt)});
-  let b=1.25;if(tt>115&&tt<115.8)b=1.25+.8*Math.sin((tt-115)/.8*Math.PI);
-  const lift=tt>=99.2?lerp(0,2.4,sm(99.3,99.9,tt)):(tt>=80.5&&tt<94?.4:0);
+  begin();const wx=Math.round(wickX3(tt)),walk=(tt<47)||(tt>=49&&tt<53.4)||(tt>=60.6&&tt<65);
+  if(tt>=53.6&&tt<60.6)cam(76,86,4);else cam(clamp(wx-40,-20,108),82,2);
+  hall(tt,{m:[sm(44,45.6,tt),sm(52.2,53.6,tt),sm(63.4,64.8,tt)],count:tt>=54&&tt<57.2?Math.floor((tt-54)/.45):-1,plate:sm(67.8,68.6,tt)});
+  let b=1.25;if(tt>77.6&&tt<78.3)b=1.25+.8*Math.sin((tt-77.6)/.7*Math.PI);
+  const lift=tt>=65?lerp(0,2.4,sm(65.1,65.6,tt)):0;
   wick(wx,GY,tt,{walk,talk:talking('W',tt),bright:b,lift,key:true});
   fog(tt,.25,GY-22);lightPass(.9,tt);
 }
 
-/* ---------- Scene 4: the Sentry (118 to 181.5) ---------- */
-function wickX4(tt){if(tt<124)return lerp(218,250,(tt-118)/6);if(tt<137)return 250;if(tt<139.5)return lerp(250,228,(tt-137)/2.5);if(tt<146)return 228;
-  if(tt<148)return lerp(228,244,(tt-146)/2);if(tt<150.65)return 244;if(tt<151.15)return lerp(244,234,(tt-150.65)/.5);return 234}
+/* ---------- Scene 4: the Sentry (79 to 131) ---------- */
+function wickX4(tt){if(tt<82.5)return lerp(218,250,(tt-79)/3.5);if(tt<93.8)return 250;if(tt<95.6)return lerp(250,228,(tt-93.8)/1.8);if(tt<100.8)return 228;
+  if(tt<102.4)return lerp(228,244,(tt-100.8)/1.6);if(tt<104.55)return 244;if(tt<105.05)return lerp(244,234,(tt-104.55)/.5);return 234}
 function swordAt(tt){
-  if(tt<148.5)return [2.18,0];
-  if(tt<150.2)return [lerp(2.18,4.54,sm(148.5,150.2,tt)),0];
-  if(tt<150.6)return [4.54,0];
-  if(tt<150.75)return [lerp(4.54,2.53,(tt-150.6)/.15),3*(tt-150.6)/.15];
-  if(tt<153.5)return [2.53,3];
-  return [lerp(2.53,2.18,sm(153.5,155,tt)),Math.round(lerp(3,0,sm(153.5,155,tt)))];
+  if(tt<102.8)return [2.18,0];
+  if(tt<104.2)return [lerp(2.18,4.54,sm(102.8,104.2,tt)),0];
+  if(tt<104.5)return [4.54,0];
+  if(tt<104.65)return [lerp(4.54,2.53,(tt-104.5)/.15),3*(tt-104.5)/.15];
+  if(tt<107)return [2.53,3];
+  return [lerp(2.53,2.18,sm(107,108.2,tt)),Math.round(lerp(3,0,sm(107,108.2,tt)))];
 }
 function sceneSentry(tt){
   begin();
-  const cx=200-50*sm(136.8,139.6,tt)+50*sm(144.6,147,tt);cam(Math.round(cx),70,2);
+  const cx=200-50*sm(93.6,95.8,tt)+50*sm(100.2,102,tt);cam(Math.round(cx),82,2);
   hall(tt,{m:[1,1,1]});
-  const sxp=tt<148?274:Math.round(lerp(274,266,sm(148,149.6,tt)));
-  const rise=tt<124.8?0:sm(124.8,127.6,tt);
-  let eyes=tt<124?0:sm(124,124.6,tt);if(tt>151.6&&tt<154)eyes=rnd(Math.floor(tt*12))>.4?1:.3;
+  const sxp=tt<102.4?274:Math.round(lerp(274,266,sm(102.4,103.6,tt)));
+  const rise=tt<83.2?0:sm(83.2,85.6,tt);
+  let eyes=tt<82.6?0:sm(82.6,83.1,tt);if(tt>105.4&&tt<107.2)eyes=rnd(Math.floor(tt*12))>.4?1:.3;
   const [sw,drop]=swordAt(tt);
   sentry(sxp,GY,tt,{rise,sw,drop,eyes,talk:talking('S',tt)});
   // the slam: cracks stay in the floor, dust flies
-  if(tt>=150.75){const tx=254;[[0,0],[-1,1],[1,1],[-2,2],[2,1],[-3,1],[3,2],[1,3]].forEach(([a,b])=>R(tx+a,GY+b,1,1,'#07060c'))}
-  if(tt>=150.75&&tt<153){const dt=tt-150.75;for(let i=0;i<18;i++){const vx=(rnd(i+500)-.5)*36,vy=-(10+rnd(i+600)*26),px=254+vx*dt,py=GY+vy*dt+30*dt*dt;
+  if(tt>=104.65){const tx=254;[[0,0],[-1,1],[1,1],[-2,2],[2,1],[-3,1],[3,2],[1,3]].forEach(([a,b])=>R(tx+a,GY+b,1,1,'#07060c'))}
+  if(tt>=104.65&&tt<106.9){const dt=tt-104.65;for(let i=0;i<18;i++){const vx=(rnd(i+500)-.5)*36,vy=-(10+rnd(i+600)*26),px=254+vx*dt,py=GY+vy*dt+30*dt*dt;
     if(py<=GY)EM.push(()=>{g.globalAlpha=1-dt/2.25;R(px,py,1,1,i%3?'#8a8090':'#b0a8b8');g.globalAlpha=1})}}
-  const wx=Math.round(wickX4(tt)),hop=tt>=150.65&&tt<151.15?5*Math.sin((tt-150.65)/.5*Math.PI):0;
-  let b=1.25;if(tt>151.2&&tt<165)b=1.45;
-  wick(wx,GY,tt,{flip:tt>=136.8&&tt<145.4,walk:tt<124||(tt>=137&&tt<139.5)||(tt>=146&&tt<148),shake:(tt>128&&tt<133.6)||(tt>150.6&&tt<152),
-    talk:talking('W',tt),bright:b,hop,lift:tt>151.2?.5:0,key:true});
+  const wx=Math.round(wickX4(tt)),hop=tt>=104.55&&tt<105.05?5*Math.sin((tt-104.55)/.5*Math.PI):0;
+  let b=1.25;if(tt>105.1&&tt<117)b=1.45;
+  wick(wx,GY,tt,{flip:tt>=93.6&&tt<100.6,walk:tt<82.5||(tt>=93.8&&tt<95.6)||(tt>=100.8&&tt<102.4),shake:(tt>86&&tt<91)||(tt>104.5&&tt<106),
+    talk:talking('W',tt),bright:b,hop,lift:tt>105.1?.5:0,key:true});
   fog(tt,.25,GY-22);lightPass(.88,tt);voidDark(tt);
 }
 
-/* ---------- Scene 5: the door (181.5 to 213), Scene 6: the choice (213 on) ---------- */
+/* ---------- Scene 5: the door (131 to 156.4), Scene 6: the choice (156.4 on) ---------- */
 // one heartbeat: a double pulse every 1.4 seconds. The lantern, the key and the light behind the door share it.
-function beat(tt){const p=(((tt-184)%1.4)+1.4)%1.4/1.4,G=c=>Math.exp(-Math.pow((p-c)/.05,2));return G(0)+.6*G(.2)+G(1)}
+const B0=132.6;
+function beat(tt){const p=(((tt-B0)%1.4)+1.4)%1.4/1.4,G=c=>Math.exp(-Math.pow((p-c)/.05,2));return G(0)+.6*G(.2)+G(1)}
 function sceneDoor(tt){
-  begin();cam(190,78,2);
-  const bt=tt>184?beat(tt):0,sym=sm(182.5,184.5,tt)*(.6+.4*bt),gap=tt>184?.2+.8*bt:sm(182.5,184,tt)*.2;
+  begin();cam(190,82,2);
+  const bt=tt>B0?beat(tt):0,sym=sm(131.4,132.8,tt)*(.6+.4*bt),gap=tt>B0?.2+.8*bt:sm(131.4,132.6,tt)*.2;
   hall(tt,{m:[1,1,1],door:{sym,gap}});
-  const shake=tt>194&&tt<204;
+  const shake=tt>140&&tt<148.4;
   sentry(266,GY,tt,{rise:1,sw:2.18+(shake?.06*Math.sin(tt*40):0),eyes:1,shake,talk:talking('S',tt)});
   [[0,0],[-1,1],[1,1],[-2,2],[2,1],[-3,1],[3,2],[1,3]].forEach(([a,b])=>R(254+a,GY+b,1,1,'#07060c'));
   wick(234,GY,tt,{bright:1.2+.6*bt,lift:.5,key:true,kg:bt,talk:talking('W',tt)});
@@ -509,94 +511,95 @@ function sceneDoor(tt){
 /* ---------- subtitles ---------- */
 const VOICE={N:['NARRATOR','#c9b7ff'],W:['WICK','#ffb347'],B:['ELDER BRAM','#9fd3c7'],S:['SENTRY','#8fd0ff']};
 const SUBS=[
-  [1.4,5.9,'N','Last time, Wick, a nervous lamplighter, found a glowing key under the chapel.'],
-  [6.2,8.1,'N','You voted to go down.'],
-  [8.4,10.6,'N','So down we go.'],
-  [26.0,29.3,'W','Okay. Stairs. I love stairs.'],
-  [29.6,33.4,'W','Stairs are just a hill that goes inside.'],
-  [38.6,42.8,'N','Wick is afraid of one thing more than monsters.'],
-  [43.1,45.2,'N','Total darkness.'],
-  [45.6,50.6,'N','And now the only light in the whole crypt is the one in his hand.'],
-  [52.4,56.6,'W','Please do not go out. Please do not go out.'],
-  [56.9,61.4,'W','I will never complain about the smell of lamp oil again.'],
-  [63.6,66.2,'W','...Thank you. Good lantern.'],
-  [69.0,71.2,'N','This is the Sunwell.'],
-  [71.5,75.6,'N','A hundred years ago, it held a piece of the sun.'],
-  [75.9,79.6,'N','Everything was bright. Everything was safe.'],
-  [81.2,85.2,'W','Seven heroes... Elder Bram never told me about these.'],
-  [85.5,88.6,'W','...Why is that one scratched out?'],
-  [89.0,93.6,'N','Some things are scratched out on purpose. Remember that.'],
-  [100.0,102.4,'W','...That\'s my lantern.'],
-  [104.2,110.0,'W','My lantern is on a wall. In a painting. A hundred years old.'],
-  [110.4,114.6,'W','...Okay. Now I am scared in a brand new way.'],
-  [128.0,133.4,'S','HALT. NONE MAY PASS. THE QUEEN\'S DOOR IS SEALED.'],
-  [133.8,136.6,'W','Hi. Sorry. Wrong door. Going now.'],
-  [140.0,142.0,'W','...No way back.'],
-  [142.3,146.0,'W','Great. Love that for me. Forward it is.'],
-  [154.4,157.8,'S','The stair opens for one light only.'],
-  [158.2,161.6,'S','...That light. It is warm.'],
-  [162.0,164.8,'S','It is... hers.'],
-  [165.4,169.6,'N','Bone-Wights are the old soldiers of Eldmere.'],
-  [169.9,172.2,'N','They never stopped guarding.'],
-  [172.5,175.0,'N','They never learned the war was over.'],
-  [175.3,180.8,'N','And this one has just seen a light it thought it would never see again.'],
-  [186.0,190.4,'W','...It is glowing at the same speed as my lantern.'],
-  [190.7,193.0,'W','Why is it doing that?'],
-  [195.0,199.4,'S','I cannot let you in. But I cannot stop you.'],
-  [199.8,203.6,'S','...Which is it? Which is it?'],
-  [204.2,206.6,'N','The Sentry is confused.'],
-  [206.9,212.4,'N','And a confused guard with a very big sword is the most dangerous kind.'],
-  [214.0,216.8,'N','The Sentry will not step aside.'],
-  [217.1,222.0,'N','The door will not open without a fight, or a very good reason.'],
-  [222.3,224.4,'N','What does Wick do?'],
-  [232.0,237.4,'N','You decide. Comment A or B on the pinned comment below.'],
-  [237.6,239.8,'N','See you tomorrow.']
+  [0.5,4.6,'N','Last time, Wick, a nervous lamplighter, found a glowing key under the chapel.'],
+  [4.8,6.4,'N','You voted to go down.'],
+  [6.6,8.0,'N','So down we go.'],
+  [13.4,16.0,'W','Okay. Stairs. I love stairs.'],
+  [16.2,19.4,'W','Stairs are just a hill that goes inside.'],
+  [21.0,24.6,'N','Wick is afraid of one thing more than monsters.'],
+  [24.8,26.4,'N','Total darkness.'],
+  [26.7,31.0,'N','And now the only light in the whole crypt is the one in his hand.'],
+  [31.4,34.8,'W','Please do not go out. Please do not go out.'],
+  [35.0,38.6,'W','I will never complain about the smell of lamp oil again.'],
+  [40.0,42.2,'W','...Thank you. Good lantern.'],
+  [44.4,46.0,'N','This is the Sunwell.'],
+  [46.2,49.6,'N','A hundred years ago, it held a piece of the sun.'],
+  [49.8,52.8,'N','Everything was bright. Everything was safe.'],
+  [54.0,57.6,'W','Seven heroes... Elder Bram never told me about these.'],
+  [57.8,60.4,'W','...Why is that one scratched out?'],
+  [65.6,67.6,'W','...That\'s my lantern.'],
+  [68.8,73.6,'W','My lantern is on a wall. In a painting. A hundred years old.'],
+  [73.9,77.4,'W','...Okay. Now I am scared in a brand new way.'],
+  [86.0,90.8,'S','HALT. NONE MAY PASS. THE QUEEN\'S DOOR IS SEALED.'],
+  [91.0,93.6,'W','Hi. Sorry. Wrong door. Going now.'],
+  [95.8,97.4,'W','...No way back.'],
+  [97.6,100.8,'W','Great. Love that for me. Forward it is.'],
+  [107.4,110.6,'S','The stair opens for one light only.'],
+  [110.8,113.6,'S','...That light. It is warm.'],
+  [113.9,116.4,'S','It is... hers.'],
+  [116.8,120.6,'N','Bone-Wights are the old soldiers of Eldmere.'],
+  [120.8,122.8,'N','They never stopped guarding.'],
+  [123.0,125.4,'N','They never learned the war was over.'],
+  [125.6,130.6,'N','And this one has just seen a light it thought it would never see again.'],
+  [133.4,137.6,'W','...It is glowing at the same speed as my lantern.'],
+  [137.8,139.8,'W','Why is it doing that?'],
+  [140.4,144.6,'S','I cannot let you in. But I cannot stop you.'],
+  [144.8,148.2,'S','...Which is it? Which is it?'],
+  [148.6,150.8,'N','The Sentry is confused.'],
+  [151.0,156.0,'N','And a confused guard with a very big sword is the most dangerous kind.'],
+  [157.4,160.0,'N','The Sentry will not step aside.'],
+  [160.2,164.8,'N','The door will not open without a fight, or a very good reason.'],
+  [165.0,166.8,'N','What does Wick do?'],
+  [170.0,174.8,'N','You decide. Comment A or B on the pinned comment below.'],
+  [175.0,176.8,'N','See you tomorrow.']
 ];
 function talking(who,tt){if(NOTALK)return false;const c={WICK:'W',BRAM:'B'}[who]||who;for(const s of SUBS)if(s[2]===c&&tt>=s[0]&&tt<s[1]-.2)return true;return false}
 function wrap(text,maxW){const out=[];let cur='';for(const w of text.split(' ')){const t2=cur?cur+' '+w:w;if(M.measureText(t2).width>maxW&&cur){out.push(cur);cur=w}else cur=t2}out.push(cur);return out}
+// compact box low on the screen; every shot keeps its characters above it
 function subtitle(tt){
   for(const s of SUBS){if(tt<s[0]||tt>=s[1])continue;
     const [name,col]=VOICE[s[2]],a=Math.min(sm(s[0],s[0]+.15,tt),1-sm(s[1]-.15,s[1],tt));
-    M.save();M.globalAlpha=a;M.font='400 34px '+PIX;const lines=wrap(s[3],1000),lh=42;
-    const bw=Math.min(1100,Math.max(...lines.map(l=>M.measureText(l).width))+64),bh=lines.length*lh+58,bx=(W-bw)/2,by=H-bh-26;
+    M.save();M.globalAlpha=a;M.font='400 30px '+PIX;const lines=wrap(s[3],1060),lh=37;
+    const bw=Math.min(1140,Math.max(...lines.map(l=>M.measureText(l).width))+48),bh=lines.length*lh+48,bx=(W-bw)/2,by=H-bh-14;
     M.fillStyle='rgba(6,8,20,.82)';M.fillRect(bx,by,bw,bh);M.fillStyle=col;M.fillRect(bx,by,bw,4);M.fillRect(bx,by+bh-4,bw,4);M.fillRect(bx,by,4,bh);M.fillRect(bx+bw-4,by,4,bh);
-    M.font='700 22px '+PIX;M.textBaseline='top';M.textAlign='left';M.fillText(name,bx+24,by+14);
-    M.font='400 34px '+PIX;M.fillStyle='#f1e6cf';lines.forEach((l,i)=>M.fillText(l,bx+24,by+42+i*lh));
+    M.font='700 19px '+PIX;M.textBaseline='top';M.textAlign='left';M.fillText(name,bx+18,by+11);
+    M.font='400 30px '+PIX;M.fillStyle='#f1e6cf';lines.forEach((l,i)=>M.fillText(l,bx+18,by+34+i*lh));
     M.restore();break}
 }
 
 /* ---------- overlays drawn at full size ---------- */
 function pixelBox(x,y,w,h,edge,fill){M.fillStyle=fill;M.fillRect(x+6,y,w-12,h);M.fillRect(x,y+6,w,h-12);M.fillStyle=edge;M.fillRect(x+6,y,w-12,6);M.fillRect(x+6,y+h-6,w-12,6);M.fillRect(x,y+6,6,h-12);M.fillRect(x+w-6,y+6,6,h-12)}
 function recapText(tt){
-  const a=Math.min(sm(1,1.4,tt),1-sm(10.6,11,tt));if(a<=0)return;
+  const a=Math.min(sm(.2,.6,tt),1-sm(7.6,8,tt));if(a<=0)return;
   M.save();M.globalAlpha=a;M.textBaseline='top';M.textAlign='left';
   pixelBox(36,32,236,64,'#ffb347','#151c3a');M.font='700 30px '+PIX;M.fillStyle='#ffb347';M.fillText('LAST TIME',62,48);
-  const b=Math.min(sm(6.1,6.6,tt),1-sm(10.5,10.9,tt));
+  const b=Math.min(sm(4.8,5.2,tt),1-sm(7.6,8,tt));
   if(b>0){M.globalAlpha=a*b;const bx=W-36-560,by=32+Math.round((1-b)*-20);pixelBox(bx,by,560,96,'#ffb347','#151c3a');
     M.fillStyle='#ffb347';M.fillRect(bx+20,by+18,60,60);M.fillStyle='#2a1806';M.font='700 46px '+PIX;M.textAlign='center';M.fillText('A',bx+50,by+22);M.textAlign='left';
     M.fillStyle='#aab0cf';M.font='700 20px '+PIX;M.fillText('YOU CHOSE',bx+100,by+18);M.fillStyle='#ffffff';M.font='700 32px '+PIX;M.fillText('Go down into the crypt.',bx+100,by+42)}
   M.restore();
 }
 function titleText(tt){
-  const a=Math.min(sm(13,14.5,tt),1-sm(23.4,24.4,tt));if(a<=0)return;
+  const a=Math.min(sm(8.4,9.1,tt),1-sm(12.2,12.8,tt));if(a<=0)return;
   M.save();M.globalAlpha=a;M.textAlign='center';M.textBaseline='middle';
   M.font='400 30px '+PIX;M.fillStyle='#aab0cf';M.fillText('THE LAMPLIGHTER',W/2,150);
   M.font='700 92px '+PIX;M.fillStyle='#3a1c06';M.fillText('OF ASHENMOOR',W/2+6,226);M.fillStyle='#ffb347';M.fillText('OF ASHENMOOR',W/2,220);
   M.font='700 30px '+PIX;M.fillStyle='#f1e6cf';M.fillText('EPISODE 2: DOWN THE STAIR',W/2,470);
   M.restore();
 }
+// the carving, set on the dark wall right of the plate so it covers no one
 function carvingText(tt){
-  const a=Math.min(sm(103.2,103.8,tt),1-sm(116.4,117.2,tt));if(a<=0)return;
-  M.save();M.globalAlpha=a;M.textAlign='center';M.textBaseline='top';const cx=704;
-  pixelBox(cx-340,400,680,128,'#6a5a40','#1d1a26');
-  M.font='700 36px '+PIX;M.fillStyle='#3a1c06';M.fillText('QUEEN ISOLDE,',cx+3,421);M.fillText('LAST LAMPLIGHTER OF ELDMERE',cx+3,467);
-  M.fillStyle='#ffcc66';M.fillText('QUEEN ISOLDE,',cx,418);M.fillText('LAST LAMPLIGHTER OF ELDMERE',cx,464);
+  const a=Math.min(sm(68,68.6,tt),1-sm(77.8,78.6,tt));if(a<=0)return;
+  M.save();M.globalAlpha=a;M.textAlign='center';M.textBaseline='top';const cx=990;
+  pixelBox(cx-266,282,532,112,'#6a5a40','#1d1a26');
+  M.font='700 30px '+PIX;M.fillStyle='#3a1c06';M.fillText('QUEEN ISOLDE,',cx+3,303);M.fillText('LAST LAMPLIGHTER OF ELDMERE',cx+3,343);
+  M.fillStyle='#ffcc66';M.fillText('QUEEN ISOLDE,',cx,300);M.fillText('LAST LAMPLIGHTER OF ELDMERE',cx,340);
   M.restore();
 }
 // one new character per episode, with its one line tag
 function nameCard(tt){
-  const a=Math.min(sm(127.8,128.4,tt),1-sm(134.4,135,tt));if(a<=0)return;
-  M.save();M.globalAlpha=a;M.textAlign='left';M.textBaseline='top';const x=40+Math.round((1-sm(127.8,128.4,tt))*-30);
+  const a=Math.min(sm(85.8,86.4,tt),1-sm(91.6,92.2,tt));if(a<=0)return;
+  M.save();M.globalAlpha=a;M.textAlign='left';M.textBaseline='top';const x=40+Math.round((1-sm(85.8,86.4,tt))*-30);
   pixelBox(x,36,640,124,'#8fd0ff','#0d1224');
   M.font='700 20px '+PIX;M.fillStyle='#8fd0ff';M.fillText('NEW CHARACTER',x+28,52);
   M.font='700 40px '+PIX;M.fillStyle='#ffffff';M.fillText('BONE-WIGHT SENTRY',x+28,76);
@@ -604,53 +607,53 @@ function nameCard(tt){
   M.restore();
 }
 function choiceScreen(tt){
-  const dim=sm(213,215,tt);M.fillStyle='rgba(6,8,22,'+.8*dim+')';M.fillRect(0,0,W,H);
+  const dim=sm(156.4,157.6,tt);M.fillStyle='rgba(6,8,22,'+.8*dim+')';M.fillRect(0,0,W,H);
   M.save();M.textBaseline='top';M.textAlign='center';
-  const ta=sm(214,215.5,tt);M.globalAlpha=ta;M.font='700 54px '+PIX;M.fillStyle='#3a1c06';M.fillText('WHAT DOES WICK DO?',W/2+4,58);M.fillStyle='#ffb347';M.fillText('WHAT DOES WICK DO?',W/2,54);
-  const opts=[['A','Blast it with a Flare.','Big burst of light. Might scare it off. Might shake the door loose.',222.6],['B','Talk to it.','Safe for now. But Wick would have to tell it who he is, and he does not know yet.',223.3]];
-  opts.forEach((o,i)=>{const k=sm(o[3],o[3]+.35,tt);if(k<=0)return;const bx=70+i*580,by=150+Math.round((1-k)*30),bw=560,bh=300;
-    M.globalAlpha=k;const pulse=tt>225?(Math.floor(tt*2+i)%2?'#ffb347':'#c9822a'):'#ffb347';
+  const ta=sm(157,158,tt);M.globalAlpha=ta;M.font='700 54px '+PIX;M.fillStyle='#3a1c06';M.fillText('WHAT DOES WICK DO?',W/2+4,58);M.fillStyle='#ffb347';M.fillText('WHAT DOES WICK DO?',W/2,54);
+  const opts=[['A','Blast it with a Flare.','Big burst of light. Might scare it off. Might shake the door loose.',165.2],['B','Talk to it.','Safe for now. But Wick would have to tell it who he is, and he does not know yet.',165.7]];
+  opts.forEach((o,i)=>{const k=sm(o[3],o[3]+.35,tt);if(k<=0)return;const bx=70+i*580,by=150+Math.round((1-k)*30),bw=560,bh=270;
+    M.globalAlpha=k;const pulse=tt>167?(Math.floor(tt*2+i)%2?'#ffb347':'#c9822a'):'#ffb347';
     pixelBox(bx,by,bw,bh,pulse,'#151c3a');
     M.fillStyle='#ffb347';M.fillRect(bx+28,by+28,72,72);M.fillStyle='#2a1806';M.font='700 56px '+PIX;M.fillText(o[0],bx+64,by+34);
     M.textAlign='left';M.fillStyle='#ffffff';M.font='700 36px '+PIX;const tl=wrap(o[1],bw-152);tl.forEach((l,j)=>M.fillText(l,bx+124,by+28+j*42));
     const sy=by+Math.max(124,28+tl.length*42+18);M.font='400 28px '+PIX;M.fillStyle='#e9e2d0';wrap(o[2],bw-56).forEach((l,j)=>M.fillText(l,bx+28,sy+j*36));M.textAlign='center'});
-  const fa=sm(231.6,232.4,tt);if(fa>0){M.globalAlpha=fa;M.font='400 28px '+PIX;M.fillStyle='#f1e6cf';M.fillText('Comment A or B',W/2,486)}
+  const fa=sm(169.6,170.2,tt);if(fa>0){M.globalAlpha=fa;M.font='400 28px '+PIX;M.fillStyle='#f1e6cf';M.fillText('Comment A or B',W/2,456)}
   M.restore();
 }
 
 /* ---------- master render ---------- */
 function blackAt(tt){let a=0;
   const dip=(c,w)=>{a=Math.max(a,1-clamp(Math.abs(tt-c)/w,0,1))};
-  if(tt<1)a=1-sm(.2,1,tt);
-  dip(4.3,.12);dip(7.6,.12);dip(11,.4);dip(25,.5);dip(44,.2);dip(49.5,.25);dip(67,.5);dip(80.5,.15);dip(94,.15);dip(99.2,.15);dip(118,.5);dip(181.5,.5);
-  if(tt>240.4)a=Math.max(a,sm(240.4,242.4,tt));return a}
+  if(tt<.3)a=1-sm(0,.3,tt);
+  dip(3,.1);dip(5.5,.1);dip(8,.3);dip(13,.35);dip(26,.15);dip(29.4,.2);dip(43,.35);dip(53.6,.12);dip(60.6,.12);dip(79,.35);dip(131,.35);
+  if(tt>177.2)a=Math.max(a,sm(177.2,178.8,tt));return a}
 function render(tt){
   tt=clamp(tt,0,STORY);
   let shake=0;
-  if(tt<11)sceneRecap(tt);
-  else if(tt<25)sceneTitle(tt-10);
-  else if(tt<67)sceneStair(tt);
-  else if(tt<118)sceneHall(tt);
-  else if(tt<181.5)sceneSentry(tt);
-  else if(tt<213)sceneDoor(tt);
-  else sceneDoor(212.4);
-  if(tt>124.8&&tt<127.6)shake=2;if(tt>150.6&&tt<151.2)shake=5;if(tt>8&&tt<8.9)shake=3;
+  if(tt<8)sceneRecap(tt);
+  else if(tt<13)sceneTitle(tt-6.6);
+  else if(tt<43)sceneStair(tt);
+  else if(tt<79)sceneHall(tt);
+  else if(tt<131)sceneSentry(tt);
+  else if(tt<156.4)sceneDoor(tt);
+  else sceneDoor(156);
+  if(tt>83.2&&tt<85.6)shake=2;if(tt>104.5&&tt<105.1)shake=5;if(tt>5.6&&tt<6.6)shake=3;
   M.setTransform(1,0,0,1,0,0);M.fillStyle='#000';M.fillRect(0,0,W,H);
-  // slow push on the recap clips, and the slow zoom on the Queen's door
+  // slow push on the recap clips, and the slow zoom on the Queen's door (the floor line stays put)
   let z=1,fx=W/2,fy=H/2;
-  if(tt<11){const seg=tt<4.3?1:tt<7.6?4.3:7.6;z=1+.05*clamp((tt-seg)/3.3,0,1)}
-  else if(tt>=181.5){z=lerp(1,1.35,sm(181.5,200,tt));fx=960;fy=560}
+  if(tt<8){const seg=tt<3?0:tt<5.5?3:5.5;z=1+.04*clamp((tt-seg)/2.5,0,1)}
+  else if(tt>=131){z=lerp(1,1.35,sm(131,145,tt));fx=960;fy=528}
   const sw=W/z,sh=H/z,sx=fx-fx/z,sy=fy-fy/z,ox=shake?(Math.floor(tt*30)%2?shake:-shake):0;
   M.drawImage(fb,sx/4,sy/4,sw/4,sh/4,ox,ox?-ox/2:0,W,H);
-  if(tt<11)recapText(tt);
-  if(tt>=11&&tt<25)titleText(tt);
-  if(tt>102&&tt<118)carvingText(tt);
-  if(tt>127&&tt<136)nameCard(tt);
-  if(tt>=213)choiceScreen(tt);
+  if(tt<8)recapText(tt);
+  if(tt>=8&&tt<13)titleText(tt);
+  if(tt>67&&tt<79)carvingText(tt);
+  if(tt>85&&tt<93)nameCard(tt);
+  if(tt>=156.4)choiceScreen(tt);
   // impact frame: one white flash as the sword hits the floor
-  if(tt>=150.6&&tt<151){M.fillStyle='rgba(255,255,255,'+(tt<150.72?1:1-sm(150.72,151,tt))+')';M.fillRect(0,0,W,H)}
+  if(tt>=104.5&&tt<104.9){M.fillStyle='rgba(255,255,255,'+(tt<104.62?1:1-sm(104.62,104.9,tt))+')';M.fillRect(0,0,W,H)}
   const b=blackAt(tt);if(b>0){M.fillStyle='rgba(0,0,0,'+b+')';M.fillRect(0,0,W,H)}
-  if(tt>242.4){const fl=Math.floor(tt*8)%3;M.fillStyle='#ff9a3c';M.fillRect(636,352,8,12);M.fillStyle='#ffd25a';M.fillRect(636+(fl===1?4:0),348,4,4);
+  if(tt>178.8){const fl=Math.floor(tt*8)%3;M.fillStyle='#ff9a3c';M.fillRect(636,352,8,12);M.fillStyle='#ffd25a';M.fillRect(636+(fl===1?4:0),348,4,4);
     const gr=M.createRadialGradient(640,356,0,640,356,60);gr.addColorStop(0,'rgba(255,160,70,.25)');gr.addColorStop(1,'rgba(0,0,0,0)');M.fillStyle=gr;M.fillRect(560,280,160,160)}
   subtitle(tt);
 }
@@ -675,62 +678,62 @@ const NOTE=n=>440*Math.pow(2,(n-69)/12);
 const chime=()=>[76,79,83,88].forEach((n,i)=>tone(NOTE(n),1.2,.03,'sine',i*.1));
 const heart=v=>{tone(58,.35,.5*v,'sine',0,40);tone(NOTE(69),1.4,.05*v,'sine',.05);tone(NOTE(76),1.4,.04*v,'sine',.08)};
 const EVT=[
-  [1,()=>hiss(700,1,.5,.12,'bandpass',0,2200,.05)],
-  [4.3,()=>hiss(900,1,.35,.08,'bandpass',0,2400,.03)],
-  [7.6,()=>hiss(900,1,.35,.08,'bandpass',0,2400,.03)],
-  [8,()=>hiss(110,1,2.2,.4,'lowpass',0,70,.2)],
-  [11.5,()=>tone(NOTE(81),2.2,.07,'sine')],
-  [25.4,()=>hiss(160,1,2,.12,'lowpass',0,90,.4)],
-  [33.2,()=>{for(let i=0;i<6;i++)tone(NOTE(84+[0,3,7,10,7,3][i]),.5,.025,'sine',i*.14)}],
-  [36,()=>{tone(55,8,.07,'sawtooth',0,41);hiss(140,1,8,.1,'lowpass',0,60,2)}],
-  [44.6,()=>tone(NOTE(76),4,.04,'sine',0,NOTE(52))],
-  [48.7,()=>{tone(70,.6,.12,'sine',0,40);hiss(120,1,.8,.2,'lowpass')}],
-  [62,()=>heart(1)],
-  [68.4,chime],[78.4,chime],[96.6,chime],
-  [99.4,()=>tone(NOTE(76),1.6,.05,'sine')],
-  [102.4,()=>[64,68,71,76].forEach((n,i)=>tone(NOTE(n),2.4,.04,'sine',i*.09))],
-  [115,()=>heart(.8)],
-  [124,()=>{tone(NOTE(88),1.6,.05,'sine');tone(NOTE(95),1.2,.025,'sine',.06)}],
-  [124.8,()=>{hiss(140,1,2.8,.32,'lowpass',0,80,.3);for(let i=0;i<10;i++)tone(600+rnd(i)*900,.05,.04,'square',.2+i*.24)}],
-  [128,()=>tone(70,.8,.1,'sawtooth',0,55)],
-  [137,()=>hiss(260,1,1.8,.22,'lowpass',0,60,.4)],
-  [148.5,()=>hiss(3500,4,1.2,.07,'bandpass',0,6000,.4)],
-  [150.6,()=>{tone(52,.9,.6,'sine',0,30);hiss(220,.7,1.3,.6,'lowpass',0,60,.005);hiss(2600,1,.7,.22,'highpass',0,null,.005)}],
-  [151.6,()=>tone(NOTE(88),.4,.03,'sine')],[152.6,()=>tone(NOTE(87),.4,.03,'sine')],
-  [162,()=>[62,66,69,74].forEach((n,i)=>tone(NOTE(n),2.6,.035,'sine',i*.12))],
-  [182.5,()=>[57,64,69].forEach((n,i)=>tone(NOTE(n),2.2,.04,'sine',i*.15))],
-  [222.6,()=>[69,72,76].forEach((n,i)=>tone(NOTE(n),1.2,.06,'triangle',i*.12))],
-  [242.8,()=>tone(NOTE(81),2.5,.06,'sine')]
+  [.3,()=>hiss(700,1,.5,.12,'bandpass',0,2200,.05)],
+  [3,()=>hiss(900,1,.35,.08,'bandpass',0,2400,.03)],
+  [5.5,()=>hiss(900,1,.35,.08,'bandpass',0,2400,.03)],
+  [5.6,()=>hiss(110,1,2,.4,'lowpass',0,70,.2)],
+  [8.1,()=>tone(NOTE(81),2.2,.07,'sine')],
+  [13.3,()=>hiss(160,1,2,.12,'lowpass',0,90,.4)],
+  [18.5,()=>{for(let i=0;i<6;i++)tone(NOTE(84+[0,3,7,10,7,3][i]),.5,.025,'sine',i*.14)}],
+  [20.2,()=>{tone(55,6,.07,'sawtooth',0,41);hiss(140,1,6,.1,'lowpass',0,60,1.5)}],
+  [26.3,()=>tone(NOTE(76),2.8,.04,'sine',0,NOTE(52))],
+  [28.9,()=>{tone(70,.6,.12,'sine',0,40);hiss(120,1,.8,.2,'lowpass')}],
+  [38.8,()=>heart(1)],
+  [44,chime],[52.2,chime],[63.4,chime],
+  [65.4,()=>tone(NOTE(76),1.6,.05,'sine')],
+  [67.8,()=>[64,68,71,76].forEach((n,i)=>tone(NOTE(n),2.4,.04,'sine',i*.09))],
+  [77.6,()=>heart(.8)],
+  [82.6,()=>{tone(NOTE(88),1.6,.05,'sine');tone(NOTE(95),1.2,.025,'sine',.06)}],
+  [83.2,()=>{hiss(140,1,2.4,.32,'lowpass',0,80,.3);for(let i=0;i<9;i++)tone(600+rnd(i)*900,.05,.04,'square',.2+i*.22)}],
+  [86,()=>tone(70,.8,.1,'sawtooth',0,55)],
+  [93.8,()=>hiss(260,1,1.6,.22,'lowpass',0,60,.4)],
+  [102.8,()=>hiss(3500,4,1.2,.07,'bandpass',0,6000,.4)],
+  [104.5,()=>{tone(52,.9,.6,'sine',0,30);hiss(220,.7,1.3,.6,'lowpass',0,60,.005);hiss(2600,1,.7,.22,'highpass',0,null,.005)}],
+  [105.5,()=>tone(NOTE(88),.4,.03,'sine')],[106.4,()=>tone(NOTE(87),.4,.03,'sine')],
+  [113.9,()=>[62,66,69,74].forEach((n,i)=>tone(NOTE(n),2.6,.035,'sine',i*.12))],
+  [131.4,()=>[57,64,69].forEach((n,i)=>tone(NOTE(n),2.2,.04,'sine',i*.15))],
+  [165.2,()=>[69,72,76].forEach((n,i)=>tone(NOTE(n),1.2,.06,'triangle',i*.12))],
+  [179,()=>tone(NOTE(81),2.5,.06,'sine')]
 ];
-for(let i=0;i<7;i++)EVT.push([81.2+i*.54,()=>tone(NOTE(88+i),.15,.03,'sine')]);   // Wick counts the seven heroes
+for(let i=0;i<7;i++)EVT.push([54+i*.45,()=>tone(NOTE(88+i),.15,.03,'sine')]);   // Wick counts the seven heroes
 EVT.sort((a,b)=>a[0]-b[0]);
 // one pattern per scene: [start, step seconds, MIDI notes, volume, wave]
 const MUSIC=[
-  [1,.5,[57,60,64,60],.025,'triangle'],
-  [11,1.6,[69,76,72,71],.035,'sine'],
-  [25,.9,[50,53,57,53],.028,'sine'],
-  [67,.6,[62,65,69,72,60,64,67,71],.028,'sine'],
-  [118,.34,[45,45,46,45,45,45,48,46],.05,'triangle'],
-  [165,.6,[57,60,64,65,57,60,64,62],.03,'sine'],
-  [181.5,1.4,[50,57],.03,'sine'],
-  [213,.38,[57,60,64,67,53,57,60,64],.035,'triangle'],
-  [240,99,[0],0,'sine']
+  [.3,.45,[57,60,64,60],.025,'triangle'],
+  [8,1.2,[69,76,72,71],.035,'sine'],
+  [13,.8,[50,53,57,53],.028,'sine'],
+  [43,.5,[62,65,69,72,60,64,67,71],.028,'sine'],
+  [79,.3,[45,45,46,45,45,45,48,46],.05,'triangle'],
+  [116.8,.5,[57,60,64,65,57,60,64,62],.03,'sine'],
+  [131,1.4,[50,57],.03,'sine'],
+  [156.4,.36,[57,60,64,67,53,57,60,64],.035,'triangle'],
+  [177,99,[0],0,'sine']
 ];
 function musicAt(tt){let m=null;for(const p of MUSIC)if(tt>=p[0])m=p;return m}
-function walkingAt(tt){return (tt>=35&&tt<44)||(tt>=67&&tt<80)||(tt>=93.8&&tt<99.2)||(tt>=118&&tt<124)||(tt>=137&&tt<139.5)||(tt>=146&&tt<148)}
+function walkingAt(tt){return (tt>=19.6&&tt<26)||(tt>=43&&tt<47)||(tt>=49&&tt<53.4)||(tt>=60.6&&tt<65)||(tt>=79&&tt<82.5)||(tt>=93.8&&tt<95.6)||(tt>=100.8&&tt<102.4)}
 function audioUpdate(tt){
   if(!AC)return;const n=now();
-  let wv=tt<11?.2:tt<25?.03:.05;if(tt>240.4)wv=0;windG.gain.setTargetAtTime(playing?wv:0,n,.3);
+  let wv=tt<8?.2:tt<13?.03:.05;if(tt>177.2)wv=0;windG.gain.setTargetAtTime(playing?wv:0,n,.3);
   if(!playing){lastT=tt;return}
   while(evi<EVT.length&&EVT[evi][0]<=tt){if(EVT[evi][0]>lastT-.05)EVT[evi][1]();evi++}
   const m=musicAt(tt);
   if(m&&tt>=nextNote){const i=Math.floor((tt-m[0])/m[1]+1e-6),speak=SUBS.some(s=>tt>=s[0]&&tt<s[1]);
     if(m[3]>0)tone(NOTE(m[2][i%m[2].length]),m[1]*1.6,m[3]*(speak?.6:1),m[4]);nextNote=m[0]+(i+1)*m[1]}
-  if(walkingAt(tt)&&tt>=nextStep){if(tt<35)hiss(900,1,.06,.1,'lowpass');else hiss(1500,1.2,.05,.08,'bandpass');nextStep=tt+.34}
+  if(walkingAt(tt)&&tt>=nextStep){hiss(1500,1.2,.05,.08,'bandpass');nextStep=tt+.3}
   // water dripping somewhere in the crypt
-  if(tt>49.5&&tt<213&&tt>=nextChirp){tone(1500,.12,.02,'sine',0,900);nextChirp=tt+1.8+rnd(Math.floor(tt*3))*3}
+  if(tt>29.4&&tt<156.4&&tt>=nextChirp){tone(1500,.12,.02,'sine',0,900);nextChirp=tt+1.8+rnd(Math.floor(tt*3))*3}
   // the heartbeat behind the door, in time with the lantern
-  if(tt>=184&&tt<213&&tt>=nextBeat){const k=Math.floor((tt-184)/1.4+1e-6),base=184+k*1.4;
+  if(tt>=B0&&tt<156.4&&tt>=nextBeat){const k=Math.floor((tt-B0)/1.4+1e-6),base=B0+k*1.4;
     if(tt-base<.1){tone(55,.25,.3,'sine',0,38);tone(55,.22,.18,'sine',.28,38)}nextBeat=base+1.4}
   lastT=tt;
 }

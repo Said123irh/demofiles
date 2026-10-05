@@ -5,21 +5,21 @@ Series: The Lamplighter of Ashenmoor (English narration)
 **New thing this episode:** the Bone-Wight Sentry (one new character, tag: "The skeleton who still guards a dead queen.")
 **Choice at the end:** A: Blast it with a Flare. B: Talk to it.
 
-**Length:** 4:06 | **Style:** pixel art, warm lantern glow vs dark blue and black stone
+**Length:** 3:02 (tightened from the first 4:06 cut) | **Style:** pixel art, warm lantern glow vs dark blue and black stone
 **Narrator:** calm, a bit mysterious, a bit funny
 **Rules check:** no dice, no meters, 10 second recap, 2 choices, no em dashes.
 **Easter eggs planted:** the stair that vanishes, one scratched out face on the mural, Queen Isolde's name, the flame symbol on the door, "It is... hers.", the golden light behind the door that pulses with Wick's lantern.
 
 Timings below match the finished video (`ashenmoor-episode-2.html`, `ashenmoor-episode-2.mp4`).
 
-### SCENE 1: Recap and title card (0:00 to 0:25)
+### SCENE 1: Recap and title card (0:00 to 0:13)
 *"LAST TIME" tag. Three short clips from Episode 1: the Gloomhounds running away, the glowing key pointing to the chapel, the hidden stair opening. A "YOU CHOSE A: Go down into the crypt." banner. Then the title card flame.*
 
 **NARRATOR:** Last time, Wick, a nervous lamplighter, found a glowing key under the chapel. You voted to go down. So down we go.
 
 *Title: "THE LAMPLIGHTER OF ASHENMOOR", "EPISODE 2: DOWN THE STAIR".*
 
-### SCENE 2: The stair (0:25 to 1:07)
+### SCENE 2: The stair (0:13 to 0:43)
 *Night. The chapel floor, cut away. The hidden stair drops into black. Wick stands at the top, shaking. The key sends sparks down into the dark like a compass.*
 
 **WICK:** (whispering) Okay. Stairs. I love stairs. Stairs are just a hill that goes inside.
@@ -28,7 +28,7 @@ Timings below match the finished video (`ashenmoor-episode-2.html`, `ashenmoor-e
 
 **NARRATOR:** Wick is afraid of one thing more than monsters. Total darkness. And now the only light in the whole crypt is the one in his hand.
 
-*Close on Wick in total black, looking at the lantern.*
+*Close on Wick in total black, framed above the subtitles, looking at the lantern.*
 
 **WICK:** Please do not go out. Please do not go out. I will never complain about the smell of lamp oil again.
 
@@ -36,7 +36,7 @@ Timings below match the finished video (`ashenmoor-episode-2.html`, `ashenmoor-e
 
 **WICK:** ...Thank you. Good lantern.
 
-### SCENE 3: The murals (1:07 to 1:58)
+### SCENE 3: The murals (0:43 to 1:19)
 *A long stone hall. Wick walks past old painted walls. As the lantern passes, the paint wakes up and glows gold.*
 
 *Mural 1: a bright tower with a tiny sun inside it. A crowd of tiny people looking up.*
@@ -47,19 +47,19 @@ Timings below match the finished video (`ashenmoor-episode-2.html`, `ashenmoor-e
 
 **WICK:** Seven heroes... Elder Bram never told me about these. ...Why is that one scratched out?
 
-**NARRATOR:** Some things are scratched out on purpose. Remember that.
+*(The narrator line "Some things are scratched out on purpose. Remember that." was cut for pace. The scratched face stays on screen.)*
 
 *Mural 3, close up: a tall woman in a crown, holding up a small lantern on a stick. Wick lifts his own lantern next to it. They are the same.*
 
 **WICK:** ...That's my lantern.
 
-*The camera tilts down. Under the painting, carved letters glow: "QUEEN ISOLDE, LAST LAMPLIGHTER OF ELDMERE."*
+*Under the painting, carved letters glow: "QUEEN ISOLDE, LAST LAMPLIGHTER OF ELDMERE."*
 
 **WICK:** My lantern is on a wall. In a painting. A hundred years old. ...Okay. Now I am scared in a brand new way.
 
 *The lantern flickers once. Softly. As if it knows the name.*
 
-### SCENE 4: The Sentry (1:58 to 3:01)
+### SCENE 4: The Sentry (1:19 to 2:11)
 *The hall ends at a huge iron door with a flame symbol on it. In front of it lies a heap of rusted armour. Two blue eyes light up inside the helmet. A BONE-WIGHT SENTRY rises out of the floor, a skeleton in cracked Eldmere armour with a long sword. Name card: "BONE-WIGHT SENTRY. The skeleton who still guards a dead queen."*
 
 **SENTRY:** (deep, echoing) HALT. NONE MAY PASS. THE QUEEN'S DOOR IS SEALED.
@@ -78,7 +78,7 @@ Timings below match the finished video (`ashenmoor-episode-2.html`, `ashenmoor-e
 
 **NARRATOR:** Bone-Wights are the old soldiers of Eldmere. They never stopped guarding. They never learned the war was over. And this one has just seen a light it thought it would never see again.
 
-### SCENE 5: The door (3:01 to 3:33)
+### SCENE 5: The door (2:11 to 2:36)
 *Slow zoom on the iron door. The flame symbol glows. A golden light pulses through the gap under the door. Wick's lantern and the key pulse too, and the light behind the door pulses in the exact same rhythm (a double heartbeat, every 1.4 seconds, with a soft thump on the soundtrack).*
 
 **WICK:** (whispering) ...It is glowing at the same speed as my lantern. Why is it doing that?
@@ -89,7 +89,7 @@ Timings below match the finished video (`ashenmoor-episode-2.html`, `ashenmoor-e
 
 **NARRATOR:** The Sentry is confused. And a confused guard with a very big sword is the most dangerous kind.
 
-### SCENE 6: The choice (3:33 to 4:06)
+### SCENE 6: The choice (2:36 to 3:02)
 *Freeze frame on Wick, the Sentry and the door. Big pixel buttons.*
 
 **NARRATOR:** The Sentry will not step aside. The door will not open without a fight, or a very good reason. What does Wick do?

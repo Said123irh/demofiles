@@ -15,7 +15,7 @@ Share this file with Claude Code as the single source of truth for the series.
 - **Episode scripts:** see ashenmoor-episode-1.md and ashenmoor-episode-2.md.
 - **Lore lock and easter egg tracker:** see ashenmoor-lore-and-easter-eggs.md. Plant at least one tie-in per episode and log it there.
 - **Episode 1 status:** finished as a pixel animation (`ashenmoor-episode-1.html`, `ashenmoor-episode-1.mp4`, 3:49) with two thumbnails. See `HANDOFF.md` for how it is built.
-- **Episode 2 status:** finished as a pixel animation (`ashenmoor-episode-2.html`, `ashenmoor-episode-2.mp4`, 4:06). Episode 1 vote winner: A (go down into the crypt). New character: the Bone-Wight Sentry.
+- **Episode 2 status:** finished as a pixel animation (`ashenmoor-episode-2.html`, `ashenmoor-episode-2.mp4`, 3:02). Episode 1 vote winner: A (go down into the crypt). New character: the Bone-Wight Sentry.
 - **Next job:** the creator sends the Episode 3 script (and which option won the Episode 2 vote); build it the same way.
 - **Look decided so far:** Wick is the big-head chibi sprite, normal font (Atkinson Hyperlegible) for subtitles and choice screens, voices shown as subtitles, call to action is "Comment A or B" only.
 

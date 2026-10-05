@@ -16,7 +16,7 @@ Repo `Said123irh/demofiles`, branch `claude/dreamy-brown-1pd2wv` (Episode 1 alon
 | `ashenmoor-episode-1.mp4` | Episode 1 exported, 1280x720, 30 fps, H.264 + AAC, 3:49. |
 | `ashenmoor-episode-2.md` | Episode 2 script, matching the finished video, plus the Episode 3 plan for both choices. |
 | `ashenmoor-episode-2.html` | Episode 2 page, built on the Episode 1 page. Artifact: https://claude.ai/artifact/K3fp2YPWgkcHz72XJrPhCz |
-| `ashenmoor-episode-2.mp4` | Episode 2 exported, 1280x720, 30 fps, H.264 + AAC, 4:06. |
+| `ashenmoor-episode-2.mp4` | Episode 2 exported, 1280x720, 30 fps, H.264 + AAC, 3:02. |
 | `ashenmoor-lore-and-easter-eggs.md` | Crypt lore lock and the easter egg tracker, with where each Episode 2 egg appears. |
 | `wick-sprite-options.html` | The sprite options the creator chose from (option 3, big-head chibi, won). Artifact: https://claude.ai/artifact/92uYeMRbDTrBPF4wa5dtpb |
 | `assets/sprites/sprites.json` | Pixel data and palette for Wick (idle, walk1, walk2), Elder Bram, the Gloomhound and the Bone-Wight Sentry (pile, idle; sword angles for raise and slam). |
@@ -24,6 +24,9 @@ Repo `Said123irh/demofiles`, branch `claude/dreamy-brown-1pd2wv` (Episode 1 alon
 | `tools/export-mp4.js` | Turns an episode page into an MP4. |
 
 ## Decisions the creator has made (keep these)
+
+- **Keep the pace tight.** Episode 2's first cut (4:06) felt stretched; the creator asked for a faster one (now 3:02). Recap plus title about 13 seconds, short gaps between lines, quick walks, cut narration that only repeats what is on screen.
+- **Subtitles never cover a character.** The subtitle box is compact and low (bottom 155 of the 180 pixel rows); frame every shot so characters stand above it (z2 shots use camera y 82 so the ground sits at row 132). Glowing (`EM`) layers such as the murals must not overlap a character, or they draw over them.
 
 - **Wick is the big-head chibi sprite** (14 x 16 pixels, lantern hand at pixel 10,10).
 - **Normal font**, not a pixel font: Atkinson Hyperlegible for subtitles, titles and the choice screen.
@@ -61,7 +64,7 @@ The timeline is written in "story time" (0 to 240, matching the script draft). P
 
 ### How Episode 2 is built (`ashenmoor-episode-2.html`)
 
-Same engine as Episode 1, timings written directly (`story=x=>x`, `LEN=246`). Added on top:
+Same engine as Episode 1, timings written directly (`story=x=>x`, `LEN=182`). Added on top:
 
 - `sentry(x, groundY, t, {rise, sw, drop, eyes, shake, talk})` and `sword()`: the Bone-Wight Sentry. `rise` 0 is the armour heap, 1 is standing. `sw` is the sword angle.
 - `wick()` gained `hop` (jump back) and `kg` (key glow); the lantern stick stretches when `lift` is above 1.
