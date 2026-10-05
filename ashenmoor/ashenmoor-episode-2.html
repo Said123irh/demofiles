@@ -132,9 +132,11 @@ function wick(x,gy,tt,o){
   const px=(rx,w)=>o.flip?sx+WW-rx-(w||1):sx+rx;
   if(o.talk&&Math.floor(tt*8)%2)R(px(8),y+8,1,1,PAL.m);
   // lantern on a stick
-  const lift=o.lift||0,tipY=Math.round(lerp(HY-3,HY-8,lift)),hy=Math.round(lerp(HY,HY-2,lift));
-  R(px(HX),y+hy,1,1,PAL.s);
-  const n=Math.max(3,Math.abs(hy-tipY));for(let k=1;k<=n;k++)R(px(HX+Math.round(3*k/n)),y+Math.round(lerp(hy,tipY,k/n)),1,1,'#7a5530');
+  const lift=o.lift||0,tipY=Math.round(lerp(HY-3,HY-8,lift)),high=lift>1;
+  // held up high, the hand stays under the chin and the stick runs up beside the head, so nothing covers his face
+  const hx=high?11:HX,hy=high?8:Math.round(lerp(HY,HY-2,lift));
+  R(px(hx),y+hy,1,1,PAL.s);
+  const n=Math.max(3,Math.abs(hy-tipY));for(let k=1;k<=n;k++)R(px(high?12+Math.round(k/n):HX+Math.round(3*k/n)),y+Math.round(lerp(hy,tipY,k/n)),1,1,'#7a5530');
   R(px(HX+3,3),y+tipY+1,3,1,'#2e2218');R(px(HX+3),y+tipY+2,1,3,'#2e2218');R(px(HX+5),y+tipY+2,1,3,'#2e2218');R(px(HX+3,3),y+tipY+5,3,1,'#2e2218');
   const fx=px(HX+4),fy=y+tipY+2,b=o.bright==null?1:o.bright,fl=Math.floor(tt*9)%3;
   EM.push(()=>{R(fx,fy+1,1,2,'#ffd25a');R(fx,fy+(fl?1:0),1,1,'#fff6c8');if(b>1.4)R(fx,fy,1,1,'#ffffff')});
