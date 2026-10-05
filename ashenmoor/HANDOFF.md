@@ -25,6 +25,8 @@ Repo `Said123irh/demofiles`, branch `claude/dreamy-brown-1pd2wv` (Episode 1 alon
 
 ## Decisions the creator has made (keep these)
 
+- **Hand-drawn fine-grid sprites (approved look, Oct 2026).** `assets/sprites/sprites-hd.json` holds Wick (idle, walk1, walk2), Elder Bram, the Gloomhound (walk1, walk2), the Bone-Wight Sentry (idle, pile) and Sir Oswin (idle, sleep). One sprite pixel is half a world pixel, so they keep their on-screen size; draw them with a 0.5 scale. Never generate sprites automatically (upscale plus code shading looked worse); new poses are drawn by hand once and added to that file. Episodes 1 and 2 still use the old 1x sprites in `sprites.json`.
+
 - **Keep the pace tight.** Episode 2's first cut (4:06) felt stretched; the creator asked for a faster one (now 3:02). Recap plus title about 13 seconds, short gaps between lines, quick walks, cut narration that only repeats what is on screen.
 - **Subtitles never cover a character.** The subtitle box is compact and low (bottom 155 of the 180 pixel rows); frame every shot so characters stand above it (z2 shots use camera y 82 so the ground sits at row 132). Glowing (`EM`) layers such as the murals must not overlap a character, or they draw over them.
 
