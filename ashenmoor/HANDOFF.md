@@ -89,3 +89,5 @@ It renders the soundtrack offline, draws every frame at 30 fps and encodes with 
 ## Thumbnails
 
 `thumbnails/episode-1-thumbnail-A.png` ("What's down there?") and `-B.png` ("They hate light.") are new pixel scenes drawn for the thumbnail, not frames from the video. They are drawn in `tools/thumbnails.html` (bigger pixels, x16) with the Anton font in `assets/fonts/`. Edit the scenes or text there, then run `node ashenmoor/tools/render-thumbnails.js`.
+
+Episode 2 thumbnails: `thumbnails/episode-2-thumbnail-A.png` ("NONE MAY PASS." with a "FIGHT OR TALK?" badge, the Sentry over Wick) and `-B.png` ("THAT'S MY LANTERN?!", Wick beside the Queen's portrait). They are drawn in `tools/thumbnails-ep2.html`; render with `node ashenmoor/tools/render-thumbnails.js thumbnails-ep2.html 2`. For a new episode, copy that page and pass its number.

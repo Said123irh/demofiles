@@ -1,0 +1,111 @@
+<title>Ashenmoor Episode 2 Thumbnails</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&display=swap">
+<style>
+:root{color-scheme:dark;--bg:#0b1024}
+body{background:var(--bg);margin:0;padding-block:16px;padding-inline:16px;display:flex;flex-direction:column;gap:16px}
+canvas{display:block;width:100%;max-width:1280px;height:auto;aspect-ratio:16/9}
+</style>
+<canvas id="t1" width="1280" height="720"></canvas>
+<canvas id="t2" width="1280" height="720"></canvas>
+<script>
+// Sprite data is pasted from assets/sprites/sprites.json by the build step (window.SPRITES).
+(function(){
+const S=window.SPRITES,PAL=S.palette,W=1280,H=720,BW=80,BH=45,K=16;
+const rnd=s=>{const v=Math.sin(s*127.1+311.7)*43758.5453;return v-Math.floor(v)};
+function mk(rows){const c=document.createElement('canvas');c.width=Math.max(...rows.map(r=>r.length));c.height=rows.length;const x=c.getContext('2d');
+  rows.forEach((r,j)=>{for(let i=0;i<r.length;i++){const col=PAL[r[i]];if(col){x.fillStyle=col;x.fillRect(i,j,1,1)}}});return c}
+const WICK=mk(S.wick.frames.idle),HOUND=mk(S.gloomhound.frames.walk1);
+function buffer(){const c=document.createElement('canvas');c.width=BW;c.height=BH;const g=c.getContext('2d');g.imageSmoothingEnabled=false;return [c,g]}
+const R=(g,x,y,w,h,c)=>{g.fillStyle=c;g.fillRect(x,y,w,h)};
+function spr(g,c,x,y,flip){if(flip){g.save();g.translate(x+c.width,y);g.scale(-1,1);g.drawImage(c,0,0);g.restore()}else g.drawImage(c,x,y)}
+// Wick with his lantern raised; returns the flame position in buffer pixels
+function wick(g,x,gy,flip){
+  const y=gy-16,px=(rx,w)=>flip?x+14-rx-(w||1):x+rx;spr(g,WICK,x,y,flip);
+  R(g,px(10),y+8,1,1,PAL.s);[[11,6],[12,4],[13,2]].forEach(([a,b])=>R(g,px(a),y+b,1,1,'#7a5530'));
+  R(g,px(13,3),y+3,3,1,'#2e2218');R(g,px(13),y+4,1,3,'#2e2218');R(g,px(15),y+4,1,3,'#2e2218');R(g,px(13,3),y+7,3,1,'#2e2218');
+  return [px(14),y+4];
+}
+// darkness with soft stepped holes for lights, then additive glow
+function lightUp(g,dark,lights){
+  const [lc,lg]=buffer();lg.fillStyle='rgba(4,6,20,'+dark+')';lg.fillRect(0,0,BW,BH);lg.globalCompositeOperation='destination-out';
+  for(const [x,y,r,s] of lights){const gr=lg.createRadialGradient(x,y,0,x,y,r);gr.addColorStop(0,'rgba(0,0,0,'+s+')');gr.addColorStop(.5,'rgba(0,0,0,'+s*.55+')');gr.addColorStop(1,'rgba(0,0,0,0)');lg.fillStyle=gr;lg.fillRect(x-r,y-r,r*2,r*2)}
+  const id=lg.getImageData(0,0,BW,BH),d=id.data;for(let i=3;i<d.length;i+=4)d[i]=Math.round(d[i]/42)*42;lg.putImageData(id,0,0);
+  g.drawImage(lc,0,0);
+}
+function glow(m,x,y,r,col,a){const gr=m.createRadialGradient(x,y,0,x,y,r);gr.addColorStop(0,'rgba('+col+','+a+')');gr.addColorStop(1,'rgba('+col+',0)');m.fillStyle=gr;m.fillRect(x-r,y-r,r*2,r*2)}
+function flame(g,x,y){R(g,x,y+1,1,2,'#ffd25a');R(g,x,y,1,1,'#fff6c8')}
+// big outlined headline text
+function headline(m,lines,x,y,size,align){
+  m.save();m.textAlign=align||'left';m.textBaseline='top';m.lineJoin='round';
+  lines.forEach((ln,i)=>{let cx=x;const yy=y+i*size*1.02;m.font=size+'px Anton, Impact, sans-serif';
+    const total=ln.reduce((a,[t])=>a+m.measureText(t).width,0);if(align==='right')cx=x-total;else if(align==='center')cx=x-total/2;m.textAlign='left';
+    for(const [t,col] of ln){m.lineWidth=size*.16;m.strokeStyle='#05060f';m.strokeText(t,cx,yy);m.fillStyle=col;m.fillText(t,cx,yy);cx+=m.measureText(t).width}});
+  m.restore();
+}
+function badge(m,text,x,y,size,bg,fg){m.save();m.font=size+'px Anton, Impact, sans-serif';const w=m.measureText(text).width+size*.9,h=size*1.35;
+  m.translate(x,y);m.rotate(-.05);m.fillStyle='#05060f';m.fillRect(6,8,w,h);m.fillStyle=bg;m.fillRect(0,0,w,h);m.fillStyle=fg;m.textBaseline='middle';m.fillText(text,size*.45,h/2+2);m.restore()}
+
+// Wick with the stick held beside his head (never across his face). up = how many pixels higher the lantern is raised.
+function wick2(g,x,gy,up){
+  const y=gy-16;spr(g,WICK,x,y,false);
+  R(g,x+11,y+8,1,1,PAL.s);for(let j=y+7;j>=y+3-up;j--)R(g,x+12,j,1,1,'#7a5530');R(g,x+13,y+2-up,1,1,'#7a5530');
+  const t=y+3-up;R(g,x+13,t,3,1,'#2e2218');R(g,x+13,t+1,1,3,'#2e2218');R(g,x+15,t+1,1,3,'#2e2218');R(g,x+13,t+4,3,1,'#2e2218');
+  return [x+14,t+1];
+}
+const SEN=mk(S.sentry.frames.idle);
+function sword(g,hx,hy,a){const ca=Math.cos(a),sa=Math.sin(a),P=(px,py,c)=>R(g,Math.round(px),Math.round(py),1,1,c);
+  for(let k=1;k<=15;k++){const px=hx+k*ca,py=hy+k*sa;if(k<=2)P(px,py,'#4a3020');else if(k===3){P(px,py,'#7a6a5a');P(px-sa,py+ca,'#7a6a5a');P(px+sa,py-ca,'#7a6a5a')}else P(px,py,k===15?'#e0e4ec':'#a8aebc')}}
+function stoneWall(g,top,bot){R(g,0,top,BW,bot-top,'#1c2238');for(let j=top;j<bot;j+=6){R(g,0,j,BW,1,'#141a2c');for(let i=((j-top)/6)%2?6:0;i<BW;i+=12)R(g,i,j,1,6,'#141a2c')}}
+// Queen Isolde's mural, the same painting as in the episode, in its lantern-lit gold
+function queenMural(){const c=document.createElement('canvas');c.width=48;c.height=32;const x=c.getContext('2d'),P=(a,b,w,h,col)=>{x.fillStyle=col;x.fillRect(a,b,w,h)};
+  P(0,0,48,32,'#1a2448');[[4,4],[9,19],[40,6],[44,22],[34,2],[6,27]].forEach(([a,b])=>P(a,b,1,1,'#c8d0f0'));
+  for(let r=10;r<32;r++){const w=2+Math.floor((r-10)*.45);P(26-w,r,w*2,1,'#5a4a9a');P(25,r,2,1,'#7a6ab8')}
+  P(24,6,4,4,'#e0b090');P(23,5,6,1,'#4a2a20');P(23,6,1,6,'#4a2a20');P(28,6,1,6,'#4a2a20');
+  P(23,4,6,1,'#ffcc44');P(23,3,1,1,'#ffcc44');P(25,2,2,2,'#ffcc44');P(28,3,1,1,'#ffcc44');
+  P(22,12,1,1,'#e0b090');P(21,13,1,1,'#e0b090');P(20,14,1,1,'#e0b090');
+  [[19,13],[18,12],[17,11],[16,10]].forEach(([a,b])=>P(a,b,1,1,'#7a5530'));
+  P(13,11,3,1,'#2e2218');P(13,12,1,3,'#2e2218');P(15,12,1,3,'#2e2218');P(13,15,3,1,'#2e2218');P(14,12,1,3,'#ffd25a');P(14,13,1,1,'#fff2b8');
+  P(0,30,48,2,'#2a2a3a');
+  const id=x.getImageData(0,0,48,32),d=id.data;for(let k=0;k<d.length;k+=4){d[k]=Math.min(255,d[k]*1.25+22);d[k+1]=Math.min(255,d[k+1]*1.1+12);d[k+2]=d[k+2]*.8}x.putImageData(id,0,0);return c}
+
+/* Thumbnail A: the Bone-Wight Sentry raises its sword over Wick at the Queen's door */
+function thumb1(){
+  const [c,g]=buffer();
+  stoneWall(g,0,40);R(g,0,40,BW,5,'#2a2c3a');R(g,0,40,BW,1,'#3c3e50');
+  R(g,56,8,24,32,'#2c2c40');R(g,59,12,21,28,'#38343f');R(g,59,20,21,1,'#28242e');R(g,59,31,21,1,'#28242e');   // the iron door
+  const FL=["..o..",".oo..",".ooo.","ooooo","oo.oo",".ooo."];
+  const sx=46,sy=17;g.drawImage(SEN,sx,sy);sword(g,sx+1,sy+13,4.4);
+  const [fx,fy]=wick2(g,12,41,0);R(g,10,32,3,1,'#8a5a32');
+  lightUp(g,.8,[[fx+.5,fy+2,26,1],[sx+4.5,sy+4,14,.7],[sx+8,sy+15,16,.75],[70,39,10,.6]]);
+  FL.forEach((row,j)=>{for(let i=0;i<5;i++)if(row[i]==='o')R(g,67+i,14+j,1,1,j>=2&&j<=4&&i>=1&&i<=3?'#fff2b8':'#ffb347')});
+  R(g,60,39,19,1,'#ffd27a');
+  flame(g,fx,fy);R(g,10,32,1,1,'#ff9a3c');
+  R(g,sx+3,sy+4,1,1,'#e6f6ff');R(g,sx+6,sy+4,1,1,'#e6f6ff');
+  const m=document.getElementById('t1').getContext('2d');m.imageSmoothingEnabled=false;m.drawImage(c,0,0,W,H);
+  m.globalCompositeOperation='lighter';glow(m,(fx+.5)*K,(fy+2)*K,300,'255,160,70',.38);glow(m,(sx+4.5)*K,(sy+4)*K,150,'110,200,255',.6);glow(m,69*K,39*K,220,'255,200,90',.3);m.globalCompositeOperation='source-over';
+  const v=m.createRadialGradient(W/2,H/2,H*.3,W/2,H/2,H*.95);v.addColorStop(0,'rgba(0,0,0,0)');v.addColorStop(1,'rgba(0,0,0,.6)');m.fillStyle=v;m.fillRect(0,0,W,H);
+  headline(m,[[["NONE MAY",'#ffffff']],[["PASS.",'#ffb347']]],44,30,160,'left');
+  badge(m,'FIGHT OR TALK?',56,372,50,'#8fd0ff','#06101c');
+}
+
+/* Thumbnail B: Wick holds his lantern up beside the Queen's painted one. They match. */
+function thumb2(){
+  const [c,g]=buffer();
+  stoneWall(g,0,34);R(g,0,34,BW,11,'#2a2c3a');R(g,0,34,BW,1,'#3c3e50');
+  R(g,27,0,50,34,'#2a2434');
+  const [fx,fy]=wick2(g,8,34,7);
+  lightUp(g,.82,[[fx+.5,fy+2,24,1],[52,16,30,.5]]);
+  g.drawImage(queenMural(),28,1);                            // the painting glows, so it sits above the dark
+  flame(g,fx,fy);
+  const m=document.getElementById('t2').getContext('2d');m.imageSmoothingEnabled=false;m.drawImage(c,0,0,W,H);
+  m.globalCompositeOperation='lighter';glow(m,(fx+.5)*K,(fy+2)*K,260,'255,160,70',.42);glow(m,42.5*K,14*K,200,'255,200,90',.4);m.globalCompositeOperation='source-over';
+  // a dotted link between the two lanterns
+  m.fillStyle='#ffe9a0';for(let i=1;i<6;i++){const k=i/6;m.fillRect(Math.round(lerp((fx+2)*K,40*K,k))-6,Math.round(lerp((fy+1)*K,13.5*K,k))-6,12,12)}
+  const v=m.createRadialGradient(W/2,H*.4,H*.3,W/2,H/2,H*.95);v.addColorStop(0,'rgba(0,0,0,0)');v.addColorStop(1,'rgba(0,0,0,.6)');m.fillStyle=v;m.fillRect(0,0,W,H);
+  headline(m,[[["THAT'S ",'#ffffff'],["MY LANTERN",'#ffb347'],["?!",'#ffffff']]],W/2,560,124,'center');
+}
+const lerp=(a,b,k)=>a+(b-a)*k;
+const go=()=>{thumb1();thumb2();window.__done=true};
+(document.fonts?document.fonts.load('150px Anton').then(go,go):go());
+})();
+</script>
