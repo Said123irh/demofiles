@@ -31,7 +31,7 @@ Where the Episode 2 eggs are in the finished video: the dark closes behind Wick 
 ### Episode 3
 | Ep | Egg | Possible payoff |
 |---|---|---|
-| 3 | Gloomhound that did not run: "The key went home. Something wanted it to." (paid off, 1:14) | Who sent the hound is still open. |
+| 3 | Gloomhound that did not run: "The key must have guided the hound to the lamp." (paid off, 1:14) | Who sent the hound is still open. |
 | 3 | The heartbeat is now in the door and in the gold ring at Oswin's hands, speeding up as the lantern comes close (2:18) | The light, the door and Oswin are all tied to the Queen. |
 | 3 | White moth in the sealed room, slips into a crack (1:51 to 2:13) | The Pale Warden's Moth. Something sad is coming. |
 | 3 | "She said to wait for the warm one." (2:55) | The Queen planned for Wick's lantern to come back. |

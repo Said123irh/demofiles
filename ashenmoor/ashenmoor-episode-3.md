@@ -62,7 +62,7 @@
 
 *The Sentry goes still. Long beat.*
 
-**SENTRY:** ...The key went home. Something wanted it to.
+**SENTRY:** ...The key must have guided the hound to the lamp.
 
 **NARRATOR:** Gloomhounds hate light. Yet one had carried a key straight toward it. Strange.
 
@@ -70,7 +70,7 @@
 
 ### SCENE 3: THE DOOR OPENS (1:24 to 1:51)
 
-*The Sentry steps aside, one stiff step. His knees creak very loudly (funny sound). Quick cut: Wick looks down at the knees.*
+*The Sentry steps aside, two stiff steps. His knees creak very loudly (funny sound). No close-up: the moment stays in the wide shot.*
 
 **WICK:** Is that your knee?
 
@@ -158,7 +158,7 @@
 
 **WICK:** Queen Isolde? The one on the wall out there, with the lantern like mine?
 
-*Oswin swings his legs off the bier. A thin chain of pale light snaps tight around his ankle and yanks him back down. He sighs.*
+*Oswin swings off the bier and takes a step toward Wick. A chain of pale light flashes tight from a cuff at his ankle to an iron ring on the bier, and drags him back onto the stone. The chain stays clearly visible, running along the bier, for the rest of the scene. He sighs.*
 
 **OSWIN:** Ah. Yes. The oath. I swore to guard this door until the Queen's light came home. The light is here. The oath still holds me. Oaths are rude like that.
 

@@ -557,9 +557,15 @@ function room(tt,o){
   R(-20,148,360,40,'#262838');R(-20,148,360,1,'#363a4c');for(let i=-20;i<340;i+=10)R(i+Math.floor(rnd(i)*3),151,1,30,'#20222f');
   R(140,138,48,10,'#4a4656');R(138,136,52,3,'#5c586a');R(138,136,52,1,'#6e6a7e');R(142,146,4,2,'#2a2834');R(182,146,4,2,'#2a2834');R(160,141,8,3,'#3a3644');
 }
-// a chain of pale light from his ankle to the bier
-function chain(fx,fy,ax,ay,b){const n=Math.ceil(Math.hypot(ax-fx,ay-fy)*2);EM.push(()=>{g.globalAlpha=Math.min(1,.55+.45*b);for(let i=0;i<=n;i++){const k=i/n;RH(lerp(fx,ax,k),lerp(fy,ay,k),.5,.5,i%2?'#bfe6ff':'#ffffff')}g.globalAlpha=1});
-  light((fx+ax)/2,(fy+ay)/2,8+8*b,.3+.3*b,true)}
+// the oath chain: a cuff of light at his ankle, chunky links through any bend points, an iron ring on the bier
+function chain(pts,b,tt){
+  EM.push(()=>{g.globalAlpha=Math.min(1,.7+.3*b);let li=0;
+    for(let s=0;s<pts.length-1;s++){const [ax,ay]=pts[s],[bx,by]=pts[s+1],n=Math.max(1,Math.ceil(Math.hypot(bx-ax,by-ay)));
+      for(let i=0;i<n;i++,li++){const k=i/n,x=lerp(ax,bx,k),y=lerp(ay,by,k),shine=Math.floor(tt*12-li)%6===0;
+        if(li%2){RH(x-.5,y-.5,1,1,shine?'#ffffff':'#bfe6ff');RH(x,y,.5,.5,'#2a4a74')}else RH(x-.25,y-.25,.5,.5,'#e8f6ff')}}
+    const [fx,fy]=pts[0];RH(fx-1,fy-.5,2,1.5,'#ffffff');RH(fx-.5,fy,1,.5,'#9cc8e4');g.globalAlpha=1});
+  const e=pts[pts.length-1];R(e[0]-1,e[1]-1,2,2,'#5a5462');RH(e[0]-.5,e[1]-.5,1,1,'#2a2834');
+  for(const p of pts)light(p[0],p[1],7+6*b,.25+.25*b,true)}
 
 /* ---------- Scene 1: last time (0 to 10.4), then the title (10.4 to 13) ---------- */
 let NOTALK=false;
@@ -589,8 +595,7 @@ function sceneHello(tt){
 function sentryX3(tt){if(tt<84.4)return 266;if(tt<85.2)return lerp(266,300,sm(84.4,85.2,tt));if(tt<85.6)return 300;if(tt<86.4)return lerp(300,342,sm(85.6,86.4,tt));
   if(tt<104.4)return 342;if(tt<108)return lerp(342,318,(tt-104.4)/3.6);return 318}
 function sceneDoorOpen(tt){
-  begin();const knees=tt>=86.4&&tt<92;
-  if(knees)cam(326,128,4);else cam(200,86,2);
+  begin();cam(200,86,2);
   const bt=beatP(tt,13,1.4),open=sm(92.8,95.2,tt);
   if(open>0){hall(tt,{m:[1,1,1],door:{}});openDoor(open,bt);
     if(tt<97.5)for(let i=0;i<14;i++){const dy=((tt-92.8)*14+i*7)%46,dx=298+rnd(i+70)*36;R(dx,98+dy,1,1,'#8a8090')}}
@@ -627,10 +632,13 @@ function sceneRoom(tt){
 function sceneWake(tt){
   begin();cam(56,88,2);
   const bt=beatP(tt,13,1.4);room(tt,{pulse:bt});
-  let pose='sit',ox=148,oy=136,shake=tt<142.4||(tt>=187.2&&tt<187.6);
-  if(tt>=186.2&&tt<187.2){pose='stand';ox=170;oy=GY}            // he swings his legs off the bier...
-  const O=oswin(ox,oy,tt,{pose,shake,eyes:tt<171.4?1:lerp(1,.55,sm(171.4,172.4,tt))});
-  if(tt>=186.2){const cb=tt>=203.8?1+.6*bt:(tt<187.6?1:.5);chain(O.foot[0],O.foot[1],pose==='stand'?188:139.5,141,cb)}   // ...and the oath yanks him back
+  // he swings off the bier toward Wick, the chain snaps tight at his ankle and drags him back onto the stone
+  let pose='sit',ox=148,oy=136,shake=tt<142.4||(tt>=187.5&&tt<187.9);
+  if(tt>=186.2&&tt<187.5){pose='stand';oy=GY;ox=tt<186.6?lerp(146,130,sm(186.2,186.6,tt)):tt<187.1?130:lerp(130,142,sm(187.1,187.5,tt))}
+  const O=oswin(ox,oy,tt,{pose,shake:shake||(tt>=187.1&&tt<187.5),eyes:tt<171.4?1:lerp(1,.55,sm(171.4,172.4,tt))});
+  if(tt>=186.6){const snap=tt<187.5?1.6:(tt>=203.8?1+.6*bt:.8),ring=[186,136];
+    const pts=pose==='stand'?[O.foot,[138.5,137],ring]:[O.foot,ring];chain(pts,snap,tt);
+    if(tt>=186.9&&tt<187.2)EM.push(()=>{g.globalAlpha=1-sm(186.9,187.2,tt);RH(O.foot[0]-3,O.foot[1]-3,6,6,'#e8f6ff');g.globalAlpha=1})}
   const salute=tt>=154&&tt<156,slip=sm(154.3,154.6,tt);
   sentry(tt<204.2?76:lerp(76,84,sm(204.2,204.8,tt)),GY,tt,{rise:1,flip:true,eyes:1,slip,noSword:!salute,sw:-Math.PI/2,talk:talking('S',tt),shake:salute&&tt<154.3});
   const jump=tt<142.5?sm(142,142.5,tt):1,wx=tt<203.8?lerp(124,112,jump):lerp(112,118,sm(203.8,204.4,tt));
@@ -663,7 +671,7 @@ const SUBS=[
   [64.8,67.0,'W','A Gloomhound gave me this.'],
   [67.3,68.8,'S','A hound.'],
   [69.1,72.8,'W','It dropped it and walked away. Very politely, for a hound.'],
-  [74.4,77.8,'S','...The key went home. Something wanted it to.'],
+  [74.4,77.8,'S','...The key must have guided the hound to the lamp.'],
   [78.2,83.4,'N','Gloomhounds hate light. Yet one had carried a key straight toward it. Strange.'],
   [86.6,88.0,'W','Is that your knee?'],
   [88.2,90.8,'S','A hundred years of standing, Lamplighter.'],
@@ -769,7 +777,7 @@ function choiceScreen(tt){
 function blackAt(tt){let a=0;
   const dip=(c,w)=>{a=Math.max(a,1-clamp(Math.abs(tt-c)/w,0,1))};
   if(tt<.3)a=1-sm(0,.3,tt);
-  dip(3.4,.1);dip(6.6,.1);dip(10.4,.3);dip(13,.35);dip(24.6,.1);dip(27.6,.1);dip(84,.3);dip(86.4,.1);dip(92,.1);dip(111,.4);
+  dip(3.4,.1);dip(6.6,.1);dip(10.4,.3);dip(13,.35);dip(24.6,.1);dip(27.6,.1);dip(84,.3);dip(111,.4);
   if(tt>226.4)a=Math.max(a,sm(226.4,228,tt));return a}
 function render(tt){
   tt=clamp(tt,0,STORY);
