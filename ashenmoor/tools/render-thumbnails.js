@@ -2,7 +2,8 @@
 // Usage: node render-thumbnails.js [page, default thumbnails.html] [episode, default 1]
 const PAGE=process.argv[2]||'thumbnails.html',EP=process.argv[3]||'1';
 const {chromium}=require('playwright');const fs=require('fs');
-(async()=>{const b=await chromium.launch({executablePath:process.env.CHROMIUM_PATH||'/opt/pw-browsers/chromium-1194/chrome-linux/chrome'});
+(async()=>{const exe=process.env.CHROMIUM_PATH||(fs.existsSync('/opt/pw-browsers/chromium-1194/chrome-linux/chrome')?'/opt/pw-browsers/chromium-1194/chrome-linux/chrome':undefined);
+const b=await chromium.launch(exe?{executablePath:exe}:{});
 const p=await (await b.newContext({ignoreHTTPSErrors:true,viewport:{width:1400,height:1600}})).newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));
 const sp=fs.readFileSync(''+__dirname+'/../assets/sprites/sprites.json','utf8');
 const sphd=fs.readFileSync(''+__dirname+'/../assets/sprites/sprites-hd.json','utf8');
